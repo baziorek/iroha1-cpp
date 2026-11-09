@@ -35,35 +35,28 @@ esac
 ## Every time clean build of vcpkgtool takes 43 seconds on MacBook 2016 i7 2.8GHz
 ##                                 and takes 3 minutes on default GitHub runner
 ## ToDo try reuse existing vcpkg_tool
-case $(uname | tr '[:upper:]' '[:lower:]') in
-   windows*|msys*|mingw*)
-      bootstrap(){
-         $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics
-      }
-      # MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
-      BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
-      INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
-      ;;
-   *)
-      bootstrap(){
-         $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries
-      }
-      ;;
-   quick-alternative)
-      ## TODO: Do not use `bootstrap` because it is slow and old and has too much logic overhead
-      bootstrap()(
-         vcpkg_tool_path=$vcpkg_path/vcpkg-tool
-         VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9  #2021-02-24-d67989bce1043b98092ac45996a8230a059a2d7e #
-         git -C $vcpkg_tool_path fetch origin ||
-            git clone https://github.com/microsoft/vcpkg-tool.git $vcpkg_tool_path
-         cd $vcpkg_tool_path
-         git -c advice.detachedHead=false checkout $VCPKG_TOOL_REF
-         cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -GNinja -DBUILD_TESTING=OFF -DVCPKG_DEVELOPMENT_WARNINGS=OFF -DRULE_LAUNCH_COMPILE=ccache
-         cmake --build build
-         cp build/vcpkg $vcpkg_path/vcpkg
-      )
-      ;;
-esac
+
+# Forced quick-alternative bootstrap with cstdint fix for modern compilers
+bootstrap()(
+   vcpkg_tool_path=$vcpkg_path/vcpkg-tool
+   VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9
+   git -C $vcpkg_tool_path fetch origin ||
+      git clone https://github.com/microsoft/vcpkg-tool.git $vcpkg_tool_path
+   cd $vcpkg_tool_path
+   git -c advice.detachedHead=false checkout -f $VCPKG_TOOL_REF
+
+   # Fix missing #include <cstdint> for std::uint64_t on modern g++
+   if [ -f include/vcpkg/base/strings.h ]; then
+      if ! grep -q '#include <cstdint>' include/vcpkg/base/strings.h; then
+         sed -i '/#include <inttypes.h>/a #include <cstdint>' include/vcpkg/base/strings.h
+         echo "Applied cstdint fix to strings.h"
+      fi
+   fi
+
+   cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -GNinja -DBUILD_TESTING=OFF -DVCPKG_DEVELOPMENT_WARNINGS=OFF
+   cmake --build build -j$(nproc)
+   cp build/vcpkg $vcpkg_path/vcpkg
+)
 
 bootstrap
 
