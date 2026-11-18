@@ -25,7 +25,7 @@ jobs:
   ## This job checks if PRs is from fork
   ## Also checks that .github folder, Dockerfiles and scripts in docker directory are not changed
   check_if_pull_request_comes_from_fork:
-    runs-on: ubuntu-20.04 #ubuntu-latest
+    runs-on: ubuntu-22.04 #ubuntu-latest
     permissions: read-all
     name: Pull requests from forks should use this workflow
     if: github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -86,7 +86,7 @@ jobs:
   ## - on schedule '/build all'
   generate_matrixes:
     environment: test-env
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions: read-all
     needs: check_if_pull_request_comes_from_fork
     steps:
@@ -181,7 +181,7 @@ jobs:
   Docker-iroha-builder:
     environment: test-env
     needs: check_if_pull_request_comes_from_fork
-    runs-on: ubuntu-20.04 #ubuntu-latest #[ self-hosted, Linux ]
+    runs-on: ubuntu-22.04 #ubuntu-latest #[ self-hosted, Linux ]
     steps:
       - *step_show_context
       - &step_system_info
@@ -329,7 +329,7 @@ jobs:
     needs:
       - Docker-iroha-builder
       - generate_matrixes
-    runs-on: [ self-hosted, Linux, iroha ]
+    runs-on: ubuntu-22.04
     permissions: read-all
     container: ## Container is taken from previous job
       image: &container_image ${{needs.Docker-iroha-builder.outputs.container}}
@@ -751,7 +751,7 @@ jobs:
     needs:
       - build-UR
       - generate_matrixes
-    runs-on: [ self-hosted, Linux, iroha ] #ubuntu-latest
+    runs-on: ubuntu-22.04 #ubuntu-latest
     # strategy: *strategy_ubuntu_release
     # if: *if_ubuntu_release
     strategy:
