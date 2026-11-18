@@ -299,6 +299,7 @@ jobs:
       - uses: docker/build-push-action@v2
         id: build_and_push_ghcr
         name: Build and push to GHCR
+        if: ${{ false }} ## GHCR push disabled: GITHUB_TOKEN cannot create packages in user namespace
         with:
           context: docker/iroha-builder/
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -488,21 +489,21 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc10 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Upload artifact irohad
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: |
             build/bin/irohad
             build/bin/iroha-cli
       - name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: |
             build/*.deb
       - if: ${{ false }} ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -767,21 +768,21 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc10 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Upload artifact irohad
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: |
             build/bin/irohad
             build/bin/iroha-cli
       - name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: |
             build/*.deb
       - if: ${{ false }} ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -1068,7 +1069,7 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc10 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Upload artifact irohad
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: irohad-macos${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -1076,7 +1077,7 @@ jobs:
             build/bin/iroha-cli
       - if: ${{ false }} ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -1299,7 +1300,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_release ) }}
-    if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_release ).include[0] }}
+    if: ${{ false && ( fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_release ).include[0] ) }}
     env:
       IMAGE_NAME: iroha
     steps:
@@ -1370,7 +1371,7 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc10 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs
@@ -1453,6 +1454,7 @@ jobs:
       - uses: docker/build-push-action@v2
         id: build_and_push_ghcr
         name: Build and push to GHCR
+        if: ${{ false }} ## GHCR push disabled: GITHUB_TOKEN cannot create packages in user namespace
         with:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -1539,7 +1541,7 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc10 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs
@@ -1622,6 +1624,7 @@ jobs:
       - uses: docker/build-push-action@v2
         id: build_and_push_ghcr
         name: Build and push to GHCR
+        if: ${{ false }} ## GHCR push disabled: GITHUB_TOKEN cannot create packages in user namespace
         with:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -1642,4 +1645,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_debug ) }}
-    if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_debug ).include[0] }}
+    if: ${{ false && ( fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_debug ).include[0] ) }}

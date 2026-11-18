@@ -379,6 +379,7 @@ jobs:
         <<: *step_docker_build_and_push
         id: build_and_push_ghcr
         name: Build and push to GHCR
+        if: ${{ false }}  ## GHCR push disabled: GITHUB_TOKEN cannot create packages in user namespace
         with: &step_docker_build_and_push_ghcr-with
           <<: *step_docker_build_and_push_with
           push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo == github.event.pull_request.base.repo }}
@@ -557,7 +558,7 @@ jobs:
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - &step_artifact_irohad
         name: Upload artifact irohad
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: &step_artifact_irohad_path |
@@ -565,7 +566,7 @@ jobs:
             build/bin/iroha-cli
       - &step_artifact_iroha_deb
         name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: &step_artifact_iroha_deb_path |
@@ -573,7 +574,7 @@ jobs:
       - &step_artifact_tests
         if: ${{ false }}  ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -838,7 +839,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_release ) }}
-    if:       ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_release ).include[0] }}
+    if:       ${{ false && ( fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_release ).include[0] ) }}
     env: &env_dockerhub_release
       <<: *env_dockerhub
       IMAGE_NAME: iroha
@@ -851,7 +852,7 @@ jobs:
       - *step_checkout
       - *step_artifact_suffix
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs
@@ -908,4 +909,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_debug ) }}
-    if:       ${{ fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_debug ).include[0] }}
+    if:       ${{ false && ( fromJSON( needs.generate_matrixes.outputs.matrix_dockerimage_debug ).include[0] ) }}
