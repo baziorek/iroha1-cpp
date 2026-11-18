@@ -266,6 +266,9 @@ jobs:
   Docker-iroha-builder:
     needs: check_workflow_yaml_coressponds_to_src_yaml
     runs-on: ubuntu-22.04 #ubuntu-latest #[ self-hosted, Linux ]
+    permissions:
+      contents: read
+      packages: write
     env: &env_dockerhub
       DOCKERHUB_ORG:      hyperledger   ## Must be hyperledger, also can use iroha1, cannot use ${{ secrets.DOCKERHUB_ORG }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -827,6 +830,9 @@ jobs:
       - build-UR
       - generate_matrixes
     runs-on: ubuntu-22.04 #ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     # strategy: *strategy_ubuntu_release
     # if: *if_ubuntu_release
     strategy:
