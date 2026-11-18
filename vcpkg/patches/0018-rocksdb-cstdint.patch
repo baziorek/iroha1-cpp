@@ -1,0 +1,39 @@
+diff --git a/ports/rocksdb/0006-cstdint.patch b/ports/rocksdb/0006-cstdint.patch
+new file mode 100644
+--- /dev/null
++++ b/ports/rocksdb/0006-cstdint.patch
+@@ -0,0 +1,25 @@
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -84,6 +84,10 @@
++ if( NOT DEFINED CMAKE_CXX_STANDARD )
++   set(CMAKE_CXX_STANDARD 17)
++ endif()
+++
+++# libstdc++-15 (gcc-15) no longer pulls in <cstdint> transitively;
+++# force-include it for all C++ translation units
+++add_compile_options(-include cstdint)
++ 
++ include(CMakeDependentOption)
++ 
++diff --git a/db/blob/blob_file_meta.h b/db/blob/blob_file_meta.h
++--- a/db/blob/blob_file_meta.h
+++++ b/db/blob/blob_file_meta.h
++@@ -6,6 +6,7 @@
++ #pragma once
++ 
++ #include <cassert>
+++#include <cstdint>
++ #include <iosfwd>
++ #include <memory>
++ #include <string>
+diff --git a/ports/rocksdb/portfile.cmake b/ports/rocksdb/portfile.cmake
+--- a/ports/rocksdb/portfile.cmake
++++ b/ports/rocksdb/portfile.cmake
+@@ -11,4 +11,5 @@
+     0003-use-find-package.patch
+     0004-fix-dependency-in-config.patch
+     0005-do-not-install-cmake-modules.patch
++    0006-cstdint.patch
+ )

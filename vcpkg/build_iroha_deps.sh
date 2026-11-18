@@ -35,28 +35,58 @@ esac
 ## Every time clean build of vcpkgtool takes 43 seconds on MacBook 2016 i7 2.8GHz
 ##                                 and takes 3 minutes on default GitHub runner
 ## ToDo try reuse existing vcpkg_tool
+##
+## NOTE: the stock bootstrap-vcpkg.sh downloads vcpkg-tool 2021-02-24, which does
+## not compile with modern compilers (e.g. g++15, missing <cstdint>). The
+## "quick-alternative" below builds a slightly newer pinned vcpkg-tool and
+## applies the patches from tool-patches/. It is the default on Linux/macOS;
+## set VCPKG_BOOTSTRAP=usual to use the stock bootstrap script instead.
+VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9
 
-# Forced quick-alternative bootstrap with cstdint fix for modern compilers
-bootstrap()(
+bootstrap_quick_alternative()(
    vcpkg_tool_path=$vcpkg_path/vcpkg-tool
-   VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9
    git -C $vcpkg_tool_path fetch origin ||
       git clone https://github.com/microsoft/vcpkg-tool.git $vcpkg_tool_path
    cd $vcpkg_tool_path
    git -c advice.detachedHead=false checkout -f $VCPKG_TOOL_REF
 
-   # Fix missing #include <cstdint> for std::uint64_t on modern g++
-   if [ -f include/vcpkg/base/strings.h ]; then
-      if ! grep -q '#include <cstdint>' include/vcpkg/base/strings.h; then
-         sed -i '/#include <inttypes.h>/a #include <cstdint>' include/vcpkg/base/strings.h
-         echo "Applied cstdint fix to strings.h"
-      fi
-   fi
+   ## Apply tool patches, bypass if already applied, stop on fail
+   for i in "$script_dir"/tool-patches/*.patch; do
+      if git apply --reverse --check --ignore-whitespace $i &>/dev/null
+         then continue ;fi
+      git apply --ignore-whitespace $i
+   done
 
    cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -GNinja -DBUILD_TESTING=OFF -DVCPKG_DEVELOPMENT_WARNINGS=OFF
    cmake --build build -j$(nproc)
    cp build/vcpkg $vcpkg_path/vcpkg
 )
+
+case ${VCPKG_BOOTSTRAP:-quick-alternative} in
+   quick-alternative)
+      case $(uname | tr '[:upper:]' '[:lower:]') in
+         windows*|msys*|mingw*)
+            bootstrap(){ $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics ; }
+            ;;
+         *)
+            bootstrap(){ bootstrap_quick_alternative ; }
+            ;;
+      esac
+      ;;
+   usual)
+      case $(uname | tr '[:upper:]' '[:lower:]') in
+         windows*|msys*|mingw*)
+            bootstrap(){ $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics ; }
+            MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
+            BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
+            INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
+            ;;
+         *)
+            bootstrap(){ $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries ; }
+            ;;
+      esac
+      ;;
+esac
 
 bootstrap
 

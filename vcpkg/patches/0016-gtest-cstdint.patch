@@ -1,0 +1,26 @@
+diff --git a/ports/gtest/fix-cstdint-gcc15.patch b/ports/gtest/fix-cstdint-gcc15.patch
+new file mode 100644
+--- /dev/null
++++ b/ports/gtest/fix-cstdint-gcc15.patch
+@@ -0,0 +1,12 @@
++diff --git a/googletest/src/gtest-death-test.cc b/googletest/src/gtest-death-test.cc
++--- a/googletest/src/gtest-death-test.cc
+++++ b/googletest/src/gtest-death-test.cc
++@@ -45,7 +45,8 @@
++ 
++ # include <errno.h>
++ # include <fcntl.h>
++ # include <limits.h>
+++# include <cstdint>
++ 
++ # if GTEST_OS_LINUX
++ #  include <signal.h>
+diff --git a/ports/gtest/portfile.cmake b/ports/gtest/portfile.cmake
+--- a/ports/gtest/portfile.cmake
++++ b/ports/gtest/portfile.cmake
+@@ -13,4 +13,5 @@
+         fix-main-lib-path.patch
+         fix-build-failure-in-gcc-11.patch
+         removing-werror-compiler-flag.patch
++        fix-cstdint-gcc15.patch
+ )
