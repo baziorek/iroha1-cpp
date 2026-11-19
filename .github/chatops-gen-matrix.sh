@@ -187,6 +187,5 @@ echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/'                          | json_
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/'             | json_include >matrix_ubuntu_release
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/'               | json_include >matrix_ubuntu_debug
 echo "$MATRIX" | awk -v IGNORECASE=1 '/macos/'                           | json_include >matrix_macos
-echo "$MATRIX" | awk -v IGNORECASE=1 '/windows/'                         | json_include >matrix_windows
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/ && /gcc-10/' | json_include >matrix_dockerimage_release
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/   && /gcc-10/' | json_include >matrix_dockerimage_debug

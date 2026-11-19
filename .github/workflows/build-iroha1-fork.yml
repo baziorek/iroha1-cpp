@@ -138,34 +138,13 @@ jobs:
           echo "::set-output name=matrix_ubuntu_release::$(cat matrix_ubuntu_release)"
           echo "::set-output name=matrix_ubuntu_debug::$(cat matrix_ubuntu_debug)"
           echo "::set-output name=matrix_macos::$(cat matrix_macos)"
-          echo "::set-output name=matrix_windows::$(cat matrix_windows)"
           echo "::set-output name=matrix_dockerimage_release::$(cat matrix_dockerimage_release)"
           echo "::set-output name=matrix_dockerimage_debug::$(cat matrix_dockerimage_debug)"
-      ##TODO report errors and warnings as answer to issue comment (chat-ops)
-      - name: Reaction confused
-        if: failure() && github.event.comment
-        run: |
-          # send reaction to comment to show build was triggered
-          curl ${{github.event.comment.url}}/reactions \
-            -X POST \
-            -d '{"content":"confused"}' \
-            -H "Accept: application/vnd.github.squirrel-girl-preview+json" \
-            -H "Authorization: token ${{github.token}}"
-      - name: Reaction rocket
-        if: github.event.comment
-        run: |
-          # send reaction to comment to show build was triggered
-          curl ${{github.event.comment.url}}/reactions \
-            -X POST \
-            -d '{"content":"rocket"}' \
-            -H "Accept: application/vnd.github.squirrel-girl-preview+json" \
-            -H "Authorization: token ${{github.token}}"
     outputs:
       matrix_ubuntu: ${{steps.matrixes.outputs.matrix_ubuntu}}
       matrix_ubuntu_release: ${{steps.matrixes.outputs.matrix_ubuntu_release}}
       matrix_ubuntu_debug: ${{steps.matrixes.outputs.matrix_ubuntu_debug}}
       matrix_macos: ${{steps.matrixes.outputs.matrix_macos}}
-      matrix_windows: ${{steps.matrixes.outputs.matrix_windows}}
       matrix_dockerimage_release: ${{steps.matrixes.outputs.matrix_dockerimage_release}}
       matrix_dockerimage_debug: ${{steps.matrixes.outputs.matrix_dockerimage_debug}}
   ## Build docker image named 'hyperledger/iroha-builder' with all stuff to compile iroha and its dependencies
@@ -436,14 +415,15 @@ jobs:
           key: ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
           restore-keys: ${{runner.os}}-ccache-
       - run: ccache --show-stats | tee /tmp/ccache-stats
-      - ## Read the docs https://vcpkg.readthedocs.io/en/latest/users/binarycaching/ https://github.com/microsoft/vcpkg/blob/master/docs/users/binarycaching.md
-        name: Restore cache Vcpkg binarycache ## NOTE not useng NuGet because on ubuntu nuget needs mono of 433MB, unusable.
-        uses: actions/cache@v2
+      - ## Caches the whole vcpkg-build dir: vcpkg clone, vcpkg-tool build,
+        ## installed ports and binarycache. build_iroha_deps.sh cleans only
+        ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
+        name: Cache vcpkg-build
+        uses: actions/cache@v4
         with:
-          path: |
-            ${{env.HOME}}/.cache/vcpkg/archives
-          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
-          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.
+          path: vcpkg-build
+          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.
       - name: Build iroha vcpkg dependencies
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
         ## Takes 48m16s on default GitHub runner with 2 cores
@@ -716,14 +696,15 @@ jobs:
           key: ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
           restore-keys: ${{runner.os}}-ccache-
       - run: ccache --show-stats | tee /tmp/ccache-stats
-      - ## Read the docs https://vcpkg.readthedocs.io/en/latest/users/binarycaching/ https://github.com/microsoft/vcpkg/blob/master/docs/users/binarycaching.md
-        name: Restore cache Vcpkg binarycache ## NOTE not useng NuGet because on ubuntu nuget needs mono of 433MB, unusable.
-        uses: actions/cache@v2
+      - ## Caches the whole vcpkg-build dir: vcpkg clone, vcpkg-tool build,
+        ## installed ports and binarycache. build_iroha_deps.sh cleans only
+        ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
+        name: Cache vcpkg-build
+        uses: actions/cache@v4
         with:
-          path: |
-            ${{env.HOME}}/.cache/vcpkg/archives
-          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
-          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.
+          path: vcpkg-build
+          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.
       - name: Build iroha vcpkg dependencies
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
         ## Takes 48m16s on default GitHub runner with 2 cores
@@ -913,6 +894,7 @@ jobs:
           JSON_github: ${{ toJSON(github) }}
           JSON_needs: ${{ toJson(needs) }}
   build-M:
+    name: build MacOS
     needs:
       - prepare-macos-env
       - generate_matrixes
@@ -1020,14 +1002,15 @@ jobs:
           key: ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
           restore-keys: ${{runner.os}}-ccache-
       - run: ccache --show-stats | tee /tmp/ccache-stats
-      - ## Read the docs https://vcpkg.readthedocs.io/en/latest/users/binarycaching/ https://github.com/microsoft/vcpkg/blob/master/docs/users/binarycaching.md
-        name: Restore cache Vcpkg binarycache ## NOTE not useng NuGet because on ubuntu nuget needs mono of 433MB, unusable.
-        uses: actions/cache@v2
+      - ## Caches the whole vcpkg-build dir: vcpkg clone, vcpkg-tool build,
+        ## installed ports and binarycache. build_iroha_deps.sh cleans only
+        ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
+        name: Cache vcpkg-build
+        uses: actions/cache@v4
         with:
-          path: |
-            ${{env.HOME}}/.cache/vcpkg/archives
-          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
-          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.
+          path: vcpkg-build
+          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.
       - name: Build iroha vcpkg dependencies
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
         ## Takes 48m16s on default GitHub runner with 2 cores
@@ -1192,102 +1175,6 @@ jobs:
           done
           $tests_passed
         timeout-minutes: 70
-  ## Just to align picture
-  prepare-windows-env:
-    needs: check_if_pull_request_comes_from_fork
-    environment: test-env
-    runs-on: windows-latest
-    permissions: read-all
-    steps:
-      - name: Show context
-        run: |
-          echo $JSON_github | jq .
-          echo $JSON_needs | jq .
-        env:
-          JSON_github: ${{ toJSON(github) }}
-          JSON_needs: ${{ toJson(needs) }}
-    defaults:
-      run:
-        shell: bash
-  build-W:
-    needs:
-      - prepare-windows-env
-      - generate_matrixes
-    runs-on: windows-latest
-    permissions: read-all
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_windows ) }}
-    if: ${{ false && ( fromJSON( needs.generate_matrixes.outputs.matrix_windows ).include[0] ) }}
-    defaults:
-      run:
-        shell: bash #pwsh
-        working-directory: 'C:\github\iroha' ## Use disk C: because D: is out of space
-    steps:
-      - name: Create working-directory, export WORKDIR
-        run: |
-          set -x
-          mkdir -p "$WORKDIR"
-          echo $PWD
-          echo >>$GITHUB_ENV WORKDIR="$WORKDIR"
-        working-directory: 'C:\'
-        env: {WORKDIR: 'C:\github\iroha'}
-      - name: uname in bash
-        run: uname
-        shell: bash
-      - name: uname in [default] pwsh shell
-        run: uname
-        shell: pwsh
-      - name: Chocolatey install
-        run: choco install cmake ninja #ccache
-      - name: Checkout head
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0 ## full history
-      - name: move to workdir
-        run: |
-          set -x
-          echo $PWD
-          shopt -s dotglob nullglob
-          mv -vf *  -t "$WORKDIR"
-        working-directory:
-      #- *step_restore_ccache
-      #- *step_vcpkg_cache
-      - name: Build iroha vcpkg dependencies
-        run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
-        ## Takes 48m16s on default GitHub runner with 2 cores
-        ## Takes 13m41s on self-hosted AWS EC2 c5.x4large
-        # ________________________________________________________
-        # Executed in   32,08 mins    fish           external
-        #    usr time  110,52 mins    0,24 millis  110,52 mins
-        #    sys time   12,26 mins    1,34 millis   12,26 mins
-        #
-        # All requested packages are currently installed.
-        # ________________________________________________________
-        # Executed in    3,17 secs    fish           external
-        #    usr time    2,05 secs  128,00 micros    2,05 secs
-        #    sys time    0,70 secs  575,00 micros    0,70 secs
-      - name: CMake configure
-        ## Takes 13s on regular GitHub runner
-        run: cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=${{ env.BuildType }} -GNinja $CMAKE_USE -DTESTING=$(      test "$skip_testing" = skip_testing && echo OFF || echo ON ) -DBENCHMARKING=$( test "$skip_testing" = skip_testing && echo OFF || echo ON ) -DPACKAGE_DEB=ON
-        #-DCMAKE_VERBOSE_MAKEFILE=ON  ## Note: use for debug
-      - name: CMake build
-        run: |
-          set -x
-          ## reduce memory usage to do not overflow
-          cmake --build build --config ${{ env.BuildType }} -- -j$(nproc | awk '{printf("%.0f",$1*0.77)}')
-          echo ::notice::"$(./build/bin/irohad --version)"
-        ## Debug   takes 18m44s on regular GitHub runner
-        ## Debug   takes 7m41s on self-hosted AWS EC2 c5.x4large
-        ## Release takes 2m58s on self-hosted AWS EC2 c5.x4large
-      - name: Show free space and disk usage
-        if: ${{ always() }}
-        run: |
-          df -h || true
-      - name: Install Postgres on Windows
-        run: choco install postgresql
-    # - *step_ctest
   ## Build and publish docker image named 'hyperledger/iroha'  with irohad and iroha tools inside.
   ## The result docker image is pushed with tags :branch_name, :pr-NUMBER, :tag_name,
   ## and :latest (for git-tags).
