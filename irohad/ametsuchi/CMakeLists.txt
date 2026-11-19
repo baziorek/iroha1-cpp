@@ -216,7 +216,6 @@ if(USE_BURROW)
     add_library(burrow_vm_caller impl/burrow_vm_caller.cpp)
     target_link_libraries(burrow_vm_caller
         burrow_vm_caller_generated
-        fmt::fmt
         proto_command_executor
         proto_specific_query_executor
         )

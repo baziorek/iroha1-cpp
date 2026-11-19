@@ -19,4 +19,13 @@
     }                                                                     \
   };
 
+namespace iroha {
+  /// std::vformat with forwarding: binds args to lvalues so that
+  /// std::make_format_args accepts temporaries as well.
+  template <typename... Args>
+  inline std::string vformat(std::string_view format, Args &&...args) {
+    return std::vformat(format, std::make_format_args(args...));
+  }
+}  // namespace iroha
+
 #endif  // IROHA_COMMON_STD_FORMAT_HPP

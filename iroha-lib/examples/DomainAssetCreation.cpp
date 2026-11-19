@@ -1,8 +1,8 @@
+#include <format>
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <gflags/gflags.h>
-#include <fmt/format.h>
 #include "model/Tx.hpp"
 #include "model/Query.hpp"
 #include "model/utils/Utils.h"
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) try {
 
     gflags::ShutDownCommandLineFlags();
 } catch (const std::exception& e) {
-    std::cerr << fmt::format("Exception from {}: '{}'\n", __FUNCTION__, e.what());
+    std::cerr << std::format("Exception from {}: '{}'\n", __FUNCTION__, e.what());
 }
 
 void run(const std::string& adminAccountName, const std::string& key_path,
@@ -163,7 +163,7 @@ void printAccountAssets(const std::string& account_name,
                         const std::string& peer_ip,
                         const uint16_t torii_port)
 {
-    fmt::print("----------->{}-----------\n", __FUNCTION__);
+    std::cout << std::format("----------->{}-----------\n", __FUNCTION__);
 
     const auto query_proto = generateGetAccountAssetsQuery(
                 account_name,
@@ -186,10 +186,10 @@ void printAccountAssets(const std::string& account_name,
     const auto accountAssetsResponce = response.account_assets_response();
     for (const auto& r : accountAssetsResponce.account_assets())
     {
-        fmt::print("\tasset: {} {}\n", r.asset_id(), r.balance());
+        std::cout << std::format("\tasset: {} {}\n", r.asset_id(), r.balance());
     }
 
-    fmt::print("-----------<{}-----------\n",  __FUNCTION__);
+    std::cout << std::format("-----------<{}-----------\n",  __FUNCTION__);
 }
 
 iroha::protocol::Query generateGetAccountAssetsQuery(const std::string& account_name,
@@ -236,7 +236,7 @@ iroha::protocol::Query generateGetAccountQuery(
 void printErrorResponse(const QueryResponse& response)
 {
     const auto errorResponse = response.error_response();
-    std::cerr << fmt::format("{}: {}", errorResponse.error_code(), errorResponse.message()) << std::endl;
+    std::cerr << std::format("{}: {}", static_cast<int>(errorResponse.error_code()), errorResponse.message()) << std::endl;
 }
 
 void printAccount(const std::string& account_name,
@@ -244,7 +244,7 @@ void printAccount(const std::string& account_name,
                   const std::string& peer_ip,
                   const uint16_t torii_port)
 {
-    fmt::print("----------->{}-----------\n", __FUNCTION__);
+    std::cout << std::format("----------->{}-----------\n", __FUNCTION__);
 
     const auto query_proto = generateGetAccountQuery(
                 account_name,
@@ -265,11 +265,11 @@ void printAccount(const std::string& account_name,
 
     assert(response.has_account_response());
     const auto account = response.account_response().account();
-    fmt::print("account_id={},\n"
+    std::cout << std::format("account_id={},\n"
                "domain_id={}\n"
                "quorum={}\n"
                "json_data={}\n",
                account.account_id(), account.domain_id(), account.quorum(), account.json_data());
 
-    fmt::print("-----------<{}-----------\n", __FUNCTION__);
+    std::cout << std::format("-----------<{}-----------\n", __FUNCTION__);
 }
