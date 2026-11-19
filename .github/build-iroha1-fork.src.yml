@@ -592,7 +592,7 @@ jobs:
   prepare-macos-env:
     needs: check_if_pull_request_comes_from_fork
     environment: test-env
-    runs-on: macos-latest
+    runs-on: macos-13
     permissions: read-all
     steps:
       - *step_show_context
@@ -602,7 +602,7 @@ jobs:
     needs:
       - prepare-macos-env
       - generate_matrixes
-    runs-on: macos-latest #[ self-hosted, MacOS ] #
+    runs-on: macos-13 #[ self-hosted, MacOS ] #
     permissions: read-all
     strategy:
       fail-fast: false

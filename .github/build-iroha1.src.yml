@@ -656,7 +656,7 @@ jobs:
   ## Just to align picture
   prepare-macos-env:
     needs: check_workflow_yaml_coressponds_to_src_yaml
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - *step_show_context
 
@@ -665,7 +665,7 @@ jobs:
     needs:
       - prepare-macos-env
       - generate_matrixes
-    runs-on: macos-latest #[ self-hosted, MacOS ] #
+    runs-on: macos-13 #[ self-hosted, MacOS ] #
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_macos ) }}
