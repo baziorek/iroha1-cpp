@@ -22,6 +22,34 @@ namespace shared_model {
 
       BOOST_STRONG_TYPEDEF(std::string_view, EvmCalleeHexStringView)
       BOOST_STRONG_TYPEDEF(std::string_view, EvmCodeHexStringView)
+
+      // C++20: boost::totally_ordered2 only provides operator==(base, D),
+      // whose body delegates to the missing operator==(D, base) and recurses
+      // infinitely. Provide the forward comparison explicitly.
+      inline bool operator==(const SignedHexStringView &lhs,
+                             const std::string_view &rhs) {
+        return lhs.t == rhs;
+      }
+      inline bool operator==(const SignatureByteRangeView &lhs,
+                             const ByteRange &rhs) {
+        return lhs.t == rhs;
+      }
+      inline bool operator==(const PublicKeyHexStringView &lhs,
+                             const std::string_view &rhs) {
+        return lhs.t == rhs;
+      }
+      inline bool operator==(const PublicKeyByteRangeView &lhs,
+                             const ByteRange &rhs) {
+        return lhs.t == rhs;
+      }
+      inline bool operator==(const EvmCalleeHexStringView &lhs,
+                             const std::string_view &rhs) {
+        return lhs.t == rhs;
+      }
+      inline bool operator==(const EvmCodeHexStringView &lhs,
+                             const std::string_view &rhs) {
+        return lhs.t == rhs;
+      }
     }  // namespace types
   }    // namespace interface
 }  // namespace shared_model

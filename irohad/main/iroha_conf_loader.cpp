@@ -769,7 +769,7 @@ iroha::expected::Result<IrohadConfig, std::string> parse_iroha_config(
   if (not conf_path.empty()) {
     auto config_text_result = iroha::readTextFile(conf_path);
     if (auto e = iroha::expected::resultToOptionalError(config_text_result)) {
-      return std::move(e).value();
+      return iroha::expected::Error<std::string>{std::move(e).value()};
     }
     config_text = std::move(config_text_result).assumeValue();
   }
@@ -786,7 +786,7 @@ iroha::expected::Result<IrohadConfig, std::string> parse_iroha_config(
     JsonDeserializerImpl parser(common_objects_factory, doc, std::move(log));
     return parser.deserialize<IrohadConfig>();
   } catch (ConfigParsingException const &e) {
-    return e.what();
+    return iroha::expected::Error<std::string>{e.what()};
   };
 }
 

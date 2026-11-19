@@ -112,7 +112,7 @@ bool PermissionSet<Perm>::operator==(const PermissionSet<Perm> &r) const {
 
 template <typename Perm>
 bool PermissionSet<Perm>::operator!=(const PermissionSet<Perm> &r) const {
-  return perms_bitset_.operator!=(r.perms_bitset_);
+  return !perms_bitset_.operator==(r.perms_bitset_);
 }
 
 template <typename Perm>
