@@ -183,7 +183,7 @@ C++ Style Guide
 -  Avoid
    `platform-dependent <https://stackoverflow.com/questions/1558194/learning-and-cross-platform-development-c>`_
    code.
--  Use `C++17 <https://en.wikipedia.org/wiki/C%2B%2B17>`_.
+-  Use `C++23 <https://en.wikipedia.org/wiki/C%2B%2B23>`_.
 -  Use `camelCase <https://en.wikipedia.org/wiki/Camel_case>`_ for
    class names and methods, use
    `snake\_case <https://en.wikipedia.org/wiki/Snake_case>`_ for
