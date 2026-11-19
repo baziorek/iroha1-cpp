@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 #include <soci/postgresql/soci-postgresql.h>
 #include <soci/soci.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "ametsuchi/impl/in_memory_block_storage_factory.hpp"
@@ -41,7 +41,7 @@ namespace iroha {
     class AmetsuchiTest : public ::testing::Test {
      public:
       static void SetUpTestCase() {
-        ASSERT_FALSE(boost::filesystem::exists(block_store_path))
+        ASSERT_FALSE(std::filesystem::exists(block_store_path))
             << "Temporary block store " << block_store_path
             << " directory already exists";
 
@@ -149,7 +149,7 @@ namespace iroha {
         storage->dropBlockStorage();
         destroyWsvStorage();
         PgConnectionInit::dropWorkingDatabase(*options_);
-        boost::filesystem::remove_all(block_store_path);
+        std::filesystem::remove_all(block_store_path);
       }
 
       static void truncateWsv() {
@@ -250,8 +250,8 @@ namespace iroha {
         shared_model::validation::FieldValidator>>
         AmetsuchiTest::factory = nullptr;
     std::string AmetsuchiTest::block_store_path =
-        (boost::filesystem::temp_directory_path()
-         / boost::filesystem::unique_path())
+        (std::filesystem::temp_directory_path()
+         / iroha::unique_path())
             .string();
     bool AmetsuchiTest::prepared_blocks_enabled = false;
     std::vector<std::shared_ptr<shared_model::interface::Block const>>

@@ -100,7 +100,6 @@ find_package(rxcpp)
 ##########################
 find_package(Boost 1.73.0 REQUIRED
     COMPONENTS
-    filesystem
     iostreams
     thread
     )

@@ -6,7 +6,9 @@
 #include <benchmark/benchmark.h>
 #include <string>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include "backend/protobuf/transaction.hpp"
 #include "benchmark/bm_utils.hpp"
 #include "builders/protobuf/unsigned_proto.hpp"
@@ -43,8 +45,8 @@ static void BM_AddAssetQuantity(benchmark::State &state) {
         iroha::StartupWsvDataPolicy::kDrop,
         false,
         false,
-        (boost::filesystem::temp_directory_path()
-         / boost::filesystem::unique_path())
+        (std::filesystem::temp_directory_path()
+         / iroha::unique_path())
             .string(),
         std::chrono::hours(1),
         std::chrono::hours(1));

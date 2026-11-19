@@ -6,7 +6,8 @@
 #include <gflags/gflags.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/rapidjson.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 
 #include "backend/protobuf/proto_block_json_converter.hpp"
@@ -65,7 +66,7 @@ using namespace iroha::protocol;
 using namespace iroha::model::generators;
 using namespace iroha::model::converters;
 using namespace iroha_cli::interactive;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 iroha::keypair_t *makeOldModel(const shared_model::crypto::Keypair &keypair) {
   return new iroha::keypair_t{

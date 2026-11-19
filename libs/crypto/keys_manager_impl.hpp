@@ -8,7 +8,7 @@
 
 #include "crypto/keys_manager.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/optional.hpp>
 #include "cryptography/keypair.hpp"
 #include "logger/logger_fwd.hpp"
@@ -25,7 +25,7 @@ namespace iroha {
      * @param log to print progress
      */
     KeysManagerImpl(const std::string &account_id,
-                    const boost::filesystem::path &path_to_keypair,
+                    const std::filesystem::path &path_to_keypair,
                     logger::LoggerPtr log);
 
     /**
@@ -52,7 +52,7 @@ namespace iroha {
      */
     bool store(std::string_view pub, std::string_view priv);
 
-    boost::filesystem::path path_to_keypair_;
+    std::filesystem::path path_to_keypair_;
     std::string account_id_;
     logger::LoggerPtr log_;
   };

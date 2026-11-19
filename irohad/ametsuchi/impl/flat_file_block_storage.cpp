@@ -5,7 +5,7 @@
 
 #include "ametsuchi/impl/flat_file_block_storage.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "backend/protobuf/block.hpp"
 #include "common/byteutils.hpp"

@@ -5,11 +5,13 @@
 #include <rocksdb/db.h>
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 
 TEST(RocksDBTestCommon, Usage) {
-  std::string const name = (boost::filesystem::temp_directory_path()
-                            / boost::filesystem::unique_path())
+  std::string const name = (std::filesystem::temp_directory_path()
+                            / iroha::unique_path())
                                .string();
 
   rocksdb::DB *db;

@@ -5,7 +5,9 @@
 
 #include <gmock/gmock.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <string>
 #include <unordered_map>
 
@@ -15,13 +17,13 @@
 #include "cryptography/hash.hpp"
 #include "common/std_format.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace iroha::ametsuchi;
 
 class RocksDBIndexerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+    db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
     auto db_port = std::make_shared<RocksDBPort>();
     db_port->initialize(db_name_);
     tx_context_ = std::make_shared<RocksDBContext>(db_port);

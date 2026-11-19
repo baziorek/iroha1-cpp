@@ -8,7 +8,7 @@
 #include <ciso646>
 #include <fstream>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "common/result.hpp"
 #include "logger/logger.hpp"
 #include "common/std_format.hpp"
@@ -16,7 +16,7 @@
 namespace {
   template <typename T>
   iroha::expected::Result<T, std::string> readFile(
-      const boost::filesystem::path &path, std::ios_base::openmode mode) {
+      const std::filesystem::path &path, std::ios_base::openmode mode) {
     std::ifstream file(path.string(), mode);
     if (!file) {
       return iroha::expected::makeError(
@@ -29,12 +29,12 @@ namespace {
   }
 }  // namespace
 
-void iroha::remove_dir_contents(const boost::filesystem::path &dir,
+void iroha::remove_dir_contents(const std::filesystem::path &dir,
                                 const logger::LoggerPtr &log) {
-  boost::system::error_code error_code;
+  std::error_code error_code;
 
-  bool exists = boost::filesystem::exists(dir, error_code);
-  if (error_code != boost::system::errc::success) {
+  bool exists = std::filesystem::exists(dir, error_code);
+  if (static_cast<bool>(error_code)) {
     log->error("{}", error_code.message());
     return;
   }
@@ -43,8 +43,8 @@ void iroha::remove_dir_contents(const boost::filesystem::path &dir,
     return;
   }
 
-  bool is_dir = boost::filesystem::is_directory(dir, error_code);
-  if (error_code != boost::system::errc::success) {
+  bool is_dir = std::filesystem::is_directory(dir, error_code);
+  if (static_cast<bool>(error_code)) {
     log->error("{}", error_code.message());
     return;
   }
@@ -53,20 +53,20 @@ void iroha::remove_dir_contents(const boost::filesystem::path &dir,
     return;
   }
 
-  for (auto entry : boost::filesystem::directory_iterator(dir)) {
-    boost::filesystem::remove_all(entry.path(), error_code);
-    if (error_code != boost::system::errc::success)
+  for (auto entry : std::filesystem::directory_iterator(dir)) {
+    std::filesystem::remove_all(entry.path(), error_code);
+    if (static_cast<bool>(error_code))
       log->error("{}", error_code.message());
   }
 }
 
 iroha::expected::Result<std::string, std::string> iroha::readTextFile(
-    const boost::filesystem::path &path) {
+    const std::filesystem::path &path) {
   return readFile<std::string>(path, std::ios_base::in);
 }
 
 iroha::expected::Result<std::vector<uint8_t>, std::string>
-iroha::readBinaryFile(const boost::filesystem::path &path) {
+iroha::readBinaryFile(const std::filesystem::path &path) {
   return readFile<std::vector<uint8_t>>(
       path, std::ios_base::binary | std::ios_base::in);
 }

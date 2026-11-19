@@ -47,7 +47,6 @@ target_link_libraries(flat_file_storage
     shared_model_proto_backend
     logger
     Boost::boost
-    Boost::filesystem
     Boost::iostreams
     )
 
@@ -268,7 +267,6 @@ target_link_libraries(ametsuchi_rocksdb
     libs_files
     common
     Boost::boost
-    Boost::filesystem
     im_memory_block_storage
     shared_model_proto_backend
     shared_model_plain_backend

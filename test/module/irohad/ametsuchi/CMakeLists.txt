@@ -43,7 +43,6 @@ target_link_libraries(rdb_wsv_query_test
 
 addtest(rocksdb_indexer_test rocksdb_indexer_test.cpp)
 target_link_libraries(rocksdb_indexer_test
-    Boost::filesystem
     rocksdb_indexer
     )
 
@@ -57,7 +56,6 @@ target_link_libraries(wsv_query_test
 
 addtest(rocksdb_common_test rocksdb_common_test.cpp)
 target_link_libraries(rocksdb_common_test
-    Boost::filesystem
     shared_model_interfaces
     common
     RocksDB::rocksdb

@@ -11,7 +11,7 @@
 #include <soci/postgresql/soci-postgresql.h>
 #include <soci/soci.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/optional.hpp>
 #include <boost/process.hpp>
 #include <boost/variant.hpp>
@@ -49,7 +49,7 @@
 #include "framework/config_helper.hpp"
 
 using namespace boost::process;
-using namespace boost::filesystem;
+using namespace std::filesystem;
 using namespace std::chrono_literals;
 using namespace common_constants;
 using iroha::operator|;
@@ -76,7 +76,7 @@ class IrohadTest : public AcceptanceFixture {
       : kAddress(kLocalHost),
         kPort(50051),
         kSecurePort(55552),
-        test_data_path_(boost::filesystem::path(PATHTESTDATA)),
+        test_data_path_(std::filesystem::path(PATHTESTDATA)),
         keys_manager_node_(
             "node0",
             test_data_path_,
@@ -213,8 +213,8 @@ class IrohadTest : public AcceptanceFixture {
         iroha::ametsuchi::PgConnectionInit::dropWorkingDatabase(
             iroha::ametsuchi::PostgresOptions{pgopts_, db_name_, log_}));
 
-    boost::filesystem::remove_all(test_data_path_);
-    boost::filesystem::remove(config_copy_);
+    std::filesystem::remove_all(test_data_path_);
+    std::filesystem::remove(config_copy_);
   }
 
   std::string params(const boost::optional<std::string> &config_path,
@@ -257,13 +257,13 @@ class IrohadTest : public AcceptanceFixture {
   }
 
   void prepareTestData() {
-    if (boost::filesystem::is_directory(test_data_path_)) {
+    if (std::filesystem::is_directory(test_data_path_)) {
       log_->info("Removing existing test data directory {}.",
                  test_data_path_.string());
-      ASSERT_TRUE(boost::filesystem::remove_all(test_data_path_))
+      ASSERT_TRUE(std::filesystem::remove_all(test_data_path_))
           << "Could not remove directory " << test_data_path_ << ".";
     }
-    ASSERT_TRUE(boost::filesystem::create_directory(test_data_path_))
+    ASSERT_TRUE(std::filesystem::create_directory(test_data_path_))
         << "Could not create directory " << test_data_path_ << ".";
 
     ASSERT_TRUE(keys_manager_admin_.createKeys(boost::none));
@@ -422,7 +422,7 @@ class IrohadTest : public AcceptanceFixture {
 
  protected:
   void setPaths() {
-    path_irohad_ = boost::filesystem::path(PATHIROHAD);
+    path_irohad_ = std::filesystem::path(PATHIROHAD);
     irohad_executable = path_irohad_ / "irohad";
     path_config_ = test_data_path_.parent_path() / "config.sample";
     path_genesis_ = test_data_path_ / "genesis.block";
@@ -435,7 +435,7 @@ class IrohadTest : public AcceptanceFixture {
   }
 
  public:
-  boost::filesystem::path irohad_executable;
+  std::filesystem::path irohad_executable;
   const std::chrono::milliseconds kTimeout = 30s;
   const std::string kAddress;
   const uint16_t kPort;
@@ -457,13 +457,13 @@ class IrohadTest : public AcceptanceFixture {
   const std::chrono::seconds resubscribe_timeout = std::chrono::seconds(3);
 
  protected:
-  boost::filesystem::path path_irohad_;
-  boost::filesystem::path test_data_path_;
-  boost::filesystem::path path_config_;
-  boost::filesystem::path path_genesis_;
-  boost::filesystem::path path_keypair_node_;
-  boost::filesystem::path path_tls_keypair_;
-  boost::filesystem::path path_root_certificate_;
+  std::filesystem::path path_irohad_;
+  std::filesystem::path test_data_path_;
+  std::filesystem::path path_config_;
+  std::filesystem::path path_genesis_;
+  std::filesystem::path path_keypair_node_;
+  std::filesystem::path path_tls_keypair_;
+  std::filesystem::path path_root_certificate_;
   std::string db_name_;
   std::string pgopts_;
   std::string config_copy_;

@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 
 #include "ametsuchi/impl/executor_common.hpp"
 #include "ametsuchi/impl/rocksdb_command_executor.hpp"
@@ -29,7 +31,7 @@ using shared_model::interface::types::PublicKeyHexStringView;
 namespace iroha::ametsuchi {
 
   using ::testing::HasSubstr;
-  namespace fs = boost::filesystem;
+  namespace fs = std::filesystem;
 
   using namespace framework::expected;
   using namespace common_constants;
@@ -57,7 +59,7 @@ namespace iroha::ametsuchi {
     }
 
     void initExecutors() {
-      db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+      db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
       auto db_port = std::make_shared<RocksDBPort>();
       db_port->initialize(db_name_);
       tx_context_ = std::make_shared<RocksDBContext>(db_port);

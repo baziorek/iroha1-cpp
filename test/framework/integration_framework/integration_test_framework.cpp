@@ -6,7 +6,7 @@
 #include "framework/integration_framework/integration_test_framework.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/thread/barrier.hpp>
 #include <limits>
 #include <memory>
@@ -61,7 +61,7 @@
 using namespace shared_model::crypto;
 using namespace std::literals::string_literals;
 using namespace common_constants;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 using shared_model::interface::types::PublicKeyHexStringView;
 

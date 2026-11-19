@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <iostream>
 #include <set>
 
@@ -11,7 +13,7 @@
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "common/radix_tree.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace iroha::ametsuchi;
 
 struct QQQ {
@@ -30,7 +32,7 @@ struct QQQ {
 class RocksDBTest : public ::testing::Test {
  public:
   void SetUp() override {
-    db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+    db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
     db_port_ = std::make_shared<RocksDBPort>();
     db_port_->initialize(db_name_);
 

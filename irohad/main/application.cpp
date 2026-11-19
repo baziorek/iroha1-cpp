@@ -9,7 +9,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <optional>
 
 #include "ametsuchi/impl/pool_wrapper.hpp"

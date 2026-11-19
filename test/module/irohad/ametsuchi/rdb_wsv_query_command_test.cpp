@@ -16,7 +16,7 @@
 #include "module/irohad/ametsuchi/ametsuchi_fixture.hpp"
 #include "module/shared_model/interface_mocks.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace std::literals;
 
 namespace iroha {
@@ -29,7 +29,7 @@ namespace iroha {
       void SetUp() override {
         AmetsuchiTest::SetUp();
 
-        db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+        db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
         auto db_port = std::make_shared<RocksDBPort>();
         db_port->initialize(db_name_);
 

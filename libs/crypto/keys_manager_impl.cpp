@@ -61,7 +61,7 @@ namespace iroha {
 
   KeysManagerImpl::KeysManagerImpl(
       const std::string &account_id,
-      const boost::filesystem::path &path_to_keypair,
+      const std::filesystem::path &path_to_keypair,
       logger::LoggerPtr log)
       : path_to_keypair_(path_to_keypair),
         account_id_(account_id),

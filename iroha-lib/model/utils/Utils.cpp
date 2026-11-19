@@ -1,4 +1,4 @@
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
@@ -13,7 +13,7 @@
 #include "common/std_format.hpp"
 
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 
 void verifyPath(

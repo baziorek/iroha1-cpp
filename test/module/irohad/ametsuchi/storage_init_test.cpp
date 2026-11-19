@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <soci/postgresql/soci-postgresql.h>
 #include <soci/soci.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "ametsuchi/impl/in_memory_block_storage.hpp"

@@ -19,7 +19,7 @@
 
 using namespace std::literals;
 using namespace shared_model::interface::types;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 namespace iroha {
   namespace ametsuchi {
@@ -29,7 +29,7 @@ namespace iroha {
       void SetUp() override {
         AmetsuchiTest::SetUp();
 
-        db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+        db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
         auto db_port = std::make_shared<RocksDBPort>();
         db_port->initialize(db_name_);
 

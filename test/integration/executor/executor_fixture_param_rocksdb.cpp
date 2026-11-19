@@ -5,7 +5,9 @@
 
 #include "integration/executor/executor_fixture_param_rocksdb.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <utility>
 
 #include "ametsuchi/impl/block_index_impl.hpp"
@@ -31,7 +33,7 @@ using namespace iroha::ametsuchi;
 using namespace iroha::expected;
 using namespace iroha::integration_framework;
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 namespace {
   std::pair<ExecutorItfTarget, std::shared_ptr<RocksDBContext>>
@@ -40,7 +42,7 @@ namespace {
 }  // namespace
 
 RocksDBExecutorTestParam::RocksDBExecutorTestParam() {
-  db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+  db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
   db_port_ = std::make_shared<RocksDBPort>();
   db_port_->initialize(db_name_);
 
@@ -65,7 +67,7 @@ void RocksDBExecutorTestParam::clearBackendState() {
   block_indexer_.reset();
   fs::remove_all(db_name_);
 
-  db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+  db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
   db_port_ = std::make_shared<RocksDBPort>();
   db_port_->initialize(db_name_);
 
