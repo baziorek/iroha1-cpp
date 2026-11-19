@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <boost/noncopyable.hpp>
-#include <boost/thread/barrier.hpp>
+#include <barrier>
 #include "framework/integration_framework/port_guard.hpp"
 
 using PortGuard = integration_framework::PortGuard;
@@ -27,11 +27,11 @@ struct Client : boost::noncopyable {
 void AddClients(std::vector<Client> &clients,
                 size_t num_added,
                 PortRange port_range) {
-  boost::barrier bar(num_added);
+  std::barrier<> bar(num_added);
   auto port_requester =
       [&bar, &clients, &port_range](const size_t client_number) {
         Client &client = clients[client_number];
-        bar.wait();
+        bar.arrive_and_wait();
         while (true) {
           auto port =
               client.port_guard.tryGetPort(port_range.first, port_range.second);

@@ -8,10 +8,9 @@
 
 #include <boost/algorithm/string/replace.hpp>
 #include <filesystem>
+#include <random>
+#include <cstdio>
 #include <fstream>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
 
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
@@ -27,6 +26,16 @@
 #include "interfaces/query_responses/transactions_response.hpp"
 #include "module/shared_model/cryptography/crypto_defaults.hpp"
 #include "test/integration/acceptance/instantiate_test_suite.hpp"
+
+namespace {
+  std::string randomHexSuffix() {
+    std::random_device rd;
+    char buf[16];
+    std::snprintf(buf, sizeof(buf), "%08x", rd());
+    return buf;
+  }
+}  // namespace
+
 
 using namespace common_constants;
 using namespace integration_framework;
@@ -66,8 +75,7 @@ TEST_P(RegressionTest, SequentialInitialization) {
                 .finish();
 
   const std::string dbname = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
+      + randomHexSuffix();
 
   IntegrationTestFramework(1,
                            GetParam(),
@@ -149,8 +157,7 @@ TEST_P(RegressionTest, StateRecovery) {
     });
   };
   const std::string dbname = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
+      + randomHexSuffix();
 
   using namespace std::chrono;
   IntegrationTestFramework(1,
@@ -227,8 +234,7 @@ TEST_P(RegressionTest, PoisonedBlock) {
   auto hash2 = tx2.hash();
   auto check_one = [](auto &res) { ASSERT_EQ(res->transactions().size(), 1); };
   const std::string dbname = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
+      + randomHexSuffix();
   std::string const block_store_path = (std::filesystem::temp_directory_path()
                                         / iroha::unique_path())
                                            .string();

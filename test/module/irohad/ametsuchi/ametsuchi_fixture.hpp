@@ -10,8 +10,8 @@
 #include <soci/postgresql/soci-postgresql.h>
 #include <soci/soci.h>
 #include <filesystem>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <random>
+#include <cstdio>
 #include "ametsuchi/impl/in_memory_block_storage_factory.hpp"
 #include "ametsuchi/impl/k_times_reconnection_strategy.hpp"
 #include "ametsuchi/impl/storage_impl.hpp"
@@ -32,6 +32,15 @@
 #include "module/irohad/common/validators_config.hpp"
 #include "module/irohad/pending_txs_storage/pending_txs_storage_mock.hpp"
 #include "validators/field_validator.hpp"
+
+namespace {
+  std::string randomHexSuffix() {
+    std::random_device rd;
+    char buf[16];
+    std::snprintf(buf, sizeof(buf), "%08x", rd());
+    return buf;
+  }
+}  // namespace
 
 namespace iroha {
   namespace ametsuchi {
@@ -257,8 +266,7 @@ namespace iroha {
     std::vector<std::shared_ptr<shared_model::interface::Block const>>
         AmetsuchiTest::committed_blocks_;
     std::string AmetsuchiTest::dbname_ = "d"
-        + boost::uuids::to_string(boost::uuids::random_generator()())
-              .substr(0, 8);
+        + randomHexSuffix();
     std::string AmetsuchiTest::pgopt_ = "dbname=" + AmetsuchiTest::dbname_ + " "
         + integration_framework::getPostgresCredsOrDefault();
     std::unique_ptr<PostgresOptions> AmetsuchiTest::options_ = nullptr;

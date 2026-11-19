@@ -7,7 +7,6 @@
 
 #include <boost/assert.hpp>
 #include <filesystem>
-#include <boost/thread/barrier.hpp>
 #include <limits>
 #include <memory>
 #include <unordered_map>
