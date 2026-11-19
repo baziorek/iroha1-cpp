@@ -279,6 +279,7 @@ jobs:
         name: System info
         run: |
           set -x
+          git config --global --add safe.directory '*'  ## job containers run as root, git refuses "dubious ownership" otherwise
           whoami
           id $(whoami)
           free  ||  vm_stat | perl -ne '/page size of (\d+)/ and $size=$1;
