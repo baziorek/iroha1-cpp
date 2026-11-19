@@ -102,7 +102,7 @@ namespace iroha {
                                QueryResultCheckCallable check_callable) {
       ASSERT_NO_THROW({
         const auto &cast_resp =
-            boost::get<const ExpectedQueryResponseType &>(exec_result->get());
+            std::get<std::reference_wrapper<const ExpectedQueryResponseType>>(exec_result->get()).get();
         check_callable(cast_resp);
       }) << exec_result->toString();
     }
@@ -120,8 +120,7 @@ namespace iroha {
         shared_model::interface::ErrorQueryResponse::ErrorCodeType
             expected_code) {
       const shared_model::interface::ErrorQueryResponse *error_query_response =
-          boost::get<const shared_model::interface::ErrorQueryResponse &>(
-              &exec_result->get());
+          iroha::get_wrapped<shared_model::interface::ErrorQueryResponse>(&exec_result->get());
       if (not error_query_response) {
         ADD_FAILURE() << "Result is not an error as it is supposed to be! "
                          "Actual result is: "
@@ -129,8 +128,7 @@ namespace iroha {
         return;
       }
       EXPECT_EQ(error_query_response->errorCode(), expected_code);
-      EXPECT_TRUE(boost::get<const ExpectedQueryErrorType &>(
-          &error_query_response->get()))
+      EXPECT_TRUE(iroha::get_wrapped<ExpectedQueryErrorType>(&error_query_response->get()))
           << "Result has wrong error type! Actual result is: "
           << exec_result->toString();
     }

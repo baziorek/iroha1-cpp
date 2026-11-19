@@ -81,7 +81,7 @@ TEST_F(YacTest, ValidCaseWhenReceiveCommit) {
     votes.push_back(createVote(my_hash, std::to_string(i)));
   };
   auto val = *yac->onState(votes);
-  ASSERT_EQ(my_hash, boost::get<CommitMessage>(val).votes.at(0).hash);
+  ASSERT_EQ(my_hash, std::get<CommitMessage>(val).votes.at(0).hash);
 }
 
 /**
@@ -117,7 +117,7 @@ TEST_F(YacTest, ValidCaseWhenReceiveCommitTwice) {
     votes.push_back(createVote(my_hash, std::to_string(i)));
   };
   auto val = *yac->onState(votes);
-  ASSERT_EQ(my_hash, boost::get<CommitMessage>(val).votes.at(0).hash);
+  ASSERT_EQ(my_hash, std::get<CommitMessage>(val).votes.at(0).hash);
 
   // second commit
   for (auto i = 1; i < 4; ++i) {
@@ -146,7 +146,7 @@ TEST_F(YacTest, ValidCaseWhenSoloConsensus) {
   yac->vote(my_hash, my_order.value());
 
   auto val = *yac->onState({vote_message});
-  ASSERT_EQ(my_hash, boost::get<CommitMessage>(val).votes.at(0).hash);
+  ASSERT_EQ(my_hash, std::get<CommitMessage>(val).votes.at(0).hash);
 
   auto commit_message = CommitMessage({vote_message});
 

@@ -4,6 +4,7 @@
  */
 
 #include "ametsuchi/impl/postgres_specific_query_executor.hpp"
+#include "common/visitor.hpp"
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -290,7 +291,7 @@ namespace iroha {
 
     QueryExecutorResult PostgresSpecificQueryExecutor::execute(
         const shared_model::interface::Query &qry) {
-      return boost::apply_visitor(
+      return iroha::visit(
           [this, &qry](const auto &query) {
             return (*this)(query, qry.creatorAccountId(), qry.hash());
           },

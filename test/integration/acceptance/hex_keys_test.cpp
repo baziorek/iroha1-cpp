@@ -223,7 +223,7 @@ TEST_P(HexKeys, QuerySignature) {
                                        std::get<0>(GetParam()))),
         [](auto const &general_response) {
           AccountResponse const *account_response =
-              boost::get<AccountResponse const &>(&general_response.get());
+              iroha::get_wrapped<AccountResponse>(&general_response.get());
           ASSERT_NE(account_response, nullptr);
           EXPECT_EQ(account_response->account().accountId(),
                     common_constants::kUserId);

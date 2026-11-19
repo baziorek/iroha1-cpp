@@ -49,7 +49,7 @@ CommandServiceImpl::getStatus(const shared_model::crypto::Hash &request) {
     return status_factory_->makeNotReceived(request);
   }
 
-  return std::visit(
+  return iroha::visit(
       make_visitor(
           [this, &request](
               const iroha::ametsuchi::tx_cache_status_responses::Missing &)
@@ -141,7 +141,7 @@ void CommandServiceImpl::processBatch(
       cache_presence->begin(),
       cache_presence->end(),
       [this, &status_issuer](const auto &tx_status) {
-        return std::visit(
+        return iroha::visit(
             make_visitor(
                 [this, &status_issuer](
                     const iroha::ametsuchi::tx_cache_status_responses::Missing

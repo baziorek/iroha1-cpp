@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "interfaces/commands/command_variant.hpp"
 
+#include "interfaces/commands/command.hpp"
+#include "common/visitor.hpp"
 #include "interfaces/commands/add_asset_quantity.hpp"
 #include "interfaces/commands/add_peer.hpp"
 #include "interfaces/commands/add_signatory.hpp"
@@ -27,21 +28,12 @@
 #include "interfaces/commands/transfer_asset.hpp"
 #include "utils/visitor_apply_for_all.hpp"
 
-using Variant = shared_model::interface::Command::CommandVariantType;
-template Variant::~variant();
-template Variant::variant(Variant &&);
-template bool Variant::operator==(const Variant &) const;
-template void Variant::destroy_content() noexcept;
-template int Variant::which() const noexcept;
-template void Variant::indicate_which(int) noexcept;
-template bool Variant::using_backup() const noexcept;
-template Variant::convert_copy_into::convert_copy_into(void *) noexcept;
 
 namespace shared_model {
   namespace interface {
 
     std::string Command::toString() const {
-      return boost::apply_visitor(detail::ToStringVisitor(), get());
+      return iroha::visit(detail::ToStringVisitor(), get());
     }
 
     bool Command::operator==(const ModelType &rhs) const {

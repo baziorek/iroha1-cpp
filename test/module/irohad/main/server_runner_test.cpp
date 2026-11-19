@@ -4,6 +4,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "common/visitor.hpp"
 
 #include "common/std_format.hpp"
 
@@ -29,7 +30,7 @@ TEST(ServerRunnerTest, SamePortNoReuse) {
   auto first_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   auto result = first_runner.append(first_query_service).run();
-  auto port = boost::apply_visitor(port_visitor, result);
+  auto port = iroha::visit(port_visitor, result);
   ASSERT_NE(0, port);
 
   ServerRunner second_runner(
@@ -37,7 +38,7 @@ TEST(ServerRunnerTest, SamePortNoReuse) {
   auto second_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   result = second_runner.append(second_query_service).run();
-  port = boost::apply_visitor(port_visitor, result);
+  port = iroha::visit(port_visitor, result);
   ASSERT_EQ(0, port);
 }
 
@@ -55,7 +56,7 @@ TEST(ServerRunnerTest, SamePortWithReuse) {
   auto first_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   auto result = first_runner.append(first_query_service).run();
-  auto port = boost::apply_visitor(port_visitor, result);
+  auto port = iroha::visit(port_visitor, result);
   ASSERT_NE(0, port);
 
   ServerRunner second_runner(
@@ -63,7 +64,7 @@ TEST(ServerRunnerTest, SamePortWithReuse) {
   auto second_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   result = second_runner.append(second_query_service).run();
-  port = boost::apply_visitor(port_visitor, result);
+  port = iroha::visit(port_visitor, result);
   ASSERT_NE(0, port);
 }
 

@@ -457,7 +457,7 @@ int main(int argc, char *argv[]) {
     // init pipeline components
     auto init_result = irohad->init();
     if (auto error =
-            boost::get<iroha::expected::Error<std::string>>(&init_result)) {
+            iroha::expected::get<iroha::expected::Error<std::string>>(&init_result)) {
       log->critical("Irohad startup failed: {}", error->error);
       daemon_status_notifier->notify(::iroha::utility_service::Status::kFailed);
       return EXIT_FAILURE;
@@ -501,7 +501,7 @@ int main(int argc, char *argv[]) {
     log->info("Running iroha");
     auto run_result = irohad->run();
     if (auto error =
-            boost::get<iroha::expected::Error<std::string>>(&run_result)) {
+            iroha::expected::get<iroha::expected::Error<std::string>>(&run_result)) {
       log->critical("Irohad startup failed: {}", error->error);
       daemon_status_notifier->notify(::iroha::utility_service::Status::kFailed);
       return EXIT_FAILURE;

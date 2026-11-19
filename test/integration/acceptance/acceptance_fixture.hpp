@@ -26,7 +26,7 @@
 namespace {
   template <typename Type, typename T>
   void checkTransactionResponse(const T &resp) {
-    ASSERT_NO_THROW(boost::get<const Type &>(resp.get())) << resp.toString();
+    ASSERT_NO_THROW(std::get<std::reference_wrapper<const Type>>(resp.get()).get()) << resp.toString();
   }
 
 #define BASE_CHECK_RESPONSE(type)                                  \

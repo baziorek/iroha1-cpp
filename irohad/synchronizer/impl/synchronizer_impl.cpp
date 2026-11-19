@@ -47,7 +47,7 @@ SynchronizerImpl::processOutcome(consensus::GateObject object) {
     return SynchronizationEvent{outcome_type, msg.round, msg.ledger_state};
   };
 
-  return std::visit(
+  return iroha::visit(
       make_visitor(
           [this](const consensus::PairValid &msg) {
             assert(msg.ledger_state->top_block_info.height + 1

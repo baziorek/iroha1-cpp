@@ -46,7 +46,7 @@ namespace integration_framework {
   void IrohaInstance::init() {
     auto init_result = test_irohad_->init();
     if (auto error =
-            boost::get<iroha::expected::Error<std::string>>(&init_result)) {
+            iroha::expected::get<iroha::expected::Error<std::string>>(&init_result)) {
       std::string error_msg("Irohad startup failed: ");
       error_msg.append(error->error);
       log_->critical("{}", error_msg);

@@ -30,7 +30,7 @@ TEST(ProtoQuery, QueryLoad) {
     auto field = desc->field(i);
     refl->SetAllocatedMessage(
         payload, refl->GetMessage(*payload, field).New(), field);
-    ASSERT_EQ(i, shared_model::proto::Query(query).get().which());
+    ASSERT_EQ(i, shared_model::proto::Query(query).get().index());
   });
 }
 

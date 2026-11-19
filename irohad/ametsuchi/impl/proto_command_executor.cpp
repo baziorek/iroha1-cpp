@@ -4,6 +4,7 @@
  */
 
 #include "ametsuchi/impl/proto_command_executor.h"
+#include "common/visitor.hpp"
 
 #include "ametsuchi/command_executor.hpp"
 #include "ametsuchi/impl/common_c_types_helpers.hpp"
@@ -36,7 +37,7 @@ Iroha_CommandError Iroha_ProtoCommandExecutorExecute(void *executor,
 
   shared_model::proto::Command proto_command(protocol_command);
 
-  auto maybe_error = boost::apply_visitor(
+  auto maybe_error = iroha::visit(
       shared_model::validation::CommandValidatorVisitor<
           shared_model::validation::FieldValidator>{
           std::make_shared<shared_model::validation::ValidatorsConfig>(0)},

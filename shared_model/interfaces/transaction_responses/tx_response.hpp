@@ -9,7 +9,8 @@
 #include "common/std_format.hpp"
 #include "interfaces/base/model_primitive.hpp"
 
-#include <boost/variant/variant_fwd.hpp>
+#include <functional>
+#include <variant>
 #include "interfaces/common_objects/types.hpp"
 
 namespace shared_model {
@@ -33,7 +34,7 @@ namespace shared_model {
      private:
       /// const reference shortcut type
       template <typename... Value>
-      using wrap = boost::variant<const Value &...>;
+      using wrap = std::variant<std::reference_wrapper<const Value>...>;
 
      protected:
       /**

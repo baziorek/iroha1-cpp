@@ -4,6 +4,7 @@
  */
 
 #include "backend/protobuf/query_responses/proto_block_query_response.hpp"
+#include "common/visitor.hpp"
 
 #include "backend/protobuf/query_responses/proto_block_error_response.hpp"
 #include "backend/protobuf/query_responses/proto_block_response.hpp"
@@ -13,7 +14,7 @@
 namespace {
   /// type of proto variant
   using ProtoQueryResponseVariantType =
-      boost::variant<shared_model::proto::BlockResponse,
+      std::variant<shared_model::proto::BlockResponse,
                      shared_model::proto::BlockErrorResponse>;
 }  // namespace
 
@@ -40,7 +41,9 @@ namespace shared_model::proto {
           };
         }()};
 
-    const QueryResponseVariantType ivariant_{variant_};
+    const QueryResponseVariantType ivariant_{iroha::visit(
+        [](const auto &v) { return QueryResponseVariantType(v); },
+        variant_)};
   };
 
   BlockQueryResponse::BlockQueryResponse(TransportType &&ref) {

@@ -62,7 +62,7 @@ TEST_F(YacBlockStorageTest, YacBlockStorageWhenNormalDataInput) {
           << "Did not get an Answer after inserting " << num_inserted
           << " votes and the supermajority reached at " << supermajority;
       ASSERT_EQ(num_inserted,
-                boost::get<CommitMessage>(*insert_result).votes.size())
+                std::get<CommitMessage>(*insert_result).votes.size())
           << " The commit message must have all the previously inserted votes.";
     }
   }
@@ -79,7 +79,7 @@ TEST_F(YacBlockStorageTest, YacBlockStorageWhenNotCommittedAndCommitAcheive) {
   auto insert_commit = storage.insert(for_insert);
   ASSERT_TRUE(insert_commit) << "Must be a commit!";
   ASSERT_EQ(number_of_peers,
-            boost::get<CommitMessage>(*insert_commit).votes.size());
+            std::get<CommitMessage>(*insert_commit).votes.size());
 }
 
 TEST_F(YacBlockStorageTest, YacBlockStorageWhenGetVotes) {

@@ -18,7 +18,7 @@ namespace iroha {
      */
     inline bool isAlreadyProcessed(
         const TxCacheStatusType &tx_status) noexcept {
-      return std::visit(
+      return iroha::visit(
           make_visitor(
               [](const ametsuchi::tx_cache_status_responses::Missing &) {
                 return false;
@@ -34,7 +34,7 @@ namespace iroha {
      */
     inline tx_cache_response_details::HashType getHash(
         const TxCacheStatusType &status) noexcept {
-      return std::visit(
+      return iroha::visit(
           make_visitor([](const auto &status) { return status.hash; }), status);
     }
   }  // namespace ametsuchi

@@ -4,10 +4,11 @@
  */
 
 #include "ametsuchi/impl/rocksdb_command_executor.hpp"
+#include "common/visitor.hpp"
 
 #include <rocksdb/utilities/transaction.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/variant/apply_visitor.hpp>
+#include <variant>
 #include "ametsuchi/impl/executor_common.hpp"
 #include "ametsuchi/impl/rocksdb_burrow_storage.hpp"
 #include "ametsuchi/impl/rocksdb_specific_query_executor.hpp"
@@ -100,7 +101,7 @@ CommandResult RocksDbCommandExecutor::execute(
     const std::string &tx_hash,
     shared_model::interface::types::CommandIndexType cmd_index,
     bool do_validation) {
-  return boost::apply_visitor(
+  return iroha::visit(
       [this, &creator_account_id, &tx_hash, cmd_index, do_validation](
           const auto &command) -> CommandResult {
         // TODO(iceseer): remove try-catch when commands will be implemented

@@ -6,7 +6,7 @@
 #ifndef IROHA_VISITOR_APPLY_FOR_ALL_HPP
 #define IROHA_VISITOR_APPLY_FOR_ALL_HPP
 
-#include <boost/variant/static_visitor.hpp>
+#include <functional>
 #include <string>
 
 namespace shared_model {
@@ -15,8 +15,14 @@ namespace shared_model {
     /**
      * Class provides generic toString visitor for objects
      */
-    class ToStringVisitor : public boost::static_visitor<std::string> {
+    class ToStringVisitor {
      public:
+      template <typename T>
+      std::string operator()(const std::reference_wrapper<const T> &operand)
+          const {
+        return operand.get().toString();
+      }
+
       template <typename InputType>
       auto operator()(const InputType &operand) const {
         return operand.toString();

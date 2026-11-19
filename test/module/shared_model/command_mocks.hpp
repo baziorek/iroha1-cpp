@@ -7,7 +7,7 @@
 #define IROHA_COMMAND_MOCKS_HPP
 
 #include <gmock/gmock.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include <optional>
 #include "interfaces/commands/add_asset_quantity.hpp"
 #include "interfaces/commands/add_peer.hpp"

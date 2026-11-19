@@ -9,6 +9,8 @@
 #include "framework/executor_itf/executor_itf.hpp"
 
 #include <gtest/gtest.h>
+#include <functional>
+#include <variant>
 #include "common/result.hpp"
 #include "framework/common_constants.hpp"
 #include "framework/result_gtest_checkers.hpp"
@@ -60,13 +62,14 @@ namespace executor_testing {
   void checkSuccessfulResult(
       const iroha::ametsuchi::QueryExecutorResult &response,
       Callback callback) {
-    auto specific_result =
-        boost::strict_get<const SpecificQueryResponse &>(&response->get());
+    auto specific_result = std::get_if<
+        std::reference_wrapper<const SpecificQueryResponse>>(
+        &response->get());
     if (not specific_result) {
       ADD_FAILURE() << "Wrong query response type: " << response->toString();
       return;
     }
-    std::forward<Callback>(callback)(*specific_result);
+    std::forward<Callback>(callback)(specific_result->get());
   }
 
   /**
@@ -91,13 +94,15 @@ namespace executor_testing {
       const iroha::ametsuchi::QueryExecutorResult &response,
       shared_model::interface::ErrorQueryResponse::ErrorCodeType error_code) {
     static const auto error_type = typeid(SpecificErrorResponse).name();
-    if (auto error = boost::strict_get<
-            const shared_model::interface::ErrorQueryResponse &>(
+    if (auto error = std::get_if<
+            std::reference_wrapper<
+                const shared_model::interface::ErrorQueryResponse>>(
             &response->get())) {
-      EXPECT_TRUE(
-          boost::strict_get<const SpecificErrorResponse &>(&error->get()))
+      EXPECT_TRUE(std::get_if<
+                  std::reference_wrapper<const SpecificErrorResponse>>(
+                  &(error->get().get())))
           << "Expected an error of type " << error_type << ", but got "
-          << error->toString();
+          << error->get().toString();
       // TODO(iceseer): check equality of error codes for PG and RDB impls.
       /*      EXPECT_EQ(error->errorCode(), error_code)
                 << "Wrong query result error code!";*/

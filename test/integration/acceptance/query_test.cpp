@@ -7,7 +7,7 @@
 
 #include <thread>
 
-#include <boost/variant.hpp>
+#include <variant>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
 #include "interfaces/query_responses/transactions_response.hpp"
@@ -66,8 +66,8 @@ TEST_F(QueryAcceptanceTest, ParallelBlockQuery) {
   auto check = [dummy_tx = dummy_tx](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), 1);
       ASSERT_EQ(resp.transactions().front(), dummy_tx);
     });

@@ -6,7 +6,8 @@
 #ifndef IROHA_REFERENCE_HOLDER_HPP
 #define IROHA_REFERENCE_HOLDER_HPP
 
-#include <boost/variant.hpp>
+#include <optional>
+#include <type_traits>
 
 namespace shared_model {
   namespace detail {
@@ -16,12 +17,54 @@ namespace shared_model {
      */
     template <typename T>
     class ReferenceHolder {
-     private:
-      using VariantType = boost::variant<T, T &>;
-
      public:
       template <typename V>
-      explicit ReferenceHolder(V &&value) : variant_(std::forward<V>(value)) {}
+      explicit ReferenceHolder(V &&value) {
+        using U = std::remove_reference_t<V>;
+        constexpr bool is_nonconst_lvalue =
+            std::is_lvalue_reference_v<V &&> && !std::is_const_v<U>
+            && std::is_same_v<std::remove_cv_t<U>, std::remove_cv_t<T>>;
+        if constexpr (is_nonconst_lvalue) {
+          ptr_ = std::addressof(value);
+        } else {
+          owned_.emplace(std::forward<V>(value));
+          ptr_ = std::addressof(*owned_);
+        }
+      }
+
+      ReferenceHolder(const ReferenceHolder &other)
+          : owned_(other.owned_), ptr_(nullptr) {
+        if (owned_) {
+          ptr_ = std::addressof(*owned_);
+        } else {
+          ptr_ = other.ptr_;
+        }
+      }
+
+      ReferenceHolder(ReferenceHolder &&other) noexcept
+          : owned_(std::move(other.owned_)), ptr_(nullptr) {
+        if (owned_) {
+          ptr_ = std::addressof(*owned_);
+        } else {
+          ptr_ = other.ptr_;
+        }
+      }
+
+      ReferenceHolder &operator=(const ReferenceHolder &other) {
+        if (this != &other) {
+          owned_ = other.owned_;
+          ptr_ = owned_ ? std::addressof(*owned_) : other.ptr_;
+        }
+        return *this;
+      }
+
+      ReferenceHolder &operator=(ReferenceHolder &&other) noexcept {
+        if (this != &other) {
+          owned_ = std::move(other.owned_);
+          ptr_ = owned_ ? std::addressof(*owned_) : other.ptr_;
+        }
+        return *this;
+      }
 
       using ReferenceType = typename std::add_lvalue_reference_t<T>;
       using PointerType = typename std::add_pointer_t<T>;
@@ -38,8 +81,7 @@ namespace shared_model {
       }
 
       PointerType ptr() {
-        return &boost::apply_visitor(
-            [](auto &value) -> decltype(auto) { return (value); }, variant_);
+        return ptr_;
       }
 
       ConstReferenceType operator*() const {
@@ -51,13 +93,12 @@ namespace shared_model {
       }
 
       ConstPointerType ptr() const {
-        return &boost::apply_visitor(
-            [](const auto &value) -> decltype(auto) { return (value); },
-            variant_);
+        return ptr_;
       }
 
      private:
-      VariantType variant_;
+      std::optional<T> owned_;
+      T *ptr_ = nullptr;
     };
   }  // namespace detail
 }  // namespace shared_model

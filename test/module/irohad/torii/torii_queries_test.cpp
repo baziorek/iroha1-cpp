@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <boost/variant.hpp>
+#include <variant>
+#include "common/visitor.hpp"
 #include "crypto/keypair.hpp"
 #include "framework/test_logger.hpp"
 #include "module/irohad/ametsuchi/mock_block_query.hpp"
@@ -198,7 +199,7 @@ TEST_F(ToriiQueriesTest, FindWhenResponseInvalid) {
       iroha::protocol::QueryResponse{response}};
   ASSERT_TRUE(stat.ok());
   // Must return Error Response
-  ASSERT_TRUE(boost::apply_visitor(
+  ASSERT_TRUE(iroha::visit(
       shared_model::interface::QueryErrorResponseChecker<
           shared_model::interface::StatelessFailedErrorResponse>(),
       resp.get()));
@@ -246,7 +247,7 @@ TEST_F(ToriiQueriesTest, FindAccountWhenNoGrantPermissions) {
       iroha::protocol::QueryResponse{response}};
   // Must be invalid due to failed stateful validation caused by no permission
   // to read account
-  ASSERT_TRUE(boost::apply_visitor(
+  ASSERT_TRUE(iroha::visit(
       shared_model::interface::QueryErrorResponseChecker<
           shared_model::interface::StatefulFailedErrorResponse>(),
       resp.get()));
@@ -297,8 +298,8 @@ TEST_F(ToriiQueriesTest, FindAccountWhenHasReadPermissions) {
 
   ASSERT_NO_THROW({
     const auto &account_resp =
-        boost::get<const shared_model::interface::AccountResponse &>(
-            resp.get());
+        std::get<std::reference_wrapper<const shared_model::interface::AccountResponse>>(
+            resp.get()).get();
 
     ASSERT_EQ(account_resp.account().accountId(), accountB_id);
     ASSERT_EQ(account_resp.roles().size(), 1);
@@ -345,8 +346,8 @@ TEST_F(ToriiQueriesTest, FindAccountWhenHasRolePermission) {
 
   ASSERT_NO_THROW({
     const auto &detail_resp =
-        boost::get<const shared_model::interface::AccountResponse &>(
-            resp.get());
+        std::get<std::reference_wrapper<const shared_model::interface::AccountResponse>>(
+            resp.get()).get();
 
     ASSERT_EQ(detail_resp.account().accountId(), account_id);
     ASSERT_EQ(detail_resp.account().domainId(), domain_id);
@@ -394,7 +395,7 @@ TEST_F(ToriiQueriesTest, FindAccountAssetWhenNoGrantPermissions) {
   ASSERT_TRUE(stat.ok());
   // Must be invalid due to failed stateful validation caused by no permission
   // to read account asset
-  ASSERT_TRUE(boost::apply_visitor(
+  ASSERT_TRUE(iroha::visit(
       shared_model::interface::QueryErrorResponseChecker<
           shared_model::interface::StatefulFailedErrorResponse>(),
       resp.get()));
@@ -450,8 +451,8 @@ TEST_F(ToriiQueriesTest, FindAccountAssetWhenHasRolePermissions) {
       iroha::protocol::QueryResponse{response}};
   ASSERT_NO_THROW({
     const auto &asset_resp =
-        boost::get<const shared_model::interface::AccountAssetResponse &>(
-            resp.get());
+        std::get<std::reference_wrapper<const shared_model::interface::AccountAssetResponse>>(
+            resp.get()).get();
     // Check if the fields in account asset response are correct
     ASSERT_EQ(asset_resp.accountAssets()[0].assetId(), asset_id);
     ASSERT_EQ(asset_resp.accountAssets()[0].accountId(), account_id);
@@ -497,7 +498,7 @@ TEST_F(ToriiQueriesTest, FindSignatoriesWhenNoGrantPermissions) {
   // to read account
   shared_model::proto::QueryResponse resp{
       iroha::protocol::QueryResponse{response}};
-  ASSERT_TRUE(boost::apply_visitor(
+  ASSERT_TRUE(iroha::visit(
       shared_model::interface::QueryErrorResponseChecker<
           shared_model::interface::StatefulFailedErrorResponse>(),
       resp.get()));
@@ -537,8 +538,8 @@ TEST_F(ToriiQueriesTest, FindSignatoriesHasRolePermissions) {
       iroha::protocol::QueryResponse{response}};
   ASSERT_NO_THROW({
     auto resp_pubkey =
-        *boost::get<const shared_model::interface::SignatoriesResponse &>(
-             shared_response.get())
+        *std::get<std::reference_wrapper<const shared_model::interface::SignatoriesResponse>>(
+             shared_response.get()).get()
              .keys()
              .begin();
 
@@ -609,8 +610,8 @@ TEST_F(ToriiQueriesTest, FindTransactionsWhenValid) {
       iroha::protocol::QueryResponse{response}};
   ASSERT_NO_THROW({
     const auto &tx_resp =
-        boost::get<const shared_model::interface::TransactionsResponse &>(
-            resp.get());
+        std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+            resp.get()).get();
 
     const auto &txs = tx_resp.transactions();
     for (const auto &tx : txs) {
@@ -639,7 +640,7 @@ TEST_F(ToriiQueriesTest, FindManyTimesWhereQueryServiceSync) {
     shared_model::proto::QueryResponse resp{
         iroha::protocol::QueryResponse{response}};
     // Must return Error Response
-    ASSERT_TRUE(boost::apply_visitor(
+    ASSERT_TRUE(iroha::visit(
         shared_model::interface::QueryErrorResponseChecker<
             shared_model::interface::StatelessFailedErrorResponse>(),
         resp.get()));

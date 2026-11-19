@@ -55,7 +55,7 @@ class ProtoQueryResponseFactoryTest : public ::testing::Test {
   template <typename ResultType, typename ErrorType>
   std::unique_ptr<ResultType> unwrapResult(
       Result<std::unique_ptr<ResultType>, ErrorType> &&res) {
-    return boost::get<iroha::expected::Value<std::unique_ptr<ResultType>>>(
+    return iroha::expected::get<iroha::expected::Value<std::unique_ptr<ResultType>>>(
                std::move(res))
         .value;
   }
@@ -104,8 +104,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateAccountAssetResponse) {
     ASSERT_EQ(query_response->queryHash(), kQueryHash);
     ASSERT_NO_THROW({
       const auto &response =
-          boost::get<const shared_model::interface::AccountAssetResponse &>(
-              query_response->get());
+          std::get<std::reference_wrapper<const shared_model::interface::AccountAssetResponse>>(
+              query_response->get()).get();
       ASSERT_EQ(response.accountAssets().front().accountId(), kAccountId);
       ASSERT_EQ(response.accountAssets().front().assetId(), kAssetId);
       for (auto i = 1; i < kAccountAssetsNumber; i++) {
@@ -136,8 +136,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateAccountDetailResponse) {
   ASSERT_EQ(query_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::AccountDetailResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::AccountDetailResponse>>(
+            query_response->get()).get();
     EXPECT_EQ(response.detail(), account_details);
     EXPECT_EQ(response.totalNumber(), total_number);
     ASSERT_TRUE(response.nextRecordId());
@@ -172,8 +172,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateAccountResponse) {
     ASSERT_EQ(query_response->queryHash(), kQueryHash);
     ASSERT_NO_THROW({
       const auto &response =
-          boost::get<const shared_model::interface::AccountResponse &>(
-              query_response->get());
+          std::get<std::reference_wrapper<const shared_model::interface::AccountResponse>>(
+              query_response->get()).get();
 
       ASSERT_EQ(response.account().accountId(), kAccountId);
       ASSERT_EQ(response.account().domainId(), kDomainId);
@@ -210,42 +210,40 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateErrorQueryResponse) {
   ASSERT_EQ(stateless_invalid_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &general_resp =
-        boost::get<const shared_model::interface::ErrorQueryResponse &>(
-            stateless_invalid_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+            stateless_invalid_response->get()).get();
 
     ASSERT_EQ(general_resp.errorMessage(), kStatelessErrorMsg);
     ASSERT_EQ(general_resp.errorCode(), 0);
-    (void)boost::get<
-        const shared_model::interface::StatelessFailedErrorResponse &>(
-        general_resp.get());
+    (void)std::get<std::reference_wrapper<const shared_model::interface::StatelessFailedErrorResponse>>(
+        general_resp.get()).get();
   });
 
   ASSERT_TRUE(stateful_failed_response);
   ASSERT_EQ(stateful_failed_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &general_resp =
-        boost::get<const shared_model::interface::ErrorQueryResponse &>(
-            stateful_failed_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+            stateful_failed_response->get()).get();
 
     ASSERT_EQ(general_resp.errorMessage(), kStatefulFailedErrorMsg);
     ASSERT_EQ(general_resp.errorCode(), 1);
-    (void)boost::get<
-        const shared_model::interface::StatefulFailedErrorResponse &>(
-        general_resp.get());
+    (void)std::get<std::reference_wrapper<const shared_model::interface::StatefulFailedErrorResponse>>(
+        general_resp.get()).get();
   });
 
   ASSERT_TRUE(no_signatories_response);
   ASSERT_EQ(no_signatories_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &general_resp =
-        boost::get<const shared_model::interface::ErrorQueryResponse &>(
-            no_signatories_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+            no_signatories_response->get()).get();
 
     ASSERT_EQ(general_resp.errorMessage(), kNoSigsErrorMsg);
     ASSERT_EQ(general_resp.errorCode(), 0);
     (void)
-        boost::get<const shared_model::interface::NoSignatoriesErrorResponse &>(
-            general_resp.get());
+        std::get<std::reference_wrapper<const shared_model::interface::NoSignatoriesErrorResponse>>(
+            general_resp.get()).get();
   });
 }
 
@@ -269,8 +267,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateSignatoriesResponse) {
   ASSERT_EQ(query_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::SignatoriesResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::SignatoriesResponse>>(
+            query_response->get()).get();
 
     ASSERT_EQ(response.keys(), signatories);
   });
@@ -304,8 +302,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateTransactionsResponse) {
   ASSERT_EQ(query_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::TransactionsResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+            query_response->get()).get();
 
     for (auto i = 0; i < kTransactionsNumber; ++i) {
       ASSERT_EQ(response.transactions()[i].creatorAccountId(),
@@ -343,8 +341,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateTransactionsPageResponse) {
   EXPECT_EQ(query_response->queryHash(), kQueryHash);
   EXPECT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::TransactionsPageResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::TransactionsPageResponse>>(
+            query_response->get()).get();
 
     EXPECT_EQ(response.allTransactionsSize(), kTransactionsNumber);
     for (auto i = 0; i < kTransactionsNumber; ++i) {
@@ -385,8 +383,8 @@ TEST_F(ProtoQueryResponseFactoryTest,
   EXPECT_EQ(query_response->queryHash(), kQueryHash);
   EXPECT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::TransactionsPageResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::TransactionsPageResponse>>(
+            query_response->get()).get();
 
     ASSERT_EQ(response.allTransactionsSize(), kTransactionsNumber);
     for (auto i = 0; i < kTransactionsNumber; ++i) {
@@ -420,8 +418,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateAssetResponse) {
     ASSERT_EQ(query_response->queryHash(), kQueryHash);
     ASSERT_NO_THROW({
       const auto &response =
-          boost::get<const shared_model::interface::AssetResponse &>(
-              query_response->get());
+          std::get<std::reference_wrapper<const shared_model::interface::AssetResponse>>(
+              query_response->get()).get();
 
       ASSERT_EQ(response.asset().assetId(), kAssetId);
       ASSERT_EQ(response.asset().domainId(), kDomainId);
@@ -447,8 +445,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateRolesResponse) {
   ASSERT_EQ(query_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::RolesResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::RolesResponse>>(
+            query_response->get()).get();
 
     ASSERT_EQ(response.roles(), roles);
   });
@@ -473,8 +471,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateRolePermissionsResponse) {
   ASSERT_EQ(query_response->queryHash(), kQueryHash);
   ASSERT_NO_THROW({
     const auto &response =
-        boost::get<const shared_model::interface::RolePermissionsResponse &>(
-            query_response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::RolePermissionsResponse>>(
+            query_response->get()).get();
 
     ASSERT_EQ(response.rolePermissions(), perms);
   });
@@ -498,8 +496,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateBlockQueryResponseWithBlock) {
   ASSERT_TRUE(response);
   ASSERT_NO_THROW({
     const auto &block_resp =
-        boost::get<const shared_model::interface::BlockResponse &>(
-            response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::BlockResponse>>(
+            response->get()).get();
 
     ASSERT_EQ(block_resp.block().height(), kBlockHeight);
     ASSERT_EQ(block_resp.block().createdTime(), kCreatedTime);
@@ -519,8 +517,8 @@ TEST_F(ProtoQueryResponseFactoryTest, CreateBlockQueryResponseWithError) {
   ASSERT_TRUE(response);
   ASSERT_NO_THROW({
     const auto &error_resp =
-        boost::get<const shared_model::interface::BlockErrorResponse &>(
-            response->get());
+        std::get<std::reference_wrapper<const shared_model::interface::BlockErrorResponse>>(
+            response->get()).get();
 
     ASSERT_EQ(error_resp.message(), kErrorMsg);
   });

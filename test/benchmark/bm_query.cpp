@@ -6,7 +6,7 @@
 #include <string>
 
 #include <benchmark/benchmark.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "backend/protobuf/transaction.hpp"
 #include "benchmark/bm_utils.hpp"
@@ -51,8 +51,8 @@ static void BM_QueryAccount(benchmark::State &state) {
     };
 
     auto check = [](auto &status) {
-      boost::get<const shared_model::interface::AccountResponse &>(
-          status.get());
+      std::get<std::reference_wrapper<const shared_model::interface::AccountResponse>>(
+          status.get()).get();
     };
 
     itf.sendQuery(make_query(), check);

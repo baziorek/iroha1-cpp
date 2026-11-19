@@ -4,8 +4,9 @@
  */
 
 #include <gtest/gtest.h>
+#include "common/visitor.hpp"
 
-#include <boost/variant.hpp>
+#include <variant>
 
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "backend/protobuf/transaction.hpp"
@@ -74,7 +75,7 @@ class GetTransactions : public AcceptanceFixture,
 TEST_P(GetTransactions, HaveNoGetPerms) {
   auto check = [](auto &status) {
     ASSERT_TRUE(
-        boost::apply_visitor(interface::QueryErrorResponseChecker<
+        iroha::visit(interface::QueryErrorResponseChecker<
                                  interface::StatefulFailedErrorResponse>(),
                              status.get()));
   };
@@ -105,8 +106,8 @@ TEST_P(GetTransactions, HaveGetAllTx) {
   auto check = [&dummy_tx](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), 1);
       ASSERT_EQ(resp.transactions().front(), dummy_tx);
     });
@@ -128,8 +129,8 @@ TEST_P(GetTransactions, MultipleHaveGetAllTx) {
   auto check = [&txs](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), sizeof(txs) / sizeof(txs[0]));
       for (size_t ix = 0; ix < resp.transactions().size(); ++ix) {
         ASSERT_EQ(resp.transactions()[ix], txs[ix]);
@@ -168,8 +169,8 @@ TEST_P(GetTransactions, HaveGetMyTx) {
   auto check = [&dummy_tx](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), 1);
       ASSERT_EQ(resp.transactions().front(), dummy_tx);
     });
@@ -200,10 +201,10 @@ TEST_P(GetTransactions, InvalidSignatures) {
   auto check = [](auto &status) {
     ASSERT_NO_THROW({
       const auto &error_rsp =
-          boost::get<const shared_model::interface::ErrorQueryResponse &>(
-              status.get());
-      boost::get<const shared_model::interface::StatefulFailedErrorResponse &>(
-          error_rsp.get());
+          std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+              status.get()).get();
+      std::get<std::reference_wrapper<const shared_model::interface::StatefulFailedErrorResponse>>(
+          error_rsp.get()).get();
     });
   };
 
@@ -236,13 +237,13 @@ TEST_P(GetTransactions, NonexistentHash) {
   auto check = [](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::ErrorQueryResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+              status.get()).get();
       // TODO [IR-1816] Akvinikym 03.12.18: replace magic number 4
       // with a named constant
       ASSERT_EQ(resp.errorCode(), 4);
-      boost::get<const shared_model::interface::StatefulFailedErrorResponse &>(
-          resp.get());
+      std::get<std::reference_wrapper<const shared_model::interface::StatefulFailedErrorResponse>>(
+          resp.get()).get();
     });
   };
 
@@ -269,8 +270,8 @@ TEST_P(GetTransactions, OtherUserTx) {
   auto check = [](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), 0);
     });
   };

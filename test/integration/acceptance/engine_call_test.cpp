@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <boost/variant.hpp>
+#include <variant>
 #include <string_view>
 
 #include "backend/protobuf/query_responses/proto_engine_receipt.hpp"
@@ -333,8 +333,7 @@ TEST_P(EngineCall, Basic) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),
@@ -378,8 +377,7 @@ TEST_P(EngineCall, CreatorStorageSmartContract) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),
@@ -438,8 +436,7 @@ TEST_P(EngineCall, QueryAccountBalance) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),
@@ -498,8 +495,7 @@ TEST_P(EngineCall, TransferAsset) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),
@@ -556,8 +552,7 @@ TEST_P(EngineCall, AccountMissingError) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),
@@ -616,8 +611,7 @@ TEST_P(EngineCall, PermissionError) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),
@@ -676,8 +670,7 @@ TEST_P(EngineCall, InsufficientBalanceError) {
       complete(baseQry().getEngineReceipts(deploy_tx.hash().hex())),
       [&deployed_addresses](const auto &response) {
         auto *receipts_response =
-            boost::get<const shared_model::interface::EngineReceiptsResponse &>(
-                &response.get());
+            iroha::get_wrapped<shared_model::interface::EngineReceiptsResponse>(&response.get());
         ASSERT_NE(receipts_response, nullptr);
         const auto &receipts = receipts_response->engineReceipts();
         std::transform(receipts.begin(),

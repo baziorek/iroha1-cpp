@@ -4,15 +4,16 @@
  */
 
 #include "backend/protobuf/query_responses/proto_error_query_response.hpp"
+#include "common/visitor.hpp"
 
-#include <boost/variant/variant.hpp>
+#include <variant>
 #include "backend/protobuf/query_responses/proto_concrete_error_query_response.hpp"
 #include "common/report_abort.h"
 
 namespace {
   /// type of proto variant
   using ProtoQueryErrorResponseVariantType =
-      boost::variant<shared_model::proto::StatelessFailedErrorResponse,
+      std::variant<shared_model::proto::StatelessFailedErrorResponse,
                      shared_model::proto::StatefulFailedErrorResponse,
                      shared_model::proto::NoAccountErrorResponse,
                      shared_model::proto::NoAccountAssetsErrorResponse,
@@ -58,7 +59,9 @@ namespace shared_model::proto {
                 report_abort("Unexpected query error response case.");
             }
           }()},
-          ivariant_{variant_} {}
+          ivariant_{iroha::visit(
+              [](const auto &v) { return QueryErrorResponseVariantType(v); },
+              variant_)} {}
 
     iroha::protocol::ErrorResponse &error_response_;
 

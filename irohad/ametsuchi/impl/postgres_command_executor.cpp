@@ -4,6 +4,7 @@
  */
 
 #include "ametsuchi/impl/postgres_command_executor.hpp"
+#include "common/visitor.hpp"
 
 #include <exception>
 #include <forward_list>
@@ -1443,7 +1444,7 @@ namespace iroha {
         const std::string &tx_hash,
         shared_model::interface::types::CommandIndexType cmd_index,
         bool do_validation) {
-      return boost::apply_visitor(
+      return iroha::visit(
           [this, &creator_account_id, &tx_hash, cmd_index, do_validation](
               const auto &command) {
             return (*this)(

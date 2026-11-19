@@ -4,9 +4,10 @@
  */
 
 #include "interfaces/query_responses/block_query_response.hpp"
+#include "common/visitor.hpp"
 
-#include <boost/variant/apply_visitor.hpp>
-#include <boost/variant/variant.hpp>
+#include <variant>
+#include <variant>
 #include "interfaces/query_responses/block_error_response.hpp"
 #include "interfaces/query_responses/block_response.hpp"
 #include "utils/visitor_apply_for_all.hpp"
@@ -14,7 +15,7 @@
 namespace shared_model {
   namespace interface {
     std::string BlockQueryResponse::toString() const {
-      return boost::apply_visitor(detail::ToStringVisitor(), get());
+      return iroha::visit(detail::ToStringVisitor(), get());
     }
 
     bool BlockQueryResponse::operator==(const ModelType &rhs) const {

@@ -7,11 +7,30 @@
 #define IROHA_MODEL_PRIMITIVE_HPP
 
 #include <ciso646>
+#include <functional>
 
 #include "utils/string_builder.hpp"
 
 namespace shared_model {
   namespace interface {
+
+    /**
+     * Equality for reference_wrapper alternatives used by the interface
+     * variant types (CommandVariantType, QueryVariantType, etc.), which hold
+     * const references to the concrete objects.
+     */
+    template <typename T>
+    bool operator==(const std::reference_wrapper<const T> &lhs,
+                    const std::reference_wrapper<const T> &rhs) {
+      return lhs.get() == rhs.get();
+    }
+
+    template <typename T>
+    bool operator!=(const std::reference_wrapper<const T> &lhs,
+                    const std::reference_wrapper<const T> &rhs) {
+      return !(lhs == rhs);
+    }
+
     /**
      * ModelPrimitive is a base class of whole domain objects in system.
      * This class required for guarantee consistent interface on all shared

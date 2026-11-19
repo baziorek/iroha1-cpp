@@ -4,6 +4,7 @@
  */
 
 #include "integration/acceptance/acceptance_fixture.hpp"
+#include "common/visitor.hpp"
 
 #include <utility>
 
@@ -139,7 +140,7 @@ template <typename ErrorResponse>
 std::function<void(const shared_model::interface::QueryResponse &)>
 AcceptanceFixture::checkQueryErrorResponse() {
   return [](auto &response) {
-    ASSERT_TRUE(boost::apply_visitor(
+    ASSERT_TRUE(iroha::visit(
         shared_model::interface::QueryErrorResponseChecker<ErrorResponse>(),
         response.get()));
   };

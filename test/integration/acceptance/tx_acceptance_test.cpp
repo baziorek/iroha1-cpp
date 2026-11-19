@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <boost/variant.hpp>
+#include <variant>
 
 #include "framework/crypto_literals.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
@@ -21,8 +21,7 @@ struct AcceptanceTest : AcceptanceFixture,
   const std::function<void(const shared_model::proto::TransactionResponse &)>
       checkStatelessValidStatus = [](auto &status) {
         ASSERT_NO_THROW(
-            boost::get<const shared_model::interface::StatelessValidTxResponse
-                           &>(status.get()))
+            std::get<std::reference_wrapper<const shared_model::interface::StatelessValidTxResponse>>(status.get()).get())
             << status.toString();
       };
   const std::function<void(

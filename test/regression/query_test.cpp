@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "builders/protobuf/queries.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
@@ -49,10 +49,10 @@ TEST(QueryTest, FailedQueryTest) {
       createInvalidQuery(makeQuery<TestQueryBuilder>(), key_pair);
   auto stateless_invalid_query_response = [](auto &status) {
     auto &resp =
-        boost::get<const shared_model::interface::ErrorQueryResponse &>(
-            status.get());
-    boost::get<const shared_model::interface::StatelessFailedErrorResponse &>(
-        resp.get());
+        std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+            status.get()).get();
+    std::get<std::reference_wrapper<const shared_model::interface::StatelessFailedErrorResponse>>(
+        resp.get()).get();
   };
 
   for (auto const type :

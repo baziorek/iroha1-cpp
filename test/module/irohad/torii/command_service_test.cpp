@@ -98,8 +98,8 @@ TEST_F(CommandServiceTest, RejectedTxStatus) {
   auto response = command_service_->getStatus(hash);
 
   ASSERT_NO_THROW({
-    boost::get<const shared_model::interface::RejectedTxResponse &>(
-        response->get());
+    std::get<std::reference_wrapper<const shared_model::interface::RejectedTxResponse>>(
+        response->get()).get();
   }) << "Wrong response. Expected: RejectedTxResponse, Received: "
      << response->toString();
 }

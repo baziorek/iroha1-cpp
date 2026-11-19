@@ -7,6 +7,8 @@
 #define IROHA_TEST_FRAMEWORK_EXECUTOR_ITF_HELPER_HPP
 
 #include <memory>
+#include <type_traits>
+#include <variant>
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/contains.hpp>
@@ -75,17 +77,36 @@ namespace iroha {
                            shared_model::interface::EngineReceiptsResponse>>
           SpecificQueryResponses;
 
+      /// whether Variant holds an alternative equivalent to const T &
+      /// (variant alternatives are std::reference_wrapper<const T>)
+      template <typename Variant, typename T>
+      struct is_variant_alternative {
+        template <std::size_t... Is>
+        static constexpr bool impl(std::index_sequence<Is...>) {
+          return (std::is_same_v<
+                      std::remove_cv_t<std::remove_reference_t<
+                          std::variant_alternative_t<Is, Variant>>>,
+                      std::reference_wrapper<const std::decay_t<T>>> ||
+                  ...);
+        }
+
+        static constexpr bool value =
+            impl(std::make_index_sequence<std::variant_size_v<Variant>>{});
+      };
+
       /// true for specific commands
       template <typename T>
-      constexpr bool isSpecificCommand = boost::mpl::contains<
-          shared_model::interface::Command::CommandVariantType::types,
-          const std::decay_t<T> &>::type::value;
+      constexpr bool isSpecificCommand =
+          is_variant_alternative<
+              shared_model::interface::Command::CommandVariantType,
+              T>::value;
 
       /// true for specific queries
       template <typename T>
-      constexpr bool isSpecificQuery = boost::mpl::contains<
-          shared_model::interface::Query::QueryVariantType::types,
-          const std::decay_t<T> &>::type::value;
+      constexpr bool isSpecificQuery =
+          is_variant_alternative<
+              shared_model::interface::Query::QueryVariantType,
+              T>::value;
 
       template <typename T>
       std::enable_if_t<isSpecificQuery<T>, const T &> getInterfaceQueryRef(
@@ -122,11 +143,11 @@ namespace iroha {
                               iroha::ametsuchi::QueryExecutorResult &>
       convertToSpecificQueryResponse(
           iroha::ametsuchi::QueryExecutorResult &query_result) {
-        if (auto specific_query_response =
-                boost::strict_get<const SpecificQueryResponse &>(
-                    &query_result->get())) {
+        if (auto specific_query_response = std::get_if<
+                std::reference_wrapper<const SpecificQueryResponse>>(
+                &query_result->get())) {
           return iroha::expected::makeValue<const SpecificQueryResponse &>(
-              *specific_query_response);
+              specific_query_response->get());
         }
         return iroha::expected::makeError<
             iroha::ametsuchi::QueryExecutorResult &>(query_result);

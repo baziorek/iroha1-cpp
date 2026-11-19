@@ -7,7 +7,6 @@ soci[boost,postgresql]
 rapidjson
 spdlog
 boost-iostreams
-boost-variant
 boost-multiprecision
 boost-bimap
 boost-asio

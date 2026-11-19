@@ -14,7 +14,7 @@
 #include <filesystem>
 #include <boost/optional.hpp>
 #include <boost/process.hpp>
-#include <boost/variant.hpp>
+#include <variant>
 #include <fstream>
 #include <sstream>
 
@@ -564,7 +564,7 @@ TEST_F(IrohadTest, SendQuery) {
   shared_model::proto::QueryResponse resp{std::move(response)};
 
   ASSERT_NO_THROW(
-      boost::get<const shared_model::interface::RolesResponse &>(resp.get()));
+      std::get<std::reference_wrapper<const shared_model::interface::RolesResponse>>(resp.get()).get());
 }
 
 /**

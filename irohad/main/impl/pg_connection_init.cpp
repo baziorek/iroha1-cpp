@@ -453,12 +453,12 @@ PgConnectionInit::prepareConnectionPool(
   auto options_str = options.workingConnectionString();
 
   auto conn = initPostgresConnection(options_str, pool_size);
-  if (auto e = boost::get<expected::Error<std::string>>(&conn)) {
+  if (auto e = iroha::expected::get<expected::Error<std::string>>(&conn)) {
     return *e;
   }
 
   auto &connection =
-      boost::get<expected::Value<std::shared_ptr<soci::connection_pool>>>(conn)
+      iroha::expected::get<expected::Value<std::shared_ptr<soci::connection_pool>>>(conn)
           .value;
 
   soci::session sql(*connection);

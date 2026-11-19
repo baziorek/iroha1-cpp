@@ -5,7 +5,7 @@
 
 #include "ametsuchi/impl/mutable_storage_impl.hpp"
 
-#include <boost/variant/apply_visitor.hpp>
+#include <variant>
 #include <stdexcept>
 #include "ametsuchi/command_executor.hpp"
 #include "ametsuchi/impl/block_index_impl.hpp"

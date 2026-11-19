@@ -70,7 +70,7 @@ TEST_F(YacProposalStorageTest, YacProposalStorageWhenCommitCase) {
           << "Did not get an Answer after inserting " << num_inserted
           << " votes and the supermajority reached at " << supermajority;
       ASSERT_EQ(num_inserted,
-                boost::get<CommitMessage>(*insert_result).votes.size())
+                std::get<CommitMessage>(*insert_result).votes.size())
           << " The commit message must have all the previously inserted votes.";
     }
   }
@@ -115,7 +115,7 @@ TEST_F(YacProposalStorageTest, YacProposalStorageWhenRejectCase) {
           << "Did not get an Answer after inserting " << num_inserted
           << " votes and the supermajority reject reached at " << super_reject;
       ASSERT_EQ(num_inserted,
-                boost::get<RejectMessage>(*insert_result).votes.size())
+                std::get<RejectMessage>(*insert_result).votes.size())
           << " The reject message must have all the previously inserted votes.";
     }
   }

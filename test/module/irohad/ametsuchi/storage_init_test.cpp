@@ -109,12 +109,12 @@ TEST_F(StorageInitTest, CreateStorageWithDatabase) {
       pool_size_,
       getTestLoggerManager()->getChild("Storage"));
 
-  if (auto e = boost::get<iroha::expected::Error<std::string>>(&pool)) {
+  if (auto e = iroha::expected::get<iroha::expected::Error<std::string>>(&pool)) {
     FAIL() << e->error;
   }
 
   auto pool_wrapper = std::move(
-      boost::get<iroha::expected::Value<std::shared_ptr<PoolWrapper>>>(pool)
+      iroha::expected::get<iroha::expected::Value<std::shared_ptr<PoolWrapper>>>(pool)
           .value);
 
   std::shared_ptr<StorageImpl> storage;

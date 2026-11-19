@@ -11,7 +11,7 @@
 #include <random>
 #include <cstdio>
 #include <fstream>
-#include <boost/variant.hpp>
+#include <variant>
 
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 #include "ametsuchi/impl/rocksdb_common.hpp"
@@ -150,8 +150,8 @@ TEST_P(RegressionTest, StateRecovery) {
   auto checkQuery = [&tx](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), 1);
       ASSERT_EQ(resp.transactions().front(), tx);
     });

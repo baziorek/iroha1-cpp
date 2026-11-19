@@ -7,7 +7,7 @@
 #define IROHA_BINARIES_TEST_FIXTURE_HPP
 
 #include <gtest/gtest.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include <vector>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
@@ -58,7 +58,7 @@ namespace query_validation {
     template <typename ExpectedResponseType>
     inline void checkQueryResponseType(
         const shared_model::proto::QueryResponse &response) {
-      ASSERT_NO_THROW(boost::get<const ExpectedResponseType &>(response.get()));
+      ASSERT_NO_THROW(std::get<std::reference_wrapper<const ExpectedResponseType>>(response.get()).get());
     }
 
     /**

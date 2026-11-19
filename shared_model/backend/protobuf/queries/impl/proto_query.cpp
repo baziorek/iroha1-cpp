@@ -4,6 +4,7 @@
  */
 
 #include "backend/protobuf/queries/proto_query.hpp"
+#include "common/visitor.hpp"
 
 #include "backend/protobuf/common_objects/signature.hpp"
 #include "backend/protobuf/queries/proto_get_account.hpp"
@@ -26,7 +27,7 @@
 namespace {
   /// type of proto variant
   using ProtoQueryVariantType =
-      boost::variant<shared_model::proto::GetAccount,
+      std::variant<shared_model::proto::GetAccount,
                      shared_model::proto::GetSignatories,
                      shared_model::proto::GetAccountTransactions,
                      shared_model::proto::GetAccountAssetTransactions,
@@ -82,7 +83,8 @@ namespace shared_model::proto {
       };
     }()};
 
-    QueryVariantType ivariant_{variant_};
+    QueryVariantType ivariant_{iroha::visit(
+        [](const auto &v) { return QueryVariantType(v); }, variant_)};
 
     interface::types::BlobType blob_{makeBlob(proto_)};
 

@@ -78,7 +78,7 @@ TEST_P(FakePeerExampleTest, SynchronizeTheRightVersionOfForkedLedger) {
     auto block_result = block_query->getBlock(i);
 
     std::shared_ptr<shared_model::interface::Block> block =
-        boost::get<decltype(block_result)::ValueType>(std::move(block_result))
+        std::get<decltype(block_result)::ValueType>(std::move(block_result))
             .value;
     valid_block_storage->storeBlock(
         std::static_pointer_cast<const shared_model::proto::Block>(block));

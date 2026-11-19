@@ -4,6 +4,7 @@
  */
 
 #include "ametsuchi/impl/rocksdb_specific_query_executor.hpp"
+#include "common/visitor.hpp"
 
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -83,7 +84,7 @@ std::shared_ptr<RocksDBContext> RocksDbSpecificQueryExecutor::getTxContext() {
 
 QueryExecutorResult RocksDbSpecificQueryExecutor::execute(
     const shared_model::interface::Query &qry) {
-  return boost::apply_visitor(
+  return iroha::visit(
       [this, &qry](const auto &query) {
         auto &query_hash = qry.hash();
         try {
