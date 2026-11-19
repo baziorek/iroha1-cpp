@@ -8,6 +8,7 @@
 
 #include <boost/variant/variant_fwd.hpp>
 
+#include "common/std_format.hpp"
 #include "interfaces/base/model_primitive.hpp"
 
 namespace shared_model {
@@ -86,5 +87,7 @@ namespace shared_model {
 
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::Command)
 
 #endif  // IROHA_SHARED_MODEL_COMMAND_HPP

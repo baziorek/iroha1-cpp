@@ -5,7 +5,6 @@
 
 #include "ametsuchi/impl/rocksdb_command_executor.hpp"
 
-#include <fmt/core.h>
 #include <rocksdb/utilities/transaction.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/variant/apply_visitor.hpp>
@@ -39,6 +38,7 @@
 #include "interfaces/common_objects/string_view_types.hpp"
 #include "main/rdb_status.hpp"
 #include "main/subscription.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha;
 using namespace iroha::ametsuchi;
@@ -134,7 +134,7 @@ CommandResult RocksDbCommandExecutor::execute(
             return expected::makeError(
                 CommandError{command.toString(),
                              result.assumeError().code,
-                             fmt::format("Command: {}. {}",
+                             std::format("Command: {}. {}",
                                          command.toString(),
                                          result.assumeError().description)});
 
@@ -1147,7 +1147,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
                              fmtstrings::kSetting,
                              iroha::ametsuchi::kMaxDescriptionSizeKey);
     RDB_ERROR_CHECK(canExist(
-        status, [&] { return fmt::format("Max description size key"); }));
+        status, [&] { return std::format("Max description size key"); }));
 
     if (status.ok()) {
       uint64_t max_description_size;

@@ -8,12 +8,12 @@
 #include <ciso646>
 #include <unordered_map>
 
-#include <fmt/core.h>
 #include <boost/range/adaptor/indexed.hpp>
 #include "cryptography/hash.hpp"
 #include "interfaces/iroha_internal/batch_meta.hpp"
 #include "interfaces/transaction.hpp"
 #include "validators/validation_error_helpers.hpp"
+#include "common/std_format.hpp"
 
 using namespace shared_model::validation;
 
@@ -44,7 +44,7 @@ std::optional<ValidationError> BatchOrderValidator::validate(
   const uint64_t batch_size = boost::size(transactions);
   if (batch_size > max_batch_size_) {
     error_creator.addReason(
-        fmt::format("Batch contains too many transactions. Maximum allowed "
+        std::format("Batch contains too many transactions. Maximum allowed "
                     "number of transactions in a batch is {}.",
                     max_batch_size_));
   }
@@ -110,7 +110,7 @@ std::optional<ValidationError> BatchOrderValidator::validate(
     }
     error_creator |=
         std::move(tx_error_creator).getValidationErrorWithGeneratedName([&] {
-          return fmt::format("Transaction #{} with hash {}",
+          return std::format("Transaction #{} with hash {}",
                              tx.index(),
                              tx.value().hash().hex());
         });
@@ -129,11 +129,11 @@ std::optional<ValidationError> BatchOrderValidator::validate(
     auto emplace_result = batch_meta_hashes.emplace(hash.value(), hash.index());
     if (not emplace_result.second) {
       hash_error_creator.addReason(
-          fmt::format("Duplicates hash #{}", emplace_result.first->second));
+          std::format("Duplicates hash #{}", emplace_result.first->second));
     }
     error_creator |=
         std::move(hash_error_creator).getValidationErrorWithGeneratedName([&] {
-          return fmt::format("Reduced transaction hash #{} {}",
+          return std::format("Reduced transaction hash #{} {}",
                              hash.index(),
                              hash.value().hex());
         });

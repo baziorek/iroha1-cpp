@@ -6,6 +6,8 @@
 #ifndef IROHA_SHARED_MODEL_BLOCK_HPP
 #define IROHA_SHARED_MODEL_BLOCK_HPP
 
+#include <format>
+
 #include "common/cloneable.hpp"
 #include "interfaces/base/signable.hpp"
 #include "interfaces/common_objects/types.hpp"
@@ -41,5 +43,19 @@ namespace shared_model {
 
   }  // namespace interface
 }  // namespace shared_model
+
+namespace std {
+  template <>
+  struct formatter<shared_model::interface::Block> {
+    constexpr auto parse(format_parse_context &ctx) {
+      return ctx.begin();
+    }
+    template <typename FormatContext>
+    auto format(const shared_model::interface::Block &val,
+                FormatContext &ctx) const {
+      return format_to(ctx.out(), "{}", val.toString());
+    }
+  };
+}  // namespace std
 
 #endif  // IROHA_SHARED_MODEL_BLOCK_HPP

@@ -24,6 +24,7 @@
 // clang-format off
 #include <windows.h>
 #include <fileapi.h>
+#include "common/std_format.hpp"
 // clang-format on
 #endif
 
@@ -59,7 +60,7 @@ FlatFile::create(const std::string &path, logger::LoggerPtr log) {
   boost::system::error_code err;
   if (not boost::filesystem::is_directory(path, err)
       and not boost::filesystem::create_directory(path, err)) {
-    return fmt::format(
+    return std::format(
         "Cannot create storage dir '{}': {}", path, err.message());
   }
 

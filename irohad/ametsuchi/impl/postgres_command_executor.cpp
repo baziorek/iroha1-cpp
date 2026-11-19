@@ -9,7 +9,6 @@
 #include <forward_list>
 #include <memory>
 
-#include <fmt/core.h>
 #include <soci/postgresql/soci-postgresql.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -48,6 +47,7 @@
 #include "interfaces/permission_to_string.hpp"
 #include "interfaces/permissions.hpp"
 #include "utils/string_builder.hpp"
+#include "common/std_format.hpp"
 
 using shared_model::interface::permissions::Grantable;
 using shared_model::interface::permissions::Role;
@@ -1353,7 +1353,7 @@ namespace iroha {
 
       transfer_asset_statements_ = makeCommandStatements(
           sql_,
-          fmt::format(
+          std::format(
               R"(
           WITH %s
             new_src_quantity AS

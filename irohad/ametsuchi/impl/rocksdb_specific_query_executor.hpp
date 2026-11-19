@@ -8,7 +8,6 @@
 
 #include "ametsuchi/specific_query_executor.hpp"
 
-#include <fmt/format.h>
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "common/result.hpp"
 #include "interfaces/iroha_internal/query_response_factory.hpp"

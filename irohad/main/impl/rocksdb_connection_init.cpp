@@ -11,6 +11,7 @@
 #include "common/irohad_version.hpp"
 #include "logger/logger.hpp"
 #include "logger/logger_manager.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 
@@ -68,7 +69,7 @@ RdbConnectionInit::prepareWorkingDatabase(
   if (auto result = port->initialize(options.dbPath());
       expected::hasError(result))
     return expected::makeError(
-        fmt::format("Initialize db failed. Error code: {}, description: {}",
+        std::format("Initialize db failed. Error code: {}, description: {}",
                     result.assumeError().code,
                     result.assumeError().description));
 
@@ -80,7 +81,7 @@ RdbConnectionInit::prepareWorkingDatabase(
           forWSVVersion<kDbOperation::kGet, kDbEntry::kCanExist>(common);
       expected::hasError(result))
     return expected::makeError(
-        fmt::format("Request schema failed. Error code: {}, description: {}",
+        std::format("Request schema failed. Error code: {}, description: {}",
                     result.assumeError().code,
                     result.assumeError().description));
   else
@@ -91,7 +92,7 @@ RdbConnectionInit::prepareWorkingDatabase(
           forStoreVersion<kDbOperation::kGet, kDbEntry::kCanExist>(common);
       expected::hasError(result))
     return expected::makeError(
-        fmt::format("Request schema failed. Error code: {}, description: {}",
+        std::format("Request schema failed. Error code: {}, description: {}",
                     result.assumeError().code,
                     result.assumeError().description));
   else

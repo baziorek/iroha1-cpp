@@ -6,6 +6,7 @@
 #ifndef IROHA_TX_RESPONSE_HPP
 #define IROHA_TX_RESPONSE_HPP
 
+#include "common/std_format.hpp"
 #include "interfaces/base/model_primitive.hpp"
 
 #include <boost/variant/variant_fwd.hpp>
@@ -110,4 +111,7 @@ namespace shared_model {
     };
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::TransactionResponse)
+
 #endif  // IROHA_TX_RESPONSE_HPP

@@ -48,6 +48,7 @@
 #include "interfaces/transaction.hpp"
 #include "logger/logger.hpp"
 #include "pending_txs_storage/pending_txs_storage.hpp"
+#include "common/std_format.hpp"
 
 using namespace shared_model::interface::permissions;
 
@@ -62,7 +63,7 @@ namespace {
         shared_model::interface::RolePermissionSet({permission}).toBitstring();
     const auto bits = shared_model::interface::RolePermissionSet::size();
     // TODO 14.09.18 andrei: IR-1708 Load SQL from separate files
-    return fmt::format(R"(
+    return std::format(R"(
           SELECT
             (
               COALESCE(bit_or(rp.permission), '0'::bit({0}))
@@ -101,9 +102,9 @@ namespace {
         shared_model::interface::RolePermissionSet({domain_permission_id})
             .toBitstring();
 
-    const std::string creator_quoted{fmt::format("'{}'", creator)};
+    const std::string creator_quoted{std::format("'{}'", creator)};
 
-    return fmt::format(
+    return std::format(
         R"(
         target_domain AS (select split_part(target.t, '@', 2) as td from target),
         has_root_perm AS ({0}),
@@ -153,7 +154,7 @@ namespace {
       Role indiv_permission_id,
       Role all_permission_id,
       Role domain_permission_id) {
-    return fmt::format("target AS (select '{}'::text as t), {}",
+    return std::format("target AS (select '{}'::text as t), {}",
                        target_account,
                        hasQueryPermissionInternal(creator,
                                                   indiv_permission_id,
@@ -306,7 +307,7 @@ namespace iroha {
       auto opt_block = block_store_.fetch(block_id);
       if (not opt_block) {
         return iroha::expected::makeError(
-            fmt::format("Failed to retrieve block with id {}", block_id));
+            std::format("Failed to retrieve block with id {}", block_id));
       }
       auto &block = opt_block.value();
 
@@ -314,7 +315,7 @@ namespace iroha {
       for (auto tx_id : range_gen(block_size)) {
         if (tx_id >= block_size) {
           return iroha::expected::makeError(
-              fmt::format("Failed to retrieve transaction with id {} "
+              std::format("Failed to retrieve transaction with id {} "
                           "from block height {}.",
                           tx_id,
                           block_id));
@@ -378,7 +379,7 @@ namespace iroha {
       using T = boost::tuple<int>;
       try {
         soci::rowset<T> st =
-            (sql_.prepare << fmt::format(
+            (sql_.prepare << std::format(
                  R"({})", getAccountRolePermissionCheckSql(permission)),
              soci::use(account_id, "role_account_id"));
         return st.begin()->get<0>();
@@ -475,19 +476,29 @@ namespace iroha {
                                                1,
                                                query_hash);
       }
-      auto query = fmt::format(
+      auto const perm_target =
+          hasQueryPermissionTarget(creator_id, q.accountId(), perms...);
+      auto const order_str = ordering_str_.empty()
+                                 ? std::string_view{}
+                                 : std::string_view{ordering_str_};
+      auto const base_row_cte =
+          first_hash
+              ? R"(, base_row AS(SELECT row FROM my_txs WHERE hash = lower(:hash) LIMIT 1))"
+              : "";
+      auto const join_base_row =
+          first_hash ? R"(JOIN base_row ON my_txs.row >= base_row.row)" : "";
+      auto query = std::vformat(
           base,
-          hasQueryPermissionTarget(creator_id, q.accountId(), perms...),
-          (ordering_str_.empty() ? "" : ordering_str_.c_str()),
-          related_txs,
-          (first_hash
-               ? R"(, base_row AS(SELECT row FROM my_txs WHERE hash = lower(:hash) LIMIT 1))"
-               : ""),
-          (first_hash ? R"(JOIN base_row ON my_txs.row >= base_row.row)" : ""),
-          "AND (:first_tx_time::text IS NULL OR :first_tx_time<=ts)",
-          "AND (:last_tx_time::text IS NULL OR :last_tx_time>=ts )",
-          "AND (:first_tx_height::text IS NULL OR :first_tx_height<=height)",
-          "AND (:last_tx_height::text IS NULL OR :last_tx_height>=height )");
+          std::make_format_args(
+              perm_target,
+              order_str,
+              related_txs,
+              base_row_cte,
+              join_base_row,
+              "AND (:first_tx_time::text IS NULL OR :first_tx_time<=ts)",
+              "AND (:last_tx_time::text IS NULL OR :last_tx_time>=ts )",
+              "AND (:first_tx_height::text IS NULL OR :first_tx_height<=height)",
+              "AND (:last_tx_height::text IS NULL OR :last_tx_height>=height )"));
 
       return executeQuery<QueryTuple, PermissionTuple>(
           applier(query),
@@ -528,7 +539,7 @@ namespace iroha {
                 // if 0 transactions are returned, and there is a specified
                 // paging hash, we assume it's invalid, since query with valid
                 // hash is guaranteed to return at least one transaction
-                auto error = fmt::format("invalid pagination hash: {}",
+                auto error = std::format("invalid pagination hash: {}",
                                          first_hash->hex());
                 return this->logAndReturnErrorResponse(
                     QueryErrorType::kStatefulFailed, error, 4, query_hash);
@@ -577,7 +588,7 @@ namespace iroha {
       using PermissionTuple = boost::tuple<int>;
 
       auto cmd =
-          fmt::format(R"(WITH {},
+          std::format(R"(WITH {},
       t AS (
           SELECT a.account_id, a.domain_id, a.quorum, a.data, ARRAY_AGG(ar.role_id) AS roles
           FROM account AS a, account_has_roles AS ar
@@ -679,7 +690,7 @@ namespace iroha {
       using PermissionTuple = boost::tuple<int>;
 
       auto cmd =
-          fmt::format(R"(WITH {},
+          std::format(R"(WITH {},
       t AS (
           SELECT public_key FROM account_has_signatory
           WHERE account_id = :account_id
@@ -793,7 +804,7 @@ namespace iroha {
           QueryType<shared_model::interface::types::HeightType, std::string>;
       using PermissionTuple = boost::tuple<int, int>;
 
-      auto cmd = fmt::format(
+      auto cmd = std::format(
           R"(WITH has_my_perm AS ({}),
       has_all_perm AS ({}),
       t AS (
@@ -949,7 +960,7 @@ namespace iroha {
       using PermissionTuple = boost::tuple<int>;
 
       // get the assets
-      auto cmd = fmt::format(R"(
+      auto cmd = std::format(R"(
       with {},
       all_data as (
           select row_number() over () rn, *
@@ -1075,7 +1086,7 @@ namespace iroha {
       using PermissionTuple = boost::tuple<int>;
 
       auto cmd =
-          fmt::format(R"(
+          std::format(R"(
       with {},
       detail AS (
           with filtered_plain_data as (
@@ -1281,7 +1292,7 @@ namespace iroha {
       using QueryTuple = QueryType<shared_model::interface::types::RoleIdType>;
       using PermissionTuple = boost::tuple<int>;
 
-      auto cmd = fmt::format(
+      auto cmd = std::format(
           R"(WITH has_perms AS ({})
       SELECT role_id, perm FROM role
       RIGHT OUTER JOIN has_perms ON TRUE
@@ -1316,7 +1327,7 @@ namespace iroha {
       using QueryTuple = QueryType<std::string>;
       using PermissionTuple = boost::tuple<int>;
 
-      auto cmd = fmt::format(
+      auto cmd = std::format(
           R"(WITH has_perms AS ({}),
       perms AS (SELECT permission FROM role_has_permissions
                 WHERE role_id = :role_name)
@@ -1361,7 +1372,7 @@ namespace iroha {
           QueryType<shared_model::interface::types::DomainIdType, uint32_t>;
       using PermissionTuple = boost::tuple<int>;
 
-      auto cmd = fmt::format(
+      auto cmd = std::format(
           R"(WITH has_perms AS ({}),
       perms AS (SELECT domain_id, precision FROM asset
                 WHERE asset_id = :asset_id)
@@ -1477,7 +1488,7 @@ namespace iroha {
                                    std::string>;
       using PermissionTuple = boost::tuple<int>;
 
-      auto cmd = fmt::format(
+      auto cmd = std::format(
           R"(WITH has_perms AS ({})
       SELECT public_key, address, tls_certificate, perm FROM peer
       RIGHT OUTER JOIN has_perms ON TRUE
@@ -1520,7 +1531,7 @@ namespace iroha {
         const shared_model::interface::GetEngineReceipts &q,
         const shared_model::interface::types::AccountIdType &creator_id,
         const shared_model::interface::types::HashType &query_hash) {
-      auto cmd = fmt::format(
+      auto cmd = std::format(
           R"(
             with
               target as (
@@ -1674,7 +1685,7 @@ namespace iroha {
         const std::string &key_name,
         const std::string &value_name,
         const std::string &value) const {
-      auto cmd = fmt::format(R"(SELECT {}
+      auto cmd = std::format(R"(SELECT {}
                                    FROM {}
                                    WHERE {} = '{}'
                                    LIMIT 1)",

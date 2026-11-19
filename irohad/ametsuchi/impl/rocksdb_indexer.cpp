@@ -5,11 +5,11 @@
 
 #include "ametsuchi/impl/rocksdb_indexer.hpp"
 
-#include <fmt/core.h>
 
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "common/to_lower.hpp"
 #include "cryptography/hash.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 using namespace shared_model::interface::types;
@@ -74,7 +74,7 @@ void RocksDBIndexer::txPositions(
     return;
 
   std::string h_hex;
-  common.valueBuffer().assign(fmt::format(
+  common.valueBuffer().assign(std::format(
       "{}%{}", asset_id ? *asset_id : "", toLowerAppend(hash.hex(), h_hex)));
 
   forTransactionByPosition<kDbOperation::kPut>(

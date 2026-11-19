@@ -8,6 +8,7 @@
 
 #include <optional>
 
+#include "common/std_format.hpp"
 #include "interfaces/base/model_primitive.hpp"
 #include "interfaces/common_objects/types.hpp"
 #include "interfaces/queries/account_detail_pagination_meta.hpp"
@@ -54,5 +55,7 @@ namespace shared_model {
     };
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::GetAccountDetail)
 
 #endif  // IROHA_SHARED_MODEL_GET_ACCOUNT_DETAIL_HPP

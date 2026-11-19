@@ -4,6 +4,7 @@
  */
 
 #include <iostream>
+#include <fmt/format.h>
 
 #include "util/proto_status_tools.hpp"
 

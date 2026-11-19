@@ -8,7 +8,6 @@
 
 #include <optional>
 
-#include <fmt/format.h>
 #include "ametsuchi/command_executor.hpp"
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "ametsuchi/impl/rocksdb_db_transaction.hpp"

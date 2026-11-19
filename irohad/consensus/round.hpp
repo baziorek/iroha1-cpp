@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include "common/std_format.hpp"
 
 #include <boost/operators.hpp>
 
@@ -56,5 +57,7 @@ namespace std {
     std::size_t operator()(iroha::consensus::Round const &val) const noexcept;
   };
 }  // namespace std
+
+IROHA_STD_FORMATTER_TO_STRING(iroha::consensus::Round)
 
 #endif  // IROHA_ROUND_HPP

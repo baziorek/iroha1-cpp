@@ -8,10 +8,10 @@
 #include <ciso646>
 #include <fstream>
 
-#include <fmt/core.h>
 #include <boost/filesystem.hpp>
 #include "common/result.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 namespace {
   template <typename T>
@@ -20,7 +20,7 @@ namespace {
     std::ifstream file(path.string(), mode);
     if (!file) {
       return iroha::expected::makeError(
-          fmt::format("File '{}' could not be read.", path.string()));
+          std::format("File '{}' could not be read.", path.string()));
     }
 
     T contents((std::istreambuf_iterator<char>(file)),

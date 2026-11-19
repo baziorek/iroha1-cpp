@@ -7,7 +7,6 @@
 
 #include <numeric>
 
-#include <fmt/core.h>
 #include <boost/format.hpp>
 #include "ametsuchi/impl/soci_std_optional.hpp"
 #include "ametsuchi/impl/soci_string_view.hpp"
@@ -18,6 +17,7 @@
 #include "interfaces/common_objects/asset.hpp"
 #include "interfaces/common_objects/domain.hpp"
 #include "interfaces/common_objects/peer.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha {
   namespace ametsuchi {
@@ -251,7 +251,7 @@ namespace iroha {
       st.exchange(soci::use(signatory));
 
       auto msg = [&] {
-        return fmt::format("failed to insert signatory '{}'",
+        return std::format("failed to insert signatory '{}'",
                            std::string_view{signatory});
       };
       return execute(st, msg);
@@ -267,7 +267,7 @@ namespace iroha {
       st.exchange(soci::use(signatory));
 
       auto msg = [&] {
-        return fmt::format(
+        return std::format(
             "failed to insert account signatory, "
             "account id: '{}', signatory hex string: '{}",
             account_id,
@@ -286,7 +286,7 @@ namespace iroha {
       st.exchange(soci::use(signatory));
 
       auto msg = [&] {
-        return fmt::format(
+        return std::format(
             "failed to delete account signatory, "
             "account id: '{}', signatory hex string: '{}'",
             account_id,
@@ -305,7 +305,7 @@ namespace iroha {
       st.exchange(soci::use(signatory, "pk"));
 
       auto msg = [&] {
-        return fmt::format("failed to delete signatory '{}'",
+        return std::format("failed to delete signatory '{}'",
                            std::string_view{signatory});
       };
       return execute(st, msg);
@@ -314,7 +314,7 @@ namespace iroha {
     WsvCommandResult PostgresWsvCommand::insertPeer(
         const shared_model::interface::Peer &peer) {
       soci::statement st = sql_.prepare
-          << fmt::format("INSERT INTO {}(public_key, address, "
+          << std::format("INSERT INTO {}(public_key, address, "
                          "tls_certificate) VALUES (lower(:pk), :address, "
                          ":tls_certificate)",
                          peer.isSyncingPeer() ? "sync_peer" : "peer");
@@ -331,7 +331,7 @@ namespace iroha {
     WsvCommandResult PostgresWsvCommand::deletePeer(
         const shared_model::interface::Peer &peer) {
       soci::statement st = sql_.prepare
-          << fmt::format("DELETE FROM {} WHERE public_key = "
+          << std::format("DELETE FROM {} WHERE public_key = "
                          "lower(:pk) AND address = :address",
                          peer.isSyncingPeer() ? "sync_peer" : "peer"
 
@@ -341,7 +341,7 @@ namespace iroha {
       st.exchange(soci::use(peer.address()));
 
       auto msg = [&] {
-        return fmt::format(
+        return std::format(
             "failed to delete peer, public key: '{}', address: '{}'",
             peer.pubkey(),
             peer.address());
@@ -426,7 +426,7 @@ namespace iroha {
             soci::use(top_block_info.top_hash.hex(), "hash");
         return expected::Value<void>{};
       } catch (std::exception &e) {
-        return fmt::format("Failed to set top_block_info: {}.", e.what());
+        return std::format("Failed to set top_block_info: {}.", e.what());
       }
     }
 

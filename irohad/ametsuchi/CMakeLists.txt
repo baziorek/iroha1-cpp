@@ -262,6 +262,7 @@ add_library(ametsuchi_rocksdb
     impl/rocksdb_specific_query_executor.cpp
     )
 target_link_libraries(ametsuchi_rocksdb
+    ametsuchi
     RocksDB::rocksdb
     logger
     logger_manager

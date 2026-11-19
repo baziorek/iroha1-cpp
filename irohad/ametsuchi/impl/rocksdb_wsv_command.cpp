@@ -7,7 +7,6 @@
 
 #include <numeric>
 
-#include <fmt/core.h>
 #include "ametsuchi/impl/executor_common.hpp"
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "ametsuchi/ledger_state.hpp"
@@ -17,6 +16,7 @@
 #include "interfaces/common_objects/asset.hpp"
 #include "interfaces/common_objects/domain.hpp"
 #include "interfaces/common_objects/peer.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha::ametsuchi {
 
@@ -28,7 +28,7 @@ namespace iroha::ametsuchi {
     if (auto result = std::forward<Func>(func)(common);
         expected::hasError(result))
       return expected::makeError(
-          fmt::format("Command: {}, DB error: {} with description {}",
+          std::format("Command: {}, DB error: {} with description {}",
                       std::forward<Error>(error)(),
                       result.assumeError().code,
                       result.assumeError().description));
@@ -56,7 +56,7 @@ namespace iroha::ametsuchi {
 
           return {};
         },
-        [&]() { return fmt::format("Insert role {}", role_name); });
+        [&]() { return std::format("Insert role {}", role_name); });
   }
 
   WsvCommandResult RocksDBWsvCommand::insertAccountRole(
@@ -75,7 +75,7 @@ namespace iroha::ametsuchi {
                      return {};
                    },
                    [&]() {
-                     return fmt::format(
+                     return std::format(
                          "Insert account {} role {}", account_id, role_name);
                    });
   }
@@ -97,7 +97,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format(
+          return std::format(
               "Delete account {} role {}", account_id, role_name);
         });
   }
@@ -113,7 +113,7 @@ namespace iroha::ametsuchi {
 
           return {};
         },
-        [&]() { return fmt::format("Insert role {}", role_id); });
+        [&]() { return std::format("Insert role {}", role_id); });
   }
 
   WsvCommandResult RocksDBWsvCommand::insertAccountGrantablePermission(
@@ -149,7 +149,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format("Insert account {} grantable permission {} for {}",
+          return std::format("Insert account {} grantable permission {} for {}",
                              account_id,
                              permission,
                              permittee_account_id);
@@ -189,7 +189,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format("Delete account {} grantable permission {} for {}",
+          return std::format("Delete account {} grantable permission {} for {}",
                              account_id,
                              permission,
                              permittee_account_id);
@@ -208,7 +208,7 @@ namespace iroha::ametsuchi {
                      return {};
                    },
                    [&]() {
-                     return fmt::format("Insert account {}#{} details",
+                     return std::format("Insert account {}#{} details",
                                         account.accountId(),
                                         account.domainId());
                    });
@@ -224,7 +224,7 @@ namespace iroha::ametsuchi {
                      return {};
                    },
                    [&]() {
-                     return fmt::format("Insert asset {}#{} with precision {}",
+                     return std::format("Insert asset {}#{} with precision {}",
                                         asset.assetId(),
                                         asset.domainId(),
                                         asset.precision());
@@ -246,7 +246,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format("Account {} asset {} balance {}",
+          return std::format("Account {} asset {} balance {}",
                              asset.accountId(),
                              asset.assetId(),
                              asset.balance().toStringRepr());
@@ -260,7 +260,7 @@ namespace iroha::ametsuchi {
         [&](auto &common) -> expected::Result<void, DbError> {
           return makeError<void>(ErrorCodes::kNotUsed, "Not used");
         },
-        [&]() { return fmt::format("Insert signatory {}", signatory); });
+        [&]() { return std::format("Insert signatory {}", signatory); });
   }
 
   WsvCommandResult RocksDBWsvCommand::insertAccountSignatory(
@@ -284,7 +284,7 @@ namespace iroha::ametsuchi {
                      return {};
                    },
                    [&]() {
-                     return fmt::format("Account {} insert signatory {}",
+                     return std::format("Account {} insert signatory {}",
                                         account_id,
                                         signatory);
                    });
@@ -311,7 +311,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format(
+          return std::format(
               "Account {} delete signatory {}", account_id, signatory);
         });
   }
@@ -323,7 +323,7 @@ namespace iroha::ametsuchi {
         [&](auto &common) -> expected::Result<void, DbError> {
           return makeError<void>(ErrorCodes::kNotUsed, "Not used");
         },
-        [&]() { return fmt::format("Insert signatory {}", signatory); });
+        [&]() { return std::format("Insert signatory {}", signatory); });
   }
 
   WsvCommandResult RocksDBWsvCommand::insertPeer(
@@ -366,7 +366,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format(
+          return std::format(
               "Insert peer {} with address {}", peer.pubkey(), peer.address());
         });
   }
@@ -401,7 +401,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format(
+          return std::format(
               "Delete peer {} with address {}", peer.pubkey(), peer.address());
         });
   }
@@ -416,7 +416,7 @@ namespace iroha::ametsuchi {
                      return {};
                    },
                    [&]() {
-                     return fmt::format("Domain {} with default role {}",
+                     return std::format("Domain {} with default role {}",
                                         domain.domainId(),
                                         domain.defaultRole());
                    });
@@ -437,7 +437,7 @@ namespace iroha::ametsuchi {
                      return {};
                    },
                    [&]() {
-                     return fmt::format("Account {} with quorum {}",
+                     return std::format("Account {} with quorum {}",
                                         account.accountId(),
                                         account.quorum());
                    });
@@ -453,7 +453,7 @@ namespace iroha::ametsuchi {
                      return makeError<void>(ErrorCodes::kNotUsed, "Not used");
                    },
                    [&]() {
-                     return fmt::format(
+                     return std::format(
                          "Set account {} kv with creator {} and key {}",
                          account_id,
                          creator_account_id,
@@ -474,7 +474,7 @@ namespace iroha::ametsuchi {
           return {};
         },
         [&]() {
-          return fmt::format("Top block height {} and hash {}",
+          return std::format("Top block height {} and hash {}",
                              top_block_info.height,
                              top_block_info.top_hash.hex());
         });

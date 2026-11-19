@@ -13,6 +13,7 @@
 #include "logger/logger.hpp"
 #include "network/channel_constants.hpp"
 #include "network/impl/tls_credentials.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::network;
 
@@ -77,7 +78,7 @@ iroha::expected::Result<int, std::string> ServerRunner::run() {
 
   if (selected_port == 0) {
     return iroha::expected::makeError(
-        fmt::format("Cannot bind server to address {}", server_address_));
+        std::format("Cannot bind server to address {}", server_address_));
   }
 
   return iroha::expected::makeValue(selected_port);

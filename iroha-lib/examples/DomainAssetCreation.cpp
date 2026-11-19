@@ -2,6 +2,7 @@
 #include <string>
 #include <cassert>
 #include <gflags/gflags.h>
+#include <fmt/format.h>
 #include "model/Tx.hpp"
 #include "model/Query.hpp"
 #include "model/utils/Utils.h"

@@ -56,7 +56,7 @@ namespace iroha_cli {
     if (it != handler_map_.end()) {
       log_->error(it->second);
     } else {
-      log_->error("Handler for grpc {} not implemented", code);
+      log_->error("Handler for grpc {} not implemented", static_cast<int>(code));
     }
   }
 

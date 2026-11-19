@@ -8,7 +8,6 @@
 
 #include <unordered_map>
 
-#include <fmt/core.h>
 #include <boost/range/adaptor/indexed.hpp>
 #include "datetime/time.hpp"
 #include "interfaces/common_objects/types.hpp"
@@ -17,6 +16,7 @@
 #include "validators/abstract_validator.hpp"
 #include "validators/validation_error_helpers.hpp"
 #include "validators/validators_common.hpp"
+#include "common/std_format.hpp"
 
 namespace shared_model {
   namespace validation {
@@ -56,14 +56,14 @@ namespace shared_model {
           auto emplace_result =
               rejected_hashes.emplace(hash.value(), hash.index());
           if (not emplace_result.second) {
-            hash_error_creator.addReason(fmt::format(
+            hash_error_creator.addReason(std::format(
                 "Duplicates hash #{}", emplace_result.first->second));
           }
           hash_error_creator |= field_validator_.validateHash(hash.value());
           error_creator |=
               std::move(hash_error_creator)
                   .getValidationErrorWithGeneratedName([&] {
-                    return fmt::format("Rejected transaction hash #{} {}",
+                    return std::format("Rejected transaction hash #{} {}",
                                        hash.index(),
                                        hash.value().hex());
                   });
@@ -73,7 +73,7 @@ namespace shared_model {
           auto it = rejected_hashes.find(tx.value().hash());
           if (it != rejected_hashes.end()) {
             error_creator.addReason(
-                fmt::format("Hash '{}' of transaction #{} has already "
+                std::format("Hash '{}' of transaction #{} has already "
                             "appeared in rejected hashes (#{}).",
                             tx.value().hash().hex(),
                             tx.index(),

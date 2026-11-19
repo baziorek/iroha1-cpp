@@ -10,6 +10,7 @@
 
 #include "cryptography/hash.hpp"
 #include "interfaces/base/model_primitive.hpp"
+#include "common/std_format.hpp"
 #include "interfaces/common_objects/string_view_types.hpp"
 #include "interfaces/common_objects/transaction_sequence_common.hpp"
 #include "interfaces/common_objects/types.hpp"
@@ -91,5 +92,7 @@ namespace shared_model {
     };
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::TransactionBatch)
 
 #endif  // IROHA_TRANSACTION_BATCH_HPP

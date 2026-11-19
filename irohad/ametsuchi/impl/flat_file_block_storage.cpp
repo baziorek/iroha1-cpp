@@ -10,6 +10,7 @@
 #include "backend/protobuf/block.hpp"
 #include "common/byteutils.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 
@@ -79,7 +80,7 @@ iroha::expected::Result<void, std::string> FlatFileBlockStorage::forEach(
         return maybe_error.assumeError();
       }
     } else {
-      return fmt::format("Failed to fetch block {}", block_id);
+      return std::format("Failed to fetch block {}", block_id);
     }
   }
   return {};

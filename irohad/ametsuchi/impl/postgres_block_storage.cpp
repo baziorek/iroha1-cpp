@@ -8,6 +8,7 @@
 #include "common/hexutils.hpp"
 #include "common/result.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 
@@ -175,7 +176,7 @@ iroha::expected::Result<void, std::string> PostgresBlockStorage::forEach(
           return maybe_error.assumeError();
         }
       } else {
-        return fmt::format("Failed to fetch block {}", range.min);
+        return std::format("Failed to fetch block {}", range.min);
       }
       ++range.min;
     }
@@ -194,7 +195,7 @@ PostgresBlockStorage::queryBlockHeightsRange(soci::session &sql,
     sql << "SELECT MIN(height), MAX(height) FROM " << table_name,
         soci::into(row);
   } catch (const std::exception &e) {
-    return fmt::format("Failed to execute query: {}", e.what());
+    return std::format("Failed to execute query: {}", e.what());
   }
   return rebind(viewQuery<QueryTuple>(row)) | [](auto row) {
     return iroha::ametsuchi::apply(row, [](size_t min, size_t max) {

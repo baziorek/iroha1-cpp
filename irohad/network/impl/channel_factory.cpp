@@ -7,13 +7,13 @@
 
 #include <limits>
 
-#include <fmt/core.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 
 #include "common/bind.hpp"
 #include "interfaces/common_objects/peer.hpp"
 #include "network/channel_constants.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::expected;
 using namespace iroha::network;
@@ -21,7 +21,7 @@ using namespace iroha::network;
 using iroha::operator|;
 
 std::string makeJsonString(const std::string &val) {
-  return fmt::format("\"{}\"", val);
+  return std::format("\"{}\"", val);
 }
 
 grpc::ChannelArguments iroha::network::detail::makeInterPeerChannelArguments(
@@ -33,7 +33,7 @@ grpc::ChannelArguments iroha::network::detail::makeChannelArguments(
     const std::set<std::string> &services, const GrpcChannelParams &params) {
   std::string retry_policy =
       params.retry_policy | [](const auto &retry_policy) {
-        return fmt::format(
+        return std::format(
             R"(
             "retryPolicy": {{
               "maxAttempts": {},
@@ -54,12 +54,12 @@ grpc::ChannelArguments iroha::network::detail::makeChannelArguments(
                 ", "));
       };
   static const auto make_service_id = [](const std::string &service_full_name) {
-    return fmt::format(R"(
+    return std::format(R"(
               {{ "service": "{}" }}
         )",
                        service_full_name);
   };
-  std::string service_config = fmt::format(
+  std::string service_config = std::format(
       R"(
         {{
           "methodConfig": [ {{

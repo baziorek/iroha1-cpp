@@ -6,6 +6,7 @@
 #ifndef IROHA_SHARED_MODEL_PROTO_TRANSACTION_HPP
 #define IROHA_SHARED_MODEL_PROTO_TRANSACTION_HPP
 
+#include "common/std_format.hpp"
 #include "interfaces/transaction.hpp"
 #include "transaction.pb.h"
 
@@ -73,5 +74,7 @@ namespace shared_model {
     };
   }  // namespace proto
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::proto::Transaction)
 
 #endif  // IROHA_SHARED_MODEL_PROTO_TRANSACTION_HPP

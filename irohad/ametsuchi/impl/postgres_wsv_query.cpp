@@ -13,6 +13,7 @@
 #include "backend/plain/peer.hpp"
 #include "common/result.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 namespace {
   template <typename T>
@@ -93,7 +94,7 @@ namespace iroha {
           soci::into(count);
       return count;
     } catch (const std::exception &e) {
-      auto msg = fmt::format("Failed to count {}, query: {}", table, e.what());
+      auto msg = std::format("Failed to count {}, query: {}", table, e.what());
       log_->error(msg);
       return iroha::expected::makeError(msg);
     }

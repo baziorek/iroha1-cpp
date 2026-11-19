@@ -7,7 +7,6 @@
 
 #include <fstream>
 
-#include <fmt/core.h>
 #include "common/byteutils.hpp"
 #include "common/files.hpp"
 #include "common/result.hpp"

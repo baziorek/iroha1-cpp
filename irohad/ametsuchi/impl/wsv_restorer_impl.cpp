@@ -22,6 +22,7 @@
 #include "logger/logger.hpp"
 #include "validation/chain_validator.hpp"
 #include "validators/abstract_validator.hpp"
+#include "common/std_format.hpp"
 
 using shared_model::interface::types::HeightType;
 
@@ -188,7 +189,7 @@ namespace iroha::ametsuchi {
             wsv_ledger_state.value()->top_block_info;
         wsv_ledger_height = wsv_top_block_info.height;
         if (wsv_ledger_height > last_block_in_storage) {
-          return fmt::format(
+          return std::format(
               "WSV state (height {}) is more recent "
               "than block storage (height {}).",
               wsv_ledger_height,
@@ -202,7 +203,7 @@ namespace iroha::ametsuchi {
                         -> expected::Result<void, std::string> {
                       if (block_from_block_storage.value->hash()
                           != wsv_top_block_info.top_hash) {
-                        return fmt::format(
+                        return std::format(
                             "The hash of block applied to WSV ({}) "
                             "does not match the hash of the block "
                             "from block storage ({}).",
@@ -216,7 +217,7 @@ namespace iroha::ametsuchi {
                       return std::move(error).error.message;
                     });
         if (hasError(check_top_block)) {
-          return fmt::format(
+          return std::format(
               "WSV top block (height {}) check failed: {} "
               "Please check that WSV matches block storage "
               "or avoid reusing WSV.",

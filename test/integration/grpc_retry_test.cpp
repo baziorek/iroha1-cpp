@@ -5,7 +5,6 @@
 
 #include <gtest/gtest.h>
 
-#include <fmt/core.h>
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/status.h>
 #include "endpoint.grpc.pb.h"
@@ -14,6 +13,7 @@
 #include "network/impl/channel_factory.hpp"
 #include "qry_responses.pb.h"
 #include "queries.pb.h"
+#include "common/std_format.hpp"
 
 using namespace std::literals::chrono_literals;
 
@@ -64,7 +64,7 @@ namespace {
   constexpr auto kListenIP = "127.0.0.1";
 
   auto makeRunner(int port) {
-    auto listen_addr = fmt::format("{}:{}", kListenIP, port);
+    auto listen_addr = std::format("{}:{}", kListenIP, port);
     auto logger = getTestLogger("TestServerRunner");
     return std::make_shared<iroha::network::ServerRunner>(
         listen_addr, logger, true);

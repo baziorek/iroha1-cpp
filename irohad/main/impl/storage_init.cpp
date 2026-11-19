@@ -7,7 +7,6 @@
 
 #include <stdexcept>
 
-#include <fmt/core.h>
 #include "ametsuchi/impl/flat_file_block_storage.hpp"
 #include "ametsuchi/impl/in_memory_block_storage_factory.hpp"
 #include "ametsuchi/impl/pool_wrapper.hpp"
@@ -27,6 +26,7 @@
 #include "main/subscription.hpp"
 #include "validators/always_valid_validator.hpp"
 #include "validators/protobuf/proto_block_validator.hpp"
+#include "common/std_format.hpp"
 
 namespace ametsuchi = iroha::ametsuchi;
 
@@ -177,6 +177,6 @@ iroha::initStorage(
         log_manager->getChild("Storage"));
   } catch (StorageInitException const &e) {
     return iroha::expected::makeError(
-        fmt::format("Storage initialization failed: ", e.what()));
+        std::format("Storage initialization failed: ", e.what()));
   }
 }

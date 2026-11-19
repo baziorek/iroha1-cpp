@@ -13,6 +13,7 @@
 #include "common/result.hpp"
 #include "common/to_lower.hpp"
 #include "datetime/time.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 using namespace iroha::expected;
@@ -65,7 +66,7 @@ Result<void, std::string> RocksdbBurrowStorage::removeAccount(
                            address_lc);
 
   if (!status.ok() && !status.IsNotFound())
-    return expected::makeError(fmt::format(
+    return expected::makeError(std::format(
         "Delete CallEngine storage with address '{}' failed.", address_lc));
 
   return {};

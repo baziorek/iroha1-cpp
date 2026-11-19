@@ -7,10 +7,12 @@
 #define IROHA_SHARED_MODEL_PERMISSIONS_HPP
 
 #include <bitset>
+#include <format>
 #include <functional>
 #include <initializer_list>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
 namespace shared_model {
   namespace interface {
@@ -140,5 +142,31 @@ namespace shared_model {
     using GrantablePermissionSet = PermissionSet<permissions::Grantable>;
   }  // namespace interface
 }  // namespace shared_model
+
+namespace std {
+  /// std::format support for the permission enums (previously formatted by
+  /// fmt as their underlying integer values).
+#define IROHA_STD_FORMATTER_UNDERLYING_ENUM(Type)                            \
+  template <>                                                               \
+  struct formatter<Type> {                                                  \
+    constexpr auto parse(format_parse_context &ctx) {                       \
+      return ctx.begin();                                                   \
+    }                                                                       \
+    template <typename FormatContext>                                       \
+    auto format(const Type &val, FormatContext &ctx) const {                \
+      return format_to(                                                     \
+          ctx.out(),                                                        \
+          "{}",                                                             \
+          static_cast<std::underlying_type_t<Type>>(val));                  \
+    }                                                                       \
+  };
+
+  IROHA_STD_FORMATTER_UNDERLYING_ENUM(
+      shared_model::interface::permissions::Role)
+  IROHA_STD_FORMATTER_UNDERLYING_ENUM(
+      shared_model::interface::permissions::Grantable)
+
+#undef IROHA_STD_FORMATTER_UNDERLYING_ENUM
+}  // namespace std
 
 #endif  // IROHA_SHARED_MODEL_TRANSACTION_HPP

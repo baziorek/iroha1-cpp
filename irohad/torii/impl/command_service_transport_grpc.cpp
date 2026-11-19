@@ -20,6 +20,7 @@
 #include "subscription/scheduler_impl.hpp"
 #include "torii/impl/final_status_value.hpp"
 #include "torii/status_bus.hpp"
+#include "common/std_format.hpp"
 
 using iroha::torii::CommandServiceTransportGrpc;
 
@@ -72,7 +73,7 @@ grpc::Status CommandServiceTransportGrpc::ListTorii(
   auto transactions = shared_model::proto::deserializeTransactions(
       *transaction_factory_, request->transactions());
   if (auto e = expected::resultToOptionalError(transactions)) {
-    return publish_stateless_fail(fmt::format(
+    return publish_stateless_fail(std::format(
         "Transaction deserialization failed: hash {}, {}", e->hash, e->error));
   }
 
@@ -80,7 +81,7 @@ grpc::Status CommandServiceTransportGrpc::ListTorii(
       *batch_parser_, *batch_factory_, std::move(transactions).assumeValue());
   if (auto e = expected::resultToOptionalError(batches)) {
     return publish_stateless_fail(
-        fmt::format("Batch deserialization failed: {}", *e));
+        std::format("Batch deserialization failed: {}", *e));
   }
 
   for (auto &batch : std::move(batches).assumeValue()) {
@@ -122,7 +123,7 @@ grpc::Status CommandServiceTransportGrpc::StatusStream(
   auto hash = shared_model::crypto::Hash::fromHexString(request->tx_hash());
 
   std::string client_id =
-      fmt::format("Peer: '{}', {}", context->peer(), hash.toString());
+      std::format("Peer: '{}', {}", context->peer(), hash.toString());
 
   auto initial_response =
       std::static_pointer_cast<shared_model::proto::TransactionResponse>(

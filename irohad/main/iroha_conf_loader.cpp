@@ -19,8 +19,6 @@
 #include <string_view>
 #include <type_traits>
 
-#include <fmt/core.h>
-#include <fmt/format.h>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <rapidjson/rapidjson.h>
@@ -29,6 +27,7 @@
 #include "common/bind.hpp"
 #include "common/files.hpp"
 #include "common/result.hpp"
+#include "common/std_format.hpp"
 #include "logger/logger.hpp"
 #include "main/iroha_conf_literals.hpp"
 #include "torii/tls_params.hpp"
@@ -56,6 +55,22 @@ class ConfigParsingException : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+/// Joins a range of string-like elements (std::string or std::string_view)
+/// with a delimiter. Replacement for fmt::join.
+template <typename Range>
+std::string joinStrings(Range const &range, std::string_view delimiter) {
+  std::string result;
+  bool first = true;
+  for (auto const &element : range) {
+    if (not first) {
+      result += delimiter;
+    }
+    first = false;
+    result += element;
+  }
+  return result;
+}
+
 std::optional<std::string_view> getOptEnvRaw(
     std::string_view key, std::optional<logger::LoggerPtr> log) {
   char const *val = getenv(key.data());
@@ -63,7 +78,7 @@ std::optional<std::string_view> getOptEnvRaw(
     log.value()->trace(
         "lookup ENV({}){}",
         key,
-        val ? fmt::format(" = {}", val) : std::string{": not set"});
+        val ? std::format(" = {}", val) : std::string{": not set"});
   }
   if (not val) {
     return std::nullopt;
@@ -80,7 +95,7 @@ inline void assert_fatal(bool condition,
                          std::string_view printable_path,
                          std::string error) {
   if (!condition) {
-    throw ConfigParsingException(fmt::format("{}: {}", printable_path, error));
+    throw ConfigParsingException(std::format("{}: {}", printable_path, error));
   }
 }
 
@@ -89,11 +104,11 @@ inline logger::LogLevel getLogLevel(std::string level_str,
   const auto it = config_members::LogLevels.find(level_str);
   assert_fatal(it != config_members::LogLevels.end(),
                printable_path,
-               fmt::format("wrong log level `{}': must be one of `{}'",
+               std::format("wrong log level `{}': must be one of `{}'",
                            level_str,
-                           fmt::join(config_members::LogLevels
-                                         | boost::adaptors::map_keys,
-                                     "', `")));
+                           joinStrings(config_members::LogLevels
+                                           | boost::adaptors::map_keys,
+                                       "', `")));
   return it->second;
 }
 
@@ -105,7 +120,7 @@ std::string makeEnvDictChildKey(std::string_view base_path,
                  std::back_inserter(child_key_upper),
                  ::toupper);
   return base_path.empty() ? child_key_upper
-                           : fmt::format("{}_{}", base_path, child_key_upper);
+                           : std::format("{}_{}", base_path, child_key_upper);
 }
 
 template <typename T, typename = decltype(std::to_string(std::declval<T>()))>
@@ -178,7 +193,7 @@ class JsonDeserializerImpl {
 
   template <typename T>
   std::string makePrintableDictChildKey(T const &child_key) {
-    return fmt::format("{}/{}", printable_path_, child_key);
+    return std::format("{}/{}", printable_path_, child_key);
   }
 
   template <typename T>
@@ -189,7 +204,7 @@ class JsonDeserializerImpl {
 
   template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
   std::string makePrintableArrayElemPath(T const &index) {
-    return fmt::format("{}[{}]", printable_path_, index);
+    return std::format("{}[{}]", printable_path_, index);
   }
 
   template <typename F>
@@ -213,7 +228,7 @@ class JsonDeserializerImpl {
       for (int i = 0;; ++i) {
         auto array_el_env_val_prefix = makeEnvDictChildKey(i);
         auto array_el_env_key_key =
-            fmt::format("{}_KEY", array_el_env_val_prefix);
+            std::format("{}_KEY", array_el_env_val_prefix);
         auto array_el_env_key_val = ::getOptEnvRaw(array_el_env_key_key, log_);
         if (not array_el_env_key_val) {
           break;
@@ -552,7 +567,7 @@ JsonDeserializerImpl::loadInto<std::shared_ptr<shared_model::interface::Peer>>(
                    const auto &v) { tls_certificate_str = v.value; },
                [&](const auto &e) {
                  throw ConfigParsingException{
-                     fmt::format("Error reading file specified in {}: {}",
+                     std::format("Error reading file specified in {}: {}",
                                  printable_path_,
                                  e.error)};
                });
@@ -566,7 +581,7 @@ JsonDeserializerImpl::loadInto<std::shared_ptr<shared_model::interface::Peer>>(
       .match([&dest](auto &&v) { dest = std::move(v.value); },
              [&](const auto &error) {
                throw ConfigParsingException(
-                   fmt::format("Failed to create a peer at {}: {}",
+                   std::format("Failed to create a peer at {}: {}",
                                printable_path_,
                                error.error));
              });
@@ -649,10 +664,10 @@ inline bool JsonDeserializerImpl::loadInto(iroha::multihash::Type &dest) {
   auto const it = kNameToMultihash.find(type_str);
   assert_fatal(
       it != kNameToMultihash.end(),
-      fmt::format(
+      std::format(
           "wrong multihash type `{}': must be one of `{}'",
           type_str,
-          fmt::join(kNameToMultihash | boost::adaptors::map_keys, "', `")));
+          joinStrings(kNameToMultihash | boost::adaptors::map_keys, "', `")));
   dest = it->second;
   return true;
 }
@@ -667,7 +682,7 @@ inline bool JsonDeserializerImpl::loadInto(
   }
   assert_fatal(getDictChild(config_members::Type).deserialize<std::string>()
                    == IrohadConfig::Crypto::Default::kName,
-               fmt::format("only `{}' crypto provider type is supported now",
+               std::format("only `{}' crypto provider type is supported now",
                            IrohadConfig::Crypto::Default::kName));
   return true;
 }
@@ -752,7 +767,7 @@ void reportJsonParsingError(const rapidjson::Document &doc,
     const size_t print_offset =
         std::max(error_offset, kBadJsonPrintOffsset) - kBadJsonPrintOffsset;
     std::string json_error_buf = text.substr(print_offset, kBadJsonPrintLength);
-    throw ConfigParsingException{fmt::format(
+    throw ConfigParsingException{std::format(
         "JSON parse error (near `{}'): {}",
         json_error_buf,
         std::string(rapidjson::GetParseError_En(doc.GetParseError())))};

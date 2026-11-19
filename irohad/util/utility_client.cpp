@@ -65,7 +65,7 @@ bool UtilityClient::status(StatusCallback callback) const {
   auto reader = stub_holder_->stub_->Status(&context, request);
 
   while (reader->Read(&proto_status)) {
-    log_->trace("Got status {}.", proto_status.status());
+    log_->trace("Got status {}.", static_cast<int>(proto_status.status()));
     auto iface_status = makeStatus(proto_status.status());
     if (not callback(iface_status)) {
       return true;
@@ -83,11 +83,11 @@ bool UtilityClient::shutdown() const {
   auto status = stub_holder_->stub_->Shutdown(&context, request, &response);
   if (status.error_code() == ::grpc::StatusCode::OK) {
     log_->trace("Shutdown request completed, status code {}.",
-                status.error_code());
+                static_cast<int>(status.error_code()));
     return true;
   }
   log_->warn("Shutdown request error, code {}: {}",
-             status.error_code(),
+             static_cast<int>(status.error_code()),
              status.error_message());
   return false;
 }

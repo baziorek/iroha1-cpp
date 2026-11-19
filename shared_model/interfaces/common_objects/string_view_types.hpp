@@ -6,6 +6,7 @@
 #ifndef IROHA_SHARED_MODEL_STRING_VIEW_TYPES_HPP
 #define IROHA_SHARED_MODEL_STRING_VIEW_TYPES_HPP
 
+#include <format>
 #include <string_view>
 
 #include <boost/serialization/strong_typedef.hpp>
@@ -53,5 +54,32 @@ namespace shared_model {
     }  // namespace types
   }    // namespace interface
 }  // namespace shared_model
+
+namespace std {
+  /// std::format support for the strong string_view typedefs (they are not
+  /// formattable through their string_view conversion alone).
+#define IROHA_STD_FORMATTER_STRING_VIEW_TYPEDEF(Type)                        \
+  template <>                                                               \
+  struct formatter<Type> {                                                  \
+    constexpr auto parse(format_parse_context &ctx) {                       \
+      return ctx.begin();                                                   \
+    }                                                                       \
+    template <typename FormatContext>                                       \
+    auto format(const Type &val, FormatContext &ctx) const {                \
+      return format_to(ctx.out(), "{}", val.t);                             \
+    }                                                                       \
+  };
+
+  IROHA_STD_FORMATTER_STRING_VIEW_TYPEDEF(
+      shared_model::interface::types::SignedHexStringView)
+  IROHA_STD_FORMATTER_STRING_VIEW_TYPEDEF(
+      shared_model::interface::types::PublicKeyHexStringView)
+  IROHA_STD_FORMATTER_STRING_VIEW_TYPEDEF(
+      shared_model::interface::types::EvmCalleeHexStringView)
+  IROHA_STD_FORMATTER_STRING_VIEW_TYPEDEF(
+      shared_model::interface::types::EvmCodeHexStringView)
+
+#undef IROHA_STD_FORMATTER_STRING_VIEW_TYPEDEF
+}  // namespace std
 
 #endif  // IROHA_SHARED_MODEL_STRING_VIEW_TYPES_HPP

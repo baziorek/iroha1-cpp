@@ -11,6 +11,7 @@
 #include "common/common.hpp"
 #include "common/result.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha::ametsuchi {
 
@@ -66,13 +67,13 @@ namespace iroha::ametsuchi {
               domain_id,
               account_name);
           RDB_ERROR_CHECK(canExist(status, [&]() {
-            return fmt::format("Enumerate signatories for account {}",
+            return std::format("Enumerate signatories for account {}",
                                account_id);
           }));
           return signatories;
         },
         [&]() {
-          return fmt::format("Get signatories for account {}", account_id);
+          return std::format("Get signatories for account {}", account_id);
         });
   }
 
@@ -111,7 +112,7 @@ namespace iroha::ametsuchi {
                                             fmtstrings::kPathPeers);
 
           RDB_ERROR_CHECK(canExist(
-              status, [&]() { return fmt::format("Enumerate peers"); }));
+              status, [&]() { return std::format("Enumerate peers"); }));
 
           for (auto &peer : peers) {
             RDB_TRY_GET_VALUE(
@@ -128,7 +129,7 @@ namespace iroha::ametsuchi {
 
           return peers;
         },
-        [&]() { return fmt::format("Get peers"); });
+        [&]() { return std::format("Get peers"); });
   }
 
   boost::optional<std::shared_ptr<shared_model::interface::Peer>>
@@ -173,7 +174,7 @@ namespace iroha::ametsuchi {
           return peer;
         },
         [&]() {
-          return fmt::format("Get peer by pubkey {}",
+          return std::format("Get peer by pubkey {}",
                              (std::string_view)public_key);
         });
   }
@@ -184,7 +185,7 @@ namespace iroha::ametsuchi {
     if (auto result =
             forTopBlockInfo<kDbOperation::kGet, kDbEntry::kMustExist>(common);
         expected::hasError(result)) {
-      auto err_msg = fmt::format(
+      auto err_msg = std::format(
           "Command: get top block info, DB error: {} with description {}",
           result.assumeError().code,
           result.assumeError().description);

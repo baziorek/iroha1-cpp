@@ -8,7 +8,6 @@
 #include <chrono>
 #include <string_view>
 
-#include <fmt/core.h>
 #include <grpc++/create_channel.h>
 #include "backend/protobuf/block.hpp"
 #include "builders/protobuf/transport_builder.hpp"
@@ -17,6 +16,7 @@
 #include "interfaces/common_objects/peer.hpp"
 #include "logger/logger.hpp"
 #include "network/impl/client_factory.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 using namespace iroha::expected;
@@ -45,13 +45,13 @@ namespace {
       iroha::protocol::Block proto_block;
       auto maybe_block_factory = block_factory_.lock();
       if (not maybe_block_factory) {
-        return fmt::format("Failed to lock block factory");
+        return std::format("Failed to lock block factory");
       }
 
       if (not reader_->Read(&proto_block)) {
         auto status = reader_->Finish();
         if (not status.ok()) {
-          return fmt::format("Failed to read block: {}",
+          return std::format("Failed to read block: {}",
                              status.error_message());
         }
         return iteration_complete{};
@@ -61,7 +61,7 @@ namespace {
           maybe_block_factory->createBlock(std::move(proto_block));
       if (hasError(maybe_block)) {
         context_.TryCancel();
-        return fmt::format("Failed to parse received block: {}",
+        return std::format("Failed to parse received block: {}",
                            std::move(maybe_block).assumeError());
       }
 
@@ -124,7 +124,7 @@ Result<std::unique_ptr<Block>, std::string> BlockLoaderImpl::retrieveBlock(
       auto status = client->retrieveBlock(&context, request, &block);
       if (not status.ok()) {
         return makeError(
-            fmt::format("Block request failed: {}.", status.error_message()));
+            std::format("Block request failed: {}.", status.error_message()));
       }
 
       return block_factory_->createBlock(std::move(block));
@@ -137,7 +137,7 @@ BlockLoaderImpl::findPeer(types::PublicKeyHexStringView pubkey) {
   return peer_query_factory_->createPeerQuery() | [pubkey](const auto &query) {
     return optionalValueToResult(
         query->getLedgerPeerByPublicKey(pubkey),
-        fmt::format("Cannot find peer with public key {}.",
+        std::format("Cannot find peer with public key {}.",
                     iroha::to_string::toString(pubkey)));
   };
 }

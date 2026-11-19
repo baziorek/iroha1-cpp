@@ -50,7 +50,7 @@ namespace torii {
     auto reader = stub_->StatusStream(&context, tx);
     while (reader->Read(&resp)) {
       log_->debug("received new status: {}, hash {}",
-                  resp.tx_status(),
+                  static_cast<int>(resp.tx_status()),
                   iroha::bytestringToHexstring(resp.tx_hash()));
       response.push_back(resp);
     }

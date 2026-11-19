@@ -5,12 +5,12 @@
 
 #include "ametsuchi/impl/burrow_vm_caller.hpp"
 
-#include <fmt/core.h>
 #include <soci/session.h>
 #include BURROW_VM_CALL_HEADER
 #include "ametsuchi/command_executor.hpp"
 #include "common/hexutils.hpp"
 #include "common/result.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 
@@ -47,7 +47,7 @@ BurrowVmCaller::call(
       returnable_result;
   if (raw_result.r1 != nullptr) {
     returnable_result = iroha::expected::makeError(
-        fmt::format("Engine error: {}.", raw_result.r1));
+        std::format("Engine error: {}.", raw_result.r1));
   } else if (raw_result.r0 != nullptr) {
     returnable_result = iroha::expected::makeValue(raw_result.r0);
   } else {

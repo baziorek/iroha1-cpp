@@ -13,6 +13,7 @@
 #include "common/irohad_version.hpp"
 #include "logger/logger.hpp"
 #include "logger/logger_manager.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 
@@ -90,7 +91,7 @@ namespace {
           *soci::factory_postgresql(),
           postgres_options.maintenanceConnectionString());
     } catch (std::exception &e) {
-      return fmt::format("Could not connect to maintenance database: {}",
+      return std::format("Could not connect to maintenance database: {}",
                          e.what());
     }
   };
@@ -102,7 +103,7 @@ namespace {
           *soci::factory_postgresql(),
           postgres_options.workingConnectionString());
     } catch (std::exception &e) {
-      return fmt::format("Could not connect to working database '{}': {}",
+      return std::format("Could not connect to working database '{}': {}",
                          postgres_options.workingDbName(),
                          e.what());
     }
@@ -209,7 +210,7 @@ namespace {
     try {
       return getMaintenanceSession(postgres_options) |
           [&](auto maintenance_sql) {
-            *maintenance_sql << fmt::format("create database {};",
+            *maintenance_sql << std::format("create database {};",
                                             postgres_options.workingDbName());
             return getWorkingDbSession(postgres_options) | [](auto session)
                        -> iroha::expected::Result<void, std::string> {
@@ -247,7 +248,7 @@ insert into schema_version
         +
         [] {
           auto v = iroha::getIrohadVersion();
-          return fmt::format("{}, {}, {}", v.major, v.minor, v.patch);
+          return std::format("{}, {}, {}", v.major, v.minor, v.patch);
         }()
         + R"();
 CREATE TABLE top_block_info (

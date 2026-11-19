@@ -6,6 +6,7 @@
 #ifndef IROHA_SHARED_MODEL_HASH_HPP
 #define IROHA_SHARED_MODEL_HASH_HPP
 
+#include "common/std_format.hpp"
 #include "cryptography/blob.hpp"
 
 namespace shared_model {
@@ -44,5 +45,7 @@ namespace shared_model {
     };
   }  // namespace crypto
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::crypto::Hash)
 
 #endif  // IROHA_SHARED_MODEL_HASH_HPP
