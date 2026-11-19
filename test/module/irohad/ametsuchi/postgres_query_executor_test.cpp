@@ -8,7 +8,6 @@
 #include <rapidjson/document.h>
 #include <rapidjson/rapidjson.h>
 
-#include <boost/format.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/size.hpp>
 #include <chrono>

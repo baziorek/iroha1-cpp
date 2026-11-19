@@ -5,9 +5,10 @@
 
 #include "ametsuchi/impl/postgres_options.hpp"
 
+#include "common/std_format.hpp"
+
 #include <gtest/gtest.h>
 
-#include <boost/format.hpp>
 #include <regex>
 
 #include "framework/test_logger.hpp"
@@ -30,7 +31,7 @@ static const std::string default_maintenance_dbname{"postgres"};
 static void checkField(const std::string &conn_str,
                        const std::string &field,
                        const std::string &value) {
-  const std::regex e((boost::format(R"(\b%1%=([^ ]+)\b)") % field).str());
+  const std::regex e(std::format(R"(\b{}=([^ ]+)\b)", field));
   std::smatch m;
   if (not std::regex_search(conn_str, m, e)) {
     ADD_FAILURE() << field << " not found";
@@ -110,10 +111,9 @@ static void checkPgOpts(const PostgresOptions &pg_opt,
 TEST(PostgresOptionsTest, DBnameParamExist) {
   std::string dbname = "irohadb";
   std::string pg_opt_string =
-      (boost::format("user=petya dbname=%1% "
-                     "port=1991 password=friend host=down")
-       % dbname)
-          .str();
+      std::format("user=petya dbname={} "
+                  "port=1991 password=friend host=down",
+                  dbname);
   auto pg_opt =
       PostgresOptions(pg_opt_string, default_working_dbname, test_log);
 

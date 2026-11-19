@@ -7,7 +7,6 @@
 
 #include <grpc/impl/codegen/grpc_types.h>
 
-#include <boost/format.hpp>
 #include <chrono>
 
 #include "logger/logger.hpp"

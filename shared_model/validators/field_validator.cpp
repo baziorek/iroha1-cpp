@@ -9,7 +9,6 @@
 #include <string_view>
 
 #include <boost/algorithm/string_regex.hpp>
-#include <boost/format.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include "common/bind.hpp"
 #include "cryptography/crypto_provider/crypto_verifier.hpp"

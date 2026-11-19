@@ -6,11 +6,11 @@
 #include "ametsuchi/impl/postgres_options.hpp"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
 #include <cctype>
 #include <limits>
 #include <regex>
 
+#include "common/std_format.hpp"
 #include "logger/logger.hpp"
 
 using namespace iroha::ametsuchi;
@@ -21,7 +21,7 @@ namespace {
   boost::optional<std::string> extractOptionalField(
       const std::string &connection_string, const std::string &field_name) {
     const std::regex field_regex(
-        (boost::format(R"(\b%1%=([^ ]+)\b)") % field_name).str());
+        std::format(R"(\b{}=([^ ]+)\b)", field_name));
     std::smatch m;
     if (not std::regex_search(connection_string, m, field_regex)) {
       return boost::none;
@@ -34,9 +34,8 @@ namespace {
     auto opt_value = extractOptionalField(connection_string, field_name);
     if (not opt_value) {
       throw(std::runtime_error(
-          (boost::format("missing %1% field in PostgresSQL connection string")
-           % field_name)
-              .str()));
+          std::format("missing {} field in PostgresSQL connection string",
+                      field_name)));
     }
     return std::move(opt_value).value();
   }
@@ -45,7 +44,7 @@ namespace {
     auto number = std::stol(s);
     if (number <= 0 or number > std::numeric_limits<uint16_t>::max()) {
       throw(std::runtime_error(
-          (boost::format("port number %1% is out of range") % s).str()));
+          std::format("port number {} is out of range", s)));
     }
     return static_cast<uint16_t>(number);
   }
@@ -86,9 +85,8 @@ PostgresOptions::PostgresOptions(const std::string &host,
 }
 
 std::string PostgresOptions::connectionStringWithoutDbName() const {
-  return (boost::format("host=%1% port=%2% user=%3% password=%4%") % host_
-          % port_ % user_ % password_)
-      .str();
+  return std::format("host={} port={} user={} password={}", host_, port_,
+                     user_, password_);
 }
 
 std::string PostgresOptions::workingConnectionString() const {

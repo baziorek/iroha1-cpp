@@ -8,7 +8,6 @@
 #include <string>
 
 #include <boost/algorithm/cxx11/all_of.hpp>
-#include <boost/format.hpp>
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <boost/range/adaptor/transformed.hpp>

@@ -10,7 +10,6 @@ boost-iostreams
 boost-variant
 boost-multiprecision
 boost-bimap
-boost-format
 boost-asio
 boost-process
 iroha-ed25519

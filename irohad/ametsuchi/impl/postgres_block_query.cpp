@@ -5,7 +5,6 @@
 
 #include "ametsuchi/impl/postgres_block_query.hpp"
 
-#include <boost/format.hpp>
 
 #include "ametsuchi/impl/soci_utils.hpp"
 #include "common/byteutils.hpp"

@@ -6,11 +6,11 @@
 #include <limits>
 #include <memory>
 #include <unordered_set>
+#include "common/std_format.hpp"
 
 #include <gmock/gmock-matchers.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/dynamic_message.h>
-#include <boost/format.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/range/join.hpp>
 #include <optional>
@@ -63,9 +63,8 @@ class FieldValidatorTest : public ValidatorsTest {
   // Returns string containing field name and test case name for debug output
   std::string testFailMessage(const std::string &field_name,
                               const std::string &testcase_name) const {
-    return (boost::format("Field: %s\nTest Case: %s\n") % field_name
-            % testcase_name)
-        .str();
+    return std::format("Field: {}\nTest Case: {}\n", field_name,
+                       testcase_name);
   }
 
  public:
@@ -216,9 +215,8 @@ class FieldValidatorTest : public ValidatorsTest {
    * @return message expected from test
    */
   std::string makeMessageWrongKeySize(const std::string &public_key) {
-    return (boost::format("Public key has wrong size, passed size: %d")
-            % public_key.size())
-        .str();
+    return std::format("Public key has wrong size, passed size: {}",
+                       public_key.size());
   }
 
   /// Create test case with field assignment initialization function
@@ -255,9 +253,7 @@ class FieldValidatorTest : public ValidatorsTest {
       char separator,
       std::initializer_list<char> illegal_name_chars,
       size_t max_name_length) {
-    auto fc = [](const auto &s, char c) {
-      return (boost::format(s) % c).str();
-    };
+    auto fc = [](const auto &s, char c) { return iroha::vformat(s, c); };
 
     auto f = [&](const auto &s) { return fc(s, separator); };
 
@@ -273,42 +269,42 @@ class FieldValidatorTest : public ValidatorsTest {
     };
 
     // general cases
-    add_valid(f("name%cdomain"));
+    add_valid(f("name{}domain"));
     add_invalid("empty_string", "");
-    add_invalid(f("missing_%c"), "absdomain");
-    add_invalid(f("double_%c"), f("abs%1$cwhoops%1$cdomain"));
+    add_invalid(f("missing_{}"), "absdomain");
+    add_invalid(f("double_{}"), f("abs{0}whoops{0}domain"));
 
     // name cases
-    add_invalid("missing_name", f("%cdomain"));
+    add_invalid("missing_name", f("{}domain"));
     for (char i : illegal_name_chars) {
-      add_invalid(fc("illegal_char_%c_in_name", i),
-                  fc("ab%cs", i) + f("%cdomain"));
+      add_invalid(fc("illegal_char_{}_in_name", i),
+                  fc("ab{}s", i) + f("{}domain"));
     }
-    add_valid(std::string(max_name_length, 'a') + f("%cdomain"));
+    add_valid(std::string(max_name_length, 'a') + f("{}domain"));
     add_invalid("name_too_long",
-                std::string(max_name_length + 1, 'a') + f("%cdomain"));
+                std::string(max_name_length + 1, 'a') + f("{}domain"));
     add_invalid("name_way_too_long",
-                std::string(max_name_length * 2, 'a') + f("%cdomain"));
+                std::string(max_name_length * 2, 'a') + f("{}domain"));
 
     // domain cases
     static const std::vector<char> kIllegalAssetNameChars{{'_', '@', ' ', '#'}};
     static const size_t kMaxDomainLabelLength = 63;
-    add_invalid("missing_domain", f("name%c"));
+    add_invalid("missing_domain", f("name{}"));
     for (char i : kIllegalAssetNameChars) {
-      add_invalid(fc("illegal_char_%c_in_domain", i),
-                  f("name%c") + fc("do%cmain", i));
+      add_invalid(fc("illegal_char_{}_in_domain", i),
+                  f("name{}") + fc("do{}main", i));
     }
-    add_valid(f("name%c") + std::string(kMaxDomainLabelLength, 'a'));
+    add_valid(f("name{}") + std::string(kMaxDomainLabelLength, 'a'));
     add_invalid("domain_label_too_long",
-                f("name%c") + std::string(kMaxDomainLabelLength + 1, 'a'));
+                f("name{}") + std::string(kMaxDomainLabelLength + 1, 'a'));
     add_invalid("domain_label_way_too_long",
-                f("name%c") + std::string(kMaxDomainLabelLength * 2, 'a'));
-    add_invalid("domain_starts_with_digit", f("abs%c3domain"));
-    add_invalid("domain_starts_with_dash", f("abs%c-domain"));
-    add_invalid("domain_ends_with_dash", f("abs%cdomain-"));
-    add_invalid("domain_label_starts_with_dash", f("abs%caa.-domain"));
-    add_invalid("domain_label_ends_with_dash", f("abs%cdomain-.aa"));
-    add_invalid("domain_double_dot", f("abs%cdomain..aa"));
+                f("name{}") + std::string(kMaxDomainLabelLength * 2, 'a'));
+    add_invalid("domain_starts_with_digit", f("abs{}3domain"));
+    add_invalid("domain_starts_with_dash", f("abs{}-domain"));
+    add_invalid("domain_ends_with_dash", f("abs{}domain-"));
+    add_invalid("domain_label_starts_with_dash", f("abs{}aa.-domain"));
+    add_invalid("domain_label_ends_with_dash", f("abs{}domain-.aa"));
+    add_invalid("domain_double_dot", f("abs{}domain..aa"));
 
     return test_cases;
   }

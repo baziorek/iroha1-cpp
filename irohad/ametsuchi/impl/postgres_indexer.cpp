@@ -6,7 +6,6 @@
 #include "ametsuchi/impl/postgres_indexer.hpp"
 
 #include <soci/soci.h>
-#include <boost/format.hpp>
 #include "cryptography/hash.hpp"
 #include "common/std_format.hpp"
 

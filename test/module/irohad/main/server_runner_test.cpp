@@ -4,7 +4,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <boost/format.hpp>
+
+#include "common/std_format.hpp"
 
 #include "endpoint.grpc.pb.h"  // any gRPC service is required for test
 #include "framework/test_logger.hpp"
@@ -12,7 +13,7 @@
 
 using iroha::network::ServerRunner;
 
-boost::format address{"127.0.0.1:%d"};
+
 auto port_visitor = iroha::make_visitor(
     [](iroha::expected::Value<int> x) { return x.value; },
     [](iroha::expected::Error<std::string> x) { return 0; });
@@ -24,7 +25,7 @@ auto port_visitor = iroha::make_visitor(
  */
 TEST(ServerRunnerTest, SamePortNoReuse) {
   ServerRunner first_runner(
-      (address % 0).str(), getTestLogger("ServerRunner1"), true);
+      std::format("127.0.0.1:{}", 0), getTestLogger("ServerRunner1"), true);
   auto first_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   auto result = first_runner.append(first_query_service).run();
@@ -32,7 +33,7 @@ TEST(ServerRunnerTest, SamePortNoReuse) {
   ASSERT_NE(0, port);
 
   ServerRunner second_runner(
-      (address % port).str(), getTestLogger("ServerRunner2"), false);
+      std::format("127.0.0.1:{}", port), getTestLogger("ServerRunner2"), false);
   auto second_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   result = second_runner.append(second_query_service).run();
@@ -50,7 +51,7 @@ TEST(ServerRunnerTest, SamePortNoReuse) {
  */
 TEST(ServerRunnerTest, SamePortWithReuse) {
   ServerRunner first_runner(
-      (address % 0).str(), getTestLogger("ServerRunner1"), true);
+      std::format("127.0.0.1:{}", 0), getTestLogger("ServerRunner1"), true);
   auto first_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   auto result = first_runner.append(first_query_service).run();
@@ -58,7 +59,7 @@ TEST(ServerRunnerTest, SamePortWithReuse) {
   ASSERT_NE(0, port);
 
   ServerRunner second_runner(
-      (address % port).str(), getTestLogger("ServerRunner2"), true);
+      std::format("127.0.0.1:{}", port), getTestLogger("ServerRunner2"), true);
   auto second_query_service =
       std::make_shared<iroha::protocol::QueryService_v1::Service>();
   result = second_runner.append(second_query_service).run();
