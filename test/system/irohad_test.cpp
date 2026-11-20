@@ -13,7 +13,7 @@
 
 #include <filesystem>
 #include <boost/optional.hpp>
-#include <boost/process.hpp>
+#include <boost/process/v1.hpp>
 #include <variant>
 #include <fstream>
 #include <sstream>
@@ -172,7 +172,7 @@ class IrohadTest : public AcceptanceFixture {
 
   void launchIroha(
       const std::string &parameters,
-      boost::optional<boost::process::environment> env = boost::none) {
+      boost::optional<boost::process::v1::environment> env = boost::none) {
     iroha_process_.emplace(irohad_executable.string() + parameters,
                            env.value_or(boost::this_process::environment()));
     waitForIroha();
@@ -184,7 +184,7 @@ class IrohadTest : public AcceptanceFixture {
       const boost::optional<std::string> &genesis_block,
       const boost::optional<std::string> &keypair_path,
       const boost::optional<std::string> &additional_params,
-      boost::optional<boost::process::environment> env = boost::none) {
+      boost::optional<boost::process::v1::environment> env = boost::none) {
     launchIroha(
         params(config_path, genesis_block, keypair_path, additional_params),
         std::move(env));
@@ -441,7 +441,7 @@ class IrohadTest : public AcceptanceFixture {
   const uint16_t kPort;
   const uint16_t kSecurePort;
 
-  boost::optional<child> iroha_process_;
+  boost::optional<boost::process::v1::child> iroha_process_;
 
   /**
    * Command client resubscription settings
@@ -648,7 +648,7 @@ TEST_F(IrohadTest, StartWithoutConfigAndKeyFile) {
   ASSERT_FALSE(doc.HasParseError())
       << "Failed to parse irohad config at " << config_copy_;
 
-  boost::process::environment env{boost::this_process::environment()};
+  boost::process::v1::environment env{boost::this_process::environment()};
   env["IROHA_PG_OPT"] = pgopts_;
   env["IROHA_UTILITY_SERVICE_IP"] = kLocalHost.c_str();
   env["IROHA_UTILITY_SERVICE_PORT"] = std::to_string(kUtilityServicePort);
@@ -695,7 +695,7 @@ TEST_F(IrohadTest, StartWithoutConfigAndKeyFile) {
 TEST_F(IrohadTest, StartWithConfigAndEnvironmentParams) {
   rapidjson::Document doc;
   doc.Parse(iroha::readTextFile(config_copy_).assumeValue());
-  boost::process::environment env{boost::this_process::environment()};
+  boost::process::v1::environment env{boost::this_process::environment()};
 
   // pg_opt must be taken from environment
   env["IROHA_PG_OPT"] = pgopts_;

@@ -5,6 +5,8 @@
 
 #include "main/impl/pg_connection_init.hpp"
 
+#include <libpq-fe.h>
+
 #include <boost/functional/hash.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 

@@ -5,6 +5,8 @@
 
 #include "ametsuchi/impl/postgres_temporary_wsv_impl.hpp"
 
+#include <soci/boost-optional.h>
+
 #include <boost/algorithm/string/join.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include "ametsuchi/impl/postgres_command_executor.hpp"

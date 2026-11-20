@@ -11,6 +11,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
 #include <boost/optional.hpp>
 
@@ -21,6 +22,18 @@ namespace iroha {
       const std::string kEndBlockMarker = "]";
       const std::string kSingleFieldsSeparator = ", ";
       const std::string kNotSet = "(not set)";
+
+      /// Equivalent of the removed boost::optional_detail::is_optional_related
+      /// trait: matches boost::optional (including reference specialization),
+      /// boost::none and the in-place init tags.
+      template <typename T>
+      struct is_optional_related
+          : std::bool_constant<
+                std::is_base_of_v<boost::optional_detail::optional_tag,
+                                   std::decay_t<T>> ||
+                std::is_same_v<std::decay_t<T>, boost::none_t> ||
+                std::is_same_v<std::decay_t<T>, boost::in_place_init_t> ||
+                std::is_same_v<std::decay_t<T>, boost::in_place_init_if_t>> {};
 
       /// Print pointers and optionals.
       template <typename T>
@@ -77,7 +90,7 @@ namespace iroha {
 
     template <typename T>
     inline auto toString(const T &o) -> std::enable_if_t<
-        boost::optional_detail::is_optional_related<T>::value,
+        detail::is_optional_related<T>::value,
         std::string> {
       return detail::toStringDereferenced(o);
     }

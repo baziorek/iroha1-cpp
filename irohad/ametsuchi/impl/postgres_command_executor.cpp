@@ -423,7 +423,7 @@ namespace iroha {
       }
 
       template <typename T,
-                typename = decltype(soci::use(std::declval<T>(),
+                typename = decltype(soci::use(std::declval<T &>(),
                                               std::string{}))>
       void use(const std::string &argument_name, const T &value) {
         statement_.exchange(soci::use(value, argument_name));

@@ -38,7 +38,12 @@ class ValidatorsTest : public ::testing::Test {
       };
     };
 
-    auto setString = setField(&google::protobuf::Reflection::SetString);
+    auto setString = setField(
+        static_cast<void (google::protobuf::Reflection::*)(
+            google::protobuf::Message *,
+            const google::protobuf::FieldDescriptor *,
+            std::string) const>(
+            &google::protobuf::Reflection::SetString));
     auto addString = setField(&google::protobuf::Reflection::AddString);
     auto setUInt32 = setField(&google::protobuf::Reflection::SetUInt32);
     auto setUInt64 = setField(&google::protobuf::Reflection::SetUInt64);
@@ -187,7 +192,7 @@ class ValidatorsTest : public ::testing::Test {
     // Iterate through all concrete types
     boost::for_each(
         range | boost::adaptors::filtered([this](const auto &field) {
-          return not ignored_fields_.count(field->full_name());
+          return not ignored_fields_.count(std::string(field->full_name()));
         }),
         [&](auto field) {
           auto concrete = concrete_gen(field);
@@ -233,7 +238,7 @@ class ValidatorsTest : public ::testing::Test {
     // Iterate through all concrete types
     boost::for_each(range, [&](auto field) {
       if (field->type() != google::protobuf::FieldDescriptor::TYPE_MESSAGE
-          or field_validators.count(field->name())) {
+          or field_validators.count(std::string(field->name()))) {
         field_op(field, m);
         validator();
       } else {

@@ -8,6 +8,9 @@ file(MAKE_DIRECTORY ${GENERATED_TEST_DATA_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# Provide a gtest PrintTo overload for boost::optional (see header comment).
+add_compile_options(-include ${CMAKE_CURRENT_SOURCE_DIR}/gtest_boost_optional_printer.hpp)
+
 add_subdirectory(module)
 add_subdirectory(framework)
 add_subdirectory(integration)

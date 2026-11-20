@@ -6,6 +6,7 @@
 #ifndef IROHA_FAILOVER_CALLBACK_HPP
 #define IROHA_FAILOVER_CALLBACK_HPP
 
+#include <functional>
 #include <memory>
 
 #include <soci/soci.h>

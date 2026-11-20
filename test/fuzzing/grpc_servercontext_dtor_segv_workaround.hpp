@@ -6,10 +6,8 @@
 #ifndef IROHA_GRPC_SERVERCONTEXT_DTOR_SEGV_WORKAROUND_HPP
 #define IROHA_GRPC_SERVERCONTEXT_DTOR_SEGV_WORKAROUND_HPP
 
-#include <grpcpp/impl/grpc_library.h>
-
-// segfaults happen inside ~ServerContext() sometimes
-// check https://github.com/grpc/grpc/issues/14633 for details
-static grpc::internal::GrpcLibraryInitializer g_gli_initializer;
+// grpc::internal::GrpcLibraryInitializer was removed in gRPC 1.6x;
+// grpc::internal::GrpcLibrary (a base class of channels/servers) now handles
+// initialization automatically, so no explicit initializer is needed here.
 
 #endif  // IROHA_GRPC_SERVERCONTEXT_DTOR_SEGV_WORKAROUND_HPP

@@ -5,6 +5,9 @@
 
 #include "ametsuchi/impl/postgres_block_storage.hpp"
 
+#include <soci/boost-optional.h>
+#include <soci/boost-tuple.h>
+
 #include "common/hexutils.hpp"
 #include "common/result.hpp"
 #include "logger/logger.hpp"

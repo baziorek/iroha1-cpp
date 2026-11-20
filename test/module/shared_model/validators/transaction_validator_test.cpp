@@ -84,7 +84,7 @@ TEST_F(TransactionValidatorTest, StatelessValidTest) {
       [this](auto field, auto command) {
         // Will throw key exception in case new field is added
         try {
-          field_setters.at(field->full_name())(
+          field_setters.at(std::string(field->full_name()))(
               command->GetReflection(), command, field);
         } catch (const std::out_of_range &e) {
           FAIL() << "Missing field setter: " << field->full_name();

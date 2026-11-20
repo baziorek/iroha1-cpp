@@ -6,6 +6,9 @@
 #include "ametsuchi/impl/postgres_specific_query_executor.hpp"
 #include "common/visitor.hpp"
 
+#include <soci/boost-optional.h>
+#include <soci/boost-tuple.h>
+
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/range/adaptor/filtered.hpp>

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
 #include <grpcpp/server_context.h>
@@ -98,7 +99,8 @@ namespace {
     auto status = client->Find(&client_context, query, &response);
 
     EXPECT_EQ(status.error_code(), code);
-    EXPECT_EQ(status.error_message(), message);
+    // newer gRPC appends the last connection error to the message
+    EXPECT_THAT(status.error_message(), ::testing::StartsWith(message));
   }
 
   auto makeRequestAndCheckStatus(int port,

@@ -166,7 +166,7 @@ class FieldValidatorTest : public ValidatorsTest {
 
   // Run all test cases for given field
   void runTestCases(const google::protobuf::FieldDescriptor *field) {
-    auto field_name = field->name();
+    std::string field_name{field->name()};
     // skip field, if already tested
     if (checked_fields.find(field_name) != checked_fields.end()) {
       return;

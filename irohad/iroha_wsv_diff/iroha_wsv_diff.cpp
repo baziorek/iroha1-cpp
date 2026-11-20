@@ -907,7 +907,9 @@ bool Wsv::from_postgres(soci::session &sql) {
     assert(inserted && "Domain was not inserted");
   }
 
-  rs = (sql.prepare << "SELECT * FROM role_has_permissions");
+  rs = (sql.prepare
+        << "SELECT role_id, permission::text AS permission "
+           "FROM role_has_permissions");
   for (auto &r : rs) {
     auto const inserted [[maybe_unused]] =
         roles.insert(Role::from_soci_row(r)).second;
@@ -980,7 +982,10 @@ bool Wsv::from_postgres(soci::session &sql) {
            && "Role was not inserted to domains[id].accounts[id].roles");
   }
 
-  rs = (sql.prepare << "SELECT * FROM account_has_grantable_permissions");
+  rs = (sql.prepare
+        << "SELECT permittee_account_id, account_id, "
+           "permission::text AS permission "
+           "FROM account_has_grantable_permissions");
   for (auto &r : rs) {
     std::string permitter_account_id;
     GrantablePermissions gp;

@@ -73,16 +73,11 @@ class SupermajorityCheckerTest
 };
 
 using CftAndBftSupermajorityCheckerTest = SupermajorityCheckerTest;
-using BftSupermajorityCheckerTest = SupermajorityCheckerTest;
 
 INSTANTIATE_TEST_SUITE_P(Instance,
                          CftAndBftSupermajorityCheckerTest,
                          ::testing::Values(ConsistencyModel::kCft,
                                            ConsistencyModel::kBft));
-
-INSTANTIATE_TEST_SUITE_P(Instance,
-                         BftSupermajorityCheckerTest,
-                         ::testing::Values(ConsistencyModel::kBft));
 
 /**
  * @given 2 participants

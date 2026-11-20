@@ -17,7 +17,7 @@
 #include "cryptography/seed.hpp"
 #include "module/shared_model/cryptography/crypto_defaults.hpp"
 
-using namespace boost::process;
+using namespace boost::process::v1;
 
 namespace {
   shared_model::crypto::Keypair fromPrivateKey(const std::string &private_key) {

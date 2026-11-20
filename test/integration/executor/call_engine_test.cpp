@@ -5,6 +5,7 @@
 
 #include "integration/executor/executor_fixture.hpp"
 
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -78,7 +79,8 @@ using CallEngineBasicTest = BasicExecutorTest<CallEngineTest>;
 TEST_P(CallEngineBasicTest, EngineError) {
   EXPECT_CALL(*getBackendParam().vm_caller_,
               call(_, _, kCode, kAdminId, Optional(kCallee), _, _, _))
-      .WillOnce(::testing::Return(iroha::expected::makeError("engine error")));
+      .WillOnce(::testing::Return(
+          iroha::expected::makeError(std::string{"engine error"})));
   checkCommandError(callEngine(kAdminId, kAdminId, kCallee, kCode), 3);
 }
 
@@ -96,7 +98,9 @@ TEST_P(CallEnginePermissionTest, CommandPermissionTest) {
   EXPECT_CALL(*getBackendParam().vm_caller_,
               call(_, _, kCode, kUserId, Optional(kCallee), _, _, _))
       .Times(isEnoughPermissions() ? 1 : 0)
-      .WillRepeatedly(::testing::Return(iroha::expected::makeValue("success")));
+      .WillRepeatedly(::testing::Return(
+          iroha::expected::makeValue(
+              std::optional<std::string>{"success"})));
 
   checkResponse(
       callEngine(getActor(), kUserId, kCallee, kCode, getValidationEnabled()));

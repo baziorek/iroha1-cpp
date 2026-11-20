@@ -29,6 +29,7 @@ target_link_libraries(torii_service
     endpoint
     logger
     processors
+    async_subscription
     shared_model_interfaces_factories
     shared_model_stateless_validation
     shared_model_proto_backend
