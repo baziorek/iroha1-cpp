@@ -23,6 +23,7 @@ RUN apt-get update && \
             python3-dev python3-pip python-is-python3 \
             # other
             curl file ccache libssl-dev \
+            bison flex \
             gcovr cppcheck doxygen rsync graphviz graphviz-dev vim zip unzip pkg-config \
             jq autoconf \
             postgresql postgresql-contrib; \

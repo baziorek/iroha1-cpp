@@ -24,7 +24,7 @@ RUN set -e; \
         # Python3
         python3-pip python-is-python3 \
         # other
-        curl file gdb gdbserver ccache python3-dev libssl-dev \
+        curl file gdb gdbserver ccache python3-dev libssl-dev bison flex \
         gcovr cppcheck doxygen rsync graphviz graphviz-dev unzip vim zip pkg-config; \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
