@@ -188,10 +188,10 @@ jobs:
                                   true
                                 else
                                   #echo  >/tmp/comment_body "/build debug; /build ubuntu release debug normal"
-                                  echo  >/tmp/comment_body "/build ubuntu debug release normal gcc-13"$'\n' "/build macos debug clang"
+                                  echo  >/tmp/comment_body "/build ubuntu debug release gcc-13"
                                 fi ;;
             push)               commit_message_body_build_spec >/tmp/comment_body || {
-                                  echo "/build ubuntu debug release normal gcc-13"
+                                  echo "/build ubuntu debug release gcc-13"
                                 } >/tmp/comment_body ;;
             workflow_dispatch)  echo >/tmp/comment_body "${{github.event.inputs.build_spec}}" ;;
             *)                  echo >&2 "::error::Unexpected event"; false ;;
@@ -376,6 +376,7 @@ jobs:
   ## - stand-alone irohad (linked statically)
   ## - iroha.deb (with irohad, migration-tool, wsv_checker inside)
   build-UD: &job_ubuntu
+    name: Build Ubuntu (Debug)
     needs:
       - Docker-iroha-builder
       - generate_matrixes
@@ -659,6 +660,7 @@ jobs:
   ## Just because release is built 2..3 times faster make it a different job
   build-UR:
     <<: *job_ubuntu
+    name: Build Ubuntu (Release)
     strategy: &strategy_ubuntu_release
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ) }}
@@ -669,6 +671,7 @@ jobs:
   ## matrix_appimage contains at most the single
   ## 'ubuntu gcc-13 Release normal' configuration.
   appimage:
+    name: Package AppImages
     needs:
       - Docker-iroha-builder
       - generate_matrixes
@@ -714,75 +717,6 @@ jobs:
         with:
           name: iroha-appimage
           path: dist/*.AppImage
-
-  ## Just to align picture
-  prepare-macos-env:
-    needs: check_workflow_yaml_coressponds_to_src_yaml
-    runs-on: macos-15-intel
-    steps:
-      - *step_show_context
-
-  build-M:
-    name: build MacOS
-    needs:
-      - prepare-macos-env
-      - generate_matrixes
-    runs-on: macos-15-intel #[ self-hosted, MacOS ] #
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_macos ) }}
-    if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_macos ).include[0] }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - *step_show_context
-      - *step_system_info
-      - *step_build_info
-      - *step_env_from_buildspec
-      -
-        name: Homebrew
-        run: brew install cmake ninja coreutils ccache bash
-        ## Takes 22 seconds with default github runner
-      -
-        if: ${{ contains(env.CC_NAME, 'gcc-13') }}
-        name: Homebrew GCC
-        run: brew install gcc@13
-      -
-        if: ${{ contains(env.CC_NAME, 'llvm') }}
-        name: Homebrew LLVM
-        run: brew install llvm
-      -
-        if: ${{ contains(env.features, 'burrow') }}
-        name: Install protoc-gen-go for -DUSE_BURROW=ON
-        run: |
-          go get github.com/golang/protobuf/protoc-gen-go
-          echo >>$GITHUB_PATH $HOME/go/bin
-      - *step_detect_commented_pr
-      - *step_checkout_full
-      - <<: *step_export_cxx
-        env:
-          <<: *step_export_cxx_env
-          CCACHE_PATH: /usr/local/opt/ccache/libexec
-      # - *step_restore_ccache
-      # - *step_store_ccache_stats
-      - *step_vcpkg_cache
-      - *step_vcpkg_build
-      - *step_cmake_configure
-      - *step_cmake_build
-      # - *step_compare_ccache_stats
-      - *step_always_after_build
-      - *step_artifact_suffix
-      - <<: *step_artifact_irohad
-        with:
-          name: irohad-macos${{env.ARTIFACT_SUFFIX}}
-          path: *step_artifact_irohad_path
-      - *step_artifact_tests
-      - &step_brew_postgres
-        name: Install Postgres on MacOS
-        run: brew install postgresql
-      - <<: *step_ctest
-        timeout-minutes: 70
 
   ## Build and publish docker image named 'hyperledger/iroha'  with irohad and iroha tools inside.
   ## The result docker image is pushed with tags :branch_name, :pr-NUMBER, :tag_name,

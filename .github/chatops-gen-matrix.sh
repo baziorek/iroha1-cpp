@@ -17,7 +17,7 @@ echoerr(){
 }
 
 readonly ALL_oses="ubuntu macos windows" ALL_build_types="Debug Release" ALL_cmake_opts="normal burrow ursa" ALL_compilers="gcc-13 clang llvm msvc"
-readonly DEFAULT_oses="ubuntu macos windows" DEFAULT_build_types="Debug" DEFAULT_cmake_opts="normal burrow ursa"
+readonly DEFAULT_oses="ubuntu macos windows" DEFAULT_build_types="Debug" DEFAULT_cmake_opts="normal"
 readonly DEFAULT_ubuntu_compilers="gcc-13" AVAILABLE_ubuntu_compilers="gcc-13 clang"
 readonly DEFAULT_macos_compilers="clang"  AVAILABLE_macos_compilers="clang gcc-13" ## Also "llvm gcc-13" but they fail
 readonly DEFAULT_windows_compilers="msvc" AVAILABLE_windows_compilers="msvc" ## Also "clang mingw cygwin" but they are redundant

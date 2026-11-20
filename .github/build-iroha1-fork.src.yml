@@ -118,18 +118,18 @@ jobs:
           commit_was_merged_build_spec(){
             git_is_merge_commit $1 &&
               git log -n1 $1 --format=%s | grep -q '^Merge branch' &&
-              echo "/build ubuntu debug release normal gcc-13"
+              echo "/build ubuntu debug release gcc-13"
           }
           case ${{github.event_name}} in
             pull_request_target)       if   commit_message_body_build_spec FETCH_HEAD >/tmp/comment_body ;then
                                   if git_is_merge_commit FETCH_HEAD ;then
-                                    echo ::warning::'/build directive in merge commit overrides default "/build ubuntu debug release normal gcc-13"'
+                                    echo ::warning::'/build directive in merge commit overrides default "/build ubuntu debug release gcc-13"'
                                   fi
                                 elif commit_was_merged_build_spec   FETCH_HEAD >/tmp/comment_body ;then
                                   true
                                 else
                                   #echo  >/tmp/comment_body "/build debug; /build ubuntu release debug normal"
-                                  echo  >/tmp/comment_body "/build ubuntu debug release normal gcc-13"
+                                  echo  >/tmp/comment_body "/build ubuntu debug release gcc-13"
                                 fi ;;
           esac
       -
@@ -311,6 +311,7 @@ jobs:
   ## - stand-alone irohad (linked statically)
   ## - iroha.deb (with irohad, migration-tool, wsv_checker inside)
   build-UD: &job_ubuntu
+    name: Build Ubuntu (Debug)
     needs:
       - Docker-iroha-builder
       - generate_matrixes
@@ -592,82 +593,11 @@ jobs:
   ## Just because release is built 2..3 times faster make it a different job
   build-UR:
     <<: *job_ubuntu
+    name: Build Ubuntu (Release)
     strategy: &strategy_ubuntu_release
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ) }}
     if: &if_ubuntu_release ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ).include[0] }}
-
-  ## Just to align picture
-  prepare-macos-env:
-    needs: check_if_pull_request_comes_from_fork
-    environment: test-env
-    runs-on: macos-15-intel
-    permissions: read-all
-    steps:
-      - *step_show_context
-
-  build-M:
-    name: build MacOS
-    needs:
-      - prepare-macos-env
-      - generate_matrixes
-    runs-on: macos-15-intel #[ self-hosted, MacOS ] #
-    permissions: read-all
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_macos ) }}
-    if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_macos ).include[0] }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - *step_show_context
-      - *step_system_info
-      - *step_build_info
-      - *step_env_from_buildspec
-      -
-        name: Homebrew
-        run: brew install cmake ninja coreutils ccache bash
-        ## Takes 22 seconds with default github runner
-      -
-        if: ${{ contains(env.CC_NAME, 'gcc-13') }}
-        name: Homebrew GCC
-        run: brew install gcc@13
-      -
-        if: ${{ contains(env.CC_NAME, 'llvm') }}
-        name: Homebrew LLVM
-        run: brew install llvm
-      -
-        if: ${{ contains(env.features, 'burrow') }}
-        name: Install protoc-gen-go for -DUSE_BURROW=ON
-        run: |
-          go get github.com/golang/protobuf/protoc-gen-go
-          echo >>$GITHUB_PATH $HOME/go/bin
-      - *step_detect_commented_pr
-      - *step_checkout_full_head
-      - <<: *step_export_cxx
-        env:
-          <<: *step_export_cxx_env
-          CCACHE_PATH: /usr/local/opt/ccache/libexec
-      - *step_restore_ccache
-      - *step_store_ccache_stats
-      - *step_vcpkg_cache
-      - *step_vcpkg_build
-      - *step_cmake_configure
-      - *step_cmake_build
-      - *step_compare_ccache_stats
-      - *step_always_after_build
-      - *step_artifact_suffix
-      - <<: *step_artifact_irohad
-        with:
-          name: irohad-macos${{env.ARTIFACT_SUFFIX}}
-          path: *step_artifact_irohad_path
-      - *step_artifact_tests
-      - &step_brew_postgres
-        name: Install Postgres on MacOS
-        run: brew install postgresql
-      - <<: *step_ctest
-        timeout-minutes: 70
 
   ## Build and publish docker image named 'hyperledger/iroha'  with irohad and iroha tools inside.
   ## The result docker image is pushed with tags :branch_name, :pr-NUMBER, :tag_name,
