@@ -94,10 +94,14 @@ bootstrap
 case usual-mode in
    usual-mode)
       ## The old lamp way to install without manifests
+      ## NOTE: mapfile+array is required - specs like soci[boost,postgresql]
+      ## contain glob characters and must not be pathname-expanded
+      ## (nullglob above would silently drop them).
+      mapfile -t deps_list < <(tr -d '\r' < "$script_dir/VCPKG_DEPS_LIST")
       $vcpkg_path/vcpkg install \
          --overlay-ports=$script_dir/ports \
          --feature-flags=-manifests \
-         $(cat $script_dir/VCPKG_DEPS_LIST | tr -d '\r')
+         "${deps_list[@]}"
       # ( #cd /tmp
       # cat $script_dir/VCPKG_DEPS_LIST | while read pkgspec ;do
       #    $vcpkg_path/vcpkg install --feature-flags=-manifests $pkgspec
