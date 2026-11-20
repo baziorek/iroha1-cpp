@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
+shopt -s nullglob
 
 vcpkg_path="${1:-$(pwd)/vcpkg-build}"
 script_dir=$(dirname $(realpath ${BASH_SOURCE[0]}))
@@ -36,11 +37,11 @@ esac
 ##                                 and takes 3 minutes on default GitHub runner
 ## ToDo try reuse existing vcpkg_tool
 ##
-## NOTE: the stock bootstrap-vcpkg.sh downloads vcpkg-tool 2021-02-24, which does
-## not compile with modern compilers (e.g. g++15, missing <cstdint>). The
-## "quick-alternative" below builds a slightly newer pinned vcpkg-tool and
-## applies the patches from tool-patches/. It is the default on Linux/macOS;
-## set VCPKG_BOOTSTRAP=usual to use the stock bootstrap script instead.
+## NOTE: since the vcpkg pin was updated (see VCPKG_COMMIT_SHA), the stock
+## bootstrap-vcpkg.sh downloads a prebuilt vcpkg-tool matching the checkout
+## and is the default on Linux/macOS; set VCPKG_BOOTSTRAP=quick-alternative
+## to build a pinned vcpkg-tool from source with patches from tool-patches/
+## (only needed for the old vcpkg pin).
 VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9
 
 bootstrap_quick_alternative()(
@@ -62,7 +63,7 @@ bootstrap_quick_alternative()(
    cp build/vcpkg $vcpkg_path/vcpkg
 )
 
-case ${VCPKG_BOOTSTRAP:-quick-alternative} in
+case ${VCPKG_BOOTSTRAP:-usual} in
    quick-alternative)
       case $(uname | tr '[:upper:]' '[:lower:]') in
          windows*|msys*|mingw*)
@@ -94,6 +95,7 @@ case usual-mode in
    usual-mode)
       ## The old lamp way to install without manifests
       $vcpkg_path/vcpkg install \
+         --overlay-ports=$script_dir/ports \
          --feature-flags=-manifests \
          $(cat $script_dir/VCPKG_DEPS_LIST | tr -d '\r')
       # ( #cd /tmp

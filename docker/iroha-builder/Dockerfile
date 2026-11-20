@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # number of concurrent threads during build
 # usage: docker build --build-arg PARALLELISM=8 -t name/name .
@@ -12,8 +12,8 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             apt-utils software-properties-common wget gpg-agent \
             libtool \
-            # compilers (gcc-9, gcc-10)
-            build-essential g++-9 g++-10 cmake ninja-build \
+            # compilers (gcc-13 is the default gcc on ubuntu 24.04)
+            build-essential g++-13 cmake ninja-build \
             gdb gdbserver \
             # CI dependencies
             git ssh tar gzip ca-certificates gnupg \
@@ -28,7 +28,7 @@ RUN apt-get update && \
             postgresql postgresql-contrib; \
     if [ $(uname -m) = "x86_64" ] ;then \
         apt-get -y --no-install-recommends install \
-            clang-10 lldb-10 lld-10 libc++-10-dev libc++abi-10-dev clang-format clang-format-7 clang-format-12; \
+            clang lldb libc++-dev libc++abi-dev clang-format; \
     fi; \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* && \
@@ -57,7 +57,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     echo 'source /opt/rust/env' >>/etc/bash.bashrc
 
 ## Allow access to database, trust local connections
-# RUN sed -i /etc/postgresql/12/main/pg_hba.conf -Ee's,(^local\s+all\s+postgres\s+)\w+,\1trust,'
+# RUN sed -i /etc/postgresql/16/main/pg_hba.conf -Ee's,(^local\s+all\s+postgres\s+)\w+,\1trust,'
 RUN echo " \n\
 # TYPE  DATABASE        USER            ADDRESS                 METHOD \n\
 local   all             all                                     trust \n\
@@ -66,9 +66,9 @@ host    all             all             ::1/128                 trust \n\
 local   replication     all                                     trust \n\
 host    replication     all             127.0.0.1/32            trust \n\
 host    replication     all             ::1/128                 trust \n\
-" > /etc/postgresql/12/main/pg_hba.conf
+" > /etc/postgresql/16/main/pg_hba.conf
 
-ENV PATH=${PATH}:/usr/lib/postgresql/12/bin/
+ENV PATH=${PATH}:/usr/lib/postgresql/16/bin/
 
 ## non-interactive adduser
 ##   -m = create home dir
