@@ -58,7 +58,7 @@ List of files
     chatops-gen-matrix.sh '/build ubuntu clang; /build macos release ursa'
     echo /build [build_spec...] | chatops-gen-matrix.sh
   EXAMPLE build_spec:
-    /build ubuntu release gcc10
+    /build ubuntu release gcc13
     /build macos llvm release; /build macos clang ursa release
     /build all
     /build ubuntu all              ## build all possible configurations on Ubuntu
@@ -72,9 +72,8 @@ List of files
     ursa
     release|Release
     debug|Debug
-    gcc|gcc-9|gcc9
-    gcc-10|gcc10
-    clang|clang-10|clang10
+    gcc|gcc-13|gcc13
+    clang
     llvm
     msvc
     skip-testing|skip_testing

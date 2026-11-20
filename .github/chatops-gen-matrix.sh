@@ -16,16 +16,16 @@ echoerr(){
    echo >&2 '::error::'"$@"
 }
 
-readonly ALL_oses="ubuntu macos windows" ALL_build_types="Debug Release" ALL_cmake_opts="normal burrow ursa" ALL_compilers="gcc-9 gcc-10 clang-10 clang llvm msvc"
+readonly ALL_oses="ubuntu macos windows" ALL_build_types="Debug Release" ALL_cmake_opts="normal burrow ursa" ALL_compilers="gcc-13 clang llvm msvc"
 readonly DEFAULT_oses="ubuntu macos windows" DEFAULT_build_types="Debug" DEFAULT_cmake_opts="normal burrow ursa"
-readonly DEFAULT_ubuntu_compilers="gcc-9" AVAILABLE_ubuntu_compilers="gcc-9 gcc-10 clang-10"
-readonly DEFAULT_macos_compilers="clang"  AVAILABLE_macos_compilers="clang gcc-10" ## Also "llvm gcc-10" but they fail
+readonly DEFAULT_ubuntu_compilers="gcc-13" AVAILABLE_ubuntu_compilers="gcc-13 clang"
+readonly DEFAULT_macos_compilers="clang"  AVAILABLE_macos_compilers="clang gcc-13" ## Also "llvm gcc-13" but they fail
 readonly DEFAULT_windows_compilers="msvc" AVAILABLE_windows_compilers="msvc" ## Also "clang mingw cygwin" but they are redundant
 
 --help-buildspec(){
    cat <<END
 EXAMPLE build_spec:
-   /build ubuntu release gcc10
+   /build ubuntu release gcc13
    /build macos llvm release
    /build all
    /build ubuntu all              ## build all possible configurations on Ubuntu
@@ -87,9 +87,8 @@ handle_user_line(){
          ursa)                      cmake_opts+=" $1 "  ;;
          release|Release)           build_types+=" Release " ;;
          debug|Debug)               build_types+=" Debug"  ;;
-         gcc|gcc-9|gcc9)            compilers+=" gcc-9 " ;;
-         gcc-10|gcc10)              compilers+=" gcc-10 " ;;
-         clang|clang-10|clang10)    compilers+=" clang clang-10"  ;;
+         gcc|gcc-13|gcc13)         compilers+=" gcc-13 " ;;
+         clang)                      compilers+=" clang " ;;
          llvm)                      compilers+=" $1 " ;;
          msvc)                      compilers+=" $1 " ;;
          skip-testing|skip_testing) skip_testing='skip_testing' ;;
@@ -147,20 +146,6 @@ test -n "${MATRIX:-}" ||
    { echoerr "MATRIX is empty!"$'\n'; --help-buildspec >&2; exit 1; }
 
 
-############# FIXME remove this after build fixed #############
-quoted(){
-   while read line ;do echo -n "'$line' " ;done
-}
-ignored=$(mktemp)
-echo "$MATRIX" | awk -v IGNORECASE=1 '/clang-10/ && /release/' >$ignored
-MATRIX="$( grep -Fvx -f $ignored <<<"$MATRIX" )"
-if test -s $ignored
-then cat $ignored | quoted | echowarn "FIXME At the moment NOT able to build Release with Clang-10," \
-                                      "because civetweb-cpp from vcpkg. Buildspecs are dropped: $(cat)"
-fi
-rm -f $ignored
-############# END fixme remove this after build fixed #########
-
 
 to_json(){
    echo "{buildspec:\"$@\"}"
@@ -187,5 +172,5 @@ echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/'                          | json_
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/'             | json_include >matrix_ubuntu_release
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/'               | json_include >matrix_ubuntu_debug
 echo "$MATRIX" | awk -v IGNORECASE=1 '/macos/'                           | json_include >matrix_macos
-echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/ && /gcc-10/' | json_include >matrix_dockerimage_release
-echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/   && /gcc-10/' | json_include >matrix_dockerimage_debug
+echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/ && /gcc-13/' | json_include >matrix_dockerimage_release
+echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/   && /gcc-13/' | json_include >matrix_dockerimage_debug
