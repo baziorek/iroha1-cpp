@@ -74,10 +74,10 @@ ENV PATH=${PATH}:/usr/lib/postgresql/16/bin/
 ##   -m = create home dir
 ##   -s = set default shell
 ##   iroha-ci = username
-##   -u = userid, default for Ubuntu is 1000
 ##   -U = create a group same as username
 ##   no password
-RUN useradd -ms /bin/bash iroha-ci -u 1000 -U && \
+##   (no -u 1000: the 'ubuntu' user already owns UID 1000 on ubuntu 24.04)
+RUN useradd -ms /bin/bash iroha-ci -U && \
     usermod -aG postgres iroha-ci
 
 WORKDIR /opt/iroha

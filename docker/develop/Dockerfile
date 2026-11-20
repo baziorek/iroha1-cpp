@@ -111,7 +111,7 @@ ENV PATH=${PATH}:/opt/rust/bin
 #   -u = userid, default for Ubuntu is 1000
 #   -U = create a group same as username
 #   no password
-RUN useradd -ms /bin/bash iroha-ci -u 1000 -U
+RUN useradd -ms /bin/bash iroha-ci -U  ## no -u 1000: taken by "ubuntu" user on 24.04
 
 WORKDIR /opt/iroha
 RUN set -e; \
