@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # number of concurrent threads during build
 # usage: docker build --build-arg PARALLELISM=8 -t name/name .
@@ -15,8 +15,8 @@ RUN apt-get update && \
 RUN set -e; \
     apt-get update && \
     apt-get -y --no-install-recommends install libtool \
-        # compilers (gcc-9, gcc-10)
-        build-essential g++-9 g++-10 cmake ninja-build \
+        # compilers (gcc-13 is the default gcc on ubuntu 24.04)
+        build-essential g++-13 cmake ninja-build \
         # CI dependencies
         git ssh tar gzip ca-certificates gnupg \
         # code coverage
@@ -29,12 +29,12 @@ RUN set -e; \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
-# compiler clang-10 and libc++ only on x86_64, for debug purpose
+# compiler clang and libc++ only on x86_64, for debug purpose
 RUN set -e; \
     if [ `uname -m` = "x86_64" ]; then \
       apt-get update && \
       apt-get -y --no-install-recommends install \
-        clang-10 lldb-10 lld-10 libc++-10-dev libc++abi-10-dev clang-format-7; \
+        clang lldb lld libc++-dev libc++abi-dev clang-format; \
       apt-get -y clean && \
       rm -rf /var/lib/apt/lists/*; \
     fi
@@ -82,7 +82,7 @@ RUN set -e; \
 # OpenJRE 8
 RUN set -e; \
     apt-get update; \
-    apt-get -y install openjdk-8-jre; \
+    apt-get -y install openjdk-17-jre-headless; \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*; \
     java -version
@@ -94,12 +94,15 @@ RUN set -e; \
     pip3 install grpcio_tools pysha3 iroha==0.0.5.4; \
     unset GRPC_PYTHON_BUILD_SYSTEM_OPENSSL
 
-# install rust
+# install rust (latest stable via rustup, needed e.g. by ursa)
+ENV RUSTUP_HOME=/opt/rust
+ENV CARGO_HOME=/opt/rust
 RUN set -e; \
-    curl -L -o /tmp/rust-1.37.0-$(uname -m)-unknown-linux-gnu.tar.gz https://static.rust-lang.org/dist/rust-1.37.0-$(uname -m)-unknown-linux-gnu.tar.gz; \
-    tar xf /tmp/rust-1.37.0-$(uname -m)-unknown-linux-gnu.tar.gz -C /tmp; \
-    /tmp/rust-1.37.0-$(uname -m)-unknown-linux-gnu/install.sh; \
-    rm -rf /tmp/rust-1.37.0-$(uname -m)-unknown-linux-gnu*
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+        sh -s -- -y --no-modify-path --profile minimal; \
+    echo 'source /opt/rust/env' >>/etc/profile; \
+    echo 'source /opt/rust/env' >>/etc/bash.bashrc
+ENV PATH=${PATH}:/opt/rust/bin
 
 # non-interactive adduser
 #   -m = create home dir

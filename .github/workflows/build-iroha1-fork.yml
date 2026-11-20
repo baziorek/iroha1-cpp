@@ -140,6 +140,7 @@ jobs:
           echo "::set-output name=matrix_macos::$(cat matrix_macos)"
           echo "::set-output name=matrix_dockerimage_release::$(cat matrix_dockerimage_release)"
           echo "::set-output name=matrix_dockerimage_debug::$(cat matrix_dockerimage_debug)"
+          echo "::set-output name=matrix_appimage::$(cat matrix_appimage)"
     outputs:
       matrix_ubuntu: ${{steps.matrixes.outputs.matrix_ubuntu}}
       matrix_ubuntu_release: ${{steps.matrixes.outputs.matrix_ubuntu_release}}
@@ -147,6 +148,7 @@ jobs:
       matrix_macos: ${{steps.matrixes.outputs.matrix_macos}}
       matrix_dockerimage_release: ${{steps.matrixes.outputs.matrix_dockerimage_release}}
       matrix_dockerimage_debug: ${{steps.matrixes.outputs.matrix_dockerimage_debug}}
+      matrix_appimage: ${{steps.matrixes.outputs.matrix_appimage}}
   ## Build docker image named 'hyperledger/iroha-builder' with all stuff to compile iroha and its dependencies
   ## The result docker image is pushed with tags :pr-NUMBER, :commit-HASH, :branch-name, :tag-name,
   ## and conditional tags :edge for development branch, and :latest for git-tags.

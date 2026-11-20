@@ -174,3 +174,4 @@ echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/'               | json_
 echo "$MATRIX" | awk -v IGNORECASE=1 '/macos/'                           | json_include >matrix_macos
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/ && /gcc-13/' | json_include >matrix_dockerimage_release
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/   && /gcc-13/' | json_include >matrix_dockerimage_debug
+echo "$MATRIX" | awk '$1=="ubuntu" && $2=="gcc-13" && $3=="Release" && $4=="normal"' | json_include >matrix_appimage

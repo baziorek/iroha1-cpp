@@ -216,6 +216,7 @@ jobs:
           echo "::set-output name=matrix_macos::$(cat matrix_macos)"
           echo "::set-output name=matrix_dockerimage_release::$(cat matrix_dockerimage_release)"
           echo "::set-output name=matrix_dockerimage_debug::$(cat matrix_dockerimage_debug)"
+          echo "::set-output name=matrix_appimage::$(cat matrix_appimage)"
     outputs:
       matrix_ubuntu: ${{steps.matrixes.outputs.matrix_ubuntu}}
       matrix_ubuntu_release: ${{steps.matrixes.outputs.matrix_ubuntu_release}}
@@ -223,6 +224,7 @@ jobs:
       matrix_macos: ${{steps.matrixes.outputs.matrix_macos}}
       matrix_dockerimage_release: ${{steps.matrixes.outputs.matrix_dockerimage_release}}
       matrix_dockerimage_debug: ${{steps.matrixes.outputs.matrix_dockerimage_debug}}
+      matrix_appimage: ${{steps.matrixes.outputs.matrix_appimage}}
   ## Build docker image named 'hyperledger/iroha-builder' with all stuff to compile iroha and its dependancies
   ## The result docker image is pushed with tags :pr-NUMBER, :commit-HASH, :branch-name, :tag-name,
   ## and conditional tags :edge for development branch, and :latest for git-tags.
@@ -981,6 +983,70 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ) }}
     if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ).include[0] }}
+  ## Package release binaries (irohad, iroha-cli) as AppImages.
+  ## Reuses the 'irohad-<suffix>' artifact uploaded by build-UR legs;
+  ## matrix_appimage contains at most the single
+  ## 'ubuntu gcc-13 Release normal' configuration.
+  appimage:
+    needs:
+      - Docker-iroha-builder
+      - generate_matrixes
+      - build-UR
+    runs-on: ubuntu-22.04
+    container:
+      image: ${{needs.Docker-iroha-builder.outputs.container}}
+      options: --user root
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_appimage ) }}
+    if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_appimage ).include[0] }}
+    steps:
+      - name: Show context
+        run: |
+          echo "::group::GitHub context"
+          cat <<'END'
+          ${{ toJson(github) }}
+          END
+          echo "::endgroup::"
+          echo "::group::GitHub needs"
+          cat <<'END'
+          ${{ toJson(needs) }}
+          END
+          echo "::endgroup::"
+      - name: REF and SHA of commented PR to ENV
+        if: github.event.comment
+        run: >
+          curl -fsSL ${{github.event.issue.pull_request.url}} -H "Authorization: token ${{github.token}}" | jq -r '
+
+            "PR_REF="+.head.ref,
+            "PR_SHA="+.head.sha,
+            "PR_NUM="+(.number|tostring),
+            "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
+          repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: irohad-ubuntu-gcc13-rel
+          merge-multiple: true
+          path: dist-bin
+      - name: Build AppImages
+        run: |
+          set -e
+          irohad_bin=$(find dist-bin -name irohad    -type f | head -1)
+          cli_bin=$(find    dist-bin -name iroha-cli -type f | head -1)
+          test -n "$irohad_bin" && test -n "$cli_bin"
+          ./packaging/appimage/make-appimage.sh "$irohad_bin" irohad    dist/irohad-x86_64.AppImage
+          ./packaging/appimage/make-appimage.sh "$cli_bin"   iroha-cli dist/iroha-cli-x86_64.AppImage
+          ls -lh dist/
+      - name: Upload AppImage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iroha-appimage
+          path: dist/*.AppImage
   ## Just to align picture
   prepare-macos-env:
     needs: check_workflow_yaml_coressponds_to_src_yaml
