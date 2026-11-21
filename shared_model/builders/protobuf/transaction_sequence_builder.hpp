@@ -21,7 +21,7 @@ namespace shared_model {
     template <typename SV>
     class /*[[deprecated]]*/ TransportBuilder<interface::TransactionSequence,
                                               SV> {
-      TransportBuilder<interface::TransactionSequence, SV>(
+      TransportBuilder(
           SV stateless_validator,
           std::shared_ptr<validation::ValidatorsConfig> config)
           : stateless_validator_(std::move(stateless_validator)),
@@ -30,9 +30,9 @@ namespace shared_model {
      public:
       // we do such default initialization only because it is deprecated and
       // used only in tests
-      TransportBuilder<interface::TransactionSequence, SV>(
+      TransportBuilder(
           std::shared_ptr<validation::ValidatorsConfig> config)
-          : TransportBuilder<interface::TransactionSequence, SV>(
+          : TransportBuilder(
                 SV(iroha::test::kTestsValidatorsConfig), std::move(config)) {}
 
       /**
