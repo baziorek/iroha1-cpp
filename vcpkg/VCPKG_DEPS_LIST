@@ -11,6 +11,7 @@ boost-multiprecision
 boost-bimap
 boost-asio
 boost-process
+boost-serialization
 iroha-ed25519
 rocksdb
 rxcpp
