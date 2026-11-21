@@ -163,6 +163,25 @@ texinfo_documents = [
 iroha_permissions_glossary_path = 'concepts_architecture/glossary.rst'
 
 
+def strike_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    from docutils import nodes
+    node = nodes.inline(rawtext, text, classes=['strike'])
+    return [node], []
+
+
+def strikelink_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    import re
+    from docutils import nodes
+    m = re.match(r'^(.*?)\s*<([^>\s]+)>\s*$', text)
+    label, uri = (m.group(1), m.group(2)) if m else (text, text)
+    ref = nodes.reference(rawtext, label, refuri=uri, classes=['strike'])
+    return [ref], []
+
+
 def setup(app):
     # override wide tables in RTD theme
     app.add_css_file('theme_overrides.css')
+    # :strike:`text` renders text with a line-through (for dead links)
+    app.add_role('strike', strike_role)
+    # :strikelink:`label <url>` renders a struck-through hyperlink
+    app.add_role('strikelink', strikelink_role)

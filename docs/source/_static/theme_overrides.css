@@ -26,3 +26,8 @@
 .toggle .header.open:after {
     content: " ▼";
 }
+
+/* :strike: role — marks dead/outdated links */
+.strike {
+    text-decoration: line-through;
+}

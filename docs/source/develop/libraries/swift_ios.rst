@@ -35,4 +35,4 @@ To run the project, please, go through steps below:
 
 - Consider logs to see if the scenario completed successfully.
 
-Feel free to experiment with example project and don't hesitate to ask any questions in Rocket.Chat.
+Feel free to experiment with example project and don't hesitate to ask any questions on `Discord <https://discord.com/channels/905194001349627914/905205848547155968>`_.

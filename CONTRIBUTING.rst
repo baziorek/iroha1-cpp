@@ -21,32 +21,12 @@ Reporting Bugs
 to produce an incorrect or unexpected result, or to behave in unintended
 ways.
 
-Bugs are tracked as `GitHub issues <https://github.com/hyperledger/iroha/issues>`_ (this is the preferred option) or as `JIRA issues <https://jira.hyperledger.org/projects/IR/issues/IR-275?filter=allopenissues&orderby=issuetype+ASC%2C+priority+DESC%2C+updated+DESC>`_ (if it is convenient to you).
-in Hyperledger Jira.
+Bugs are tracked as `GitHub issues <https://github.com/hyperledger/iroha/issues>`_.
 
-If you decide to go with the GitHub issues, just `click on this link <https://github.com/hyperledger/iroha/issues/new>`_ and follow the instructions in the template.
-
-To submit a bug, `create new issue <https://jira.hyperledger.org/secure/CreateIssue.jspa>`_ and
-include these details:
-
-+---------------------+------------------------------------------------------+
-| Field               | What to enter                                        |
-+=====================+======================================================+
-| Project             | Iroha (IR)                                           |
-+---------------------+------------------------------------------------------+
-| Issue Type          | Bug                                                  |
-+---------------------+------------------------------------------------------+
-| Summary             | Essence of the problem                               |
-+---------------------+------------------------------------------------------+
-| Description         | What the issue is about; if you have any logs,       |
-|                     | please provide them                                  |
-+---------------------+------------------------------------------------------+
-| Priority            | You can use Medium though if you see the issue as a  |
-|                     | high priority, please choose that                    |
-+---------------------+------------------------------------------------------+
-| Environment         | Your OS, device's specs, Virtual Environment if you  |
-|                     | use one, version of Iroha etc.                       |
-+---------------------+------------------------------------------------------+
+To submit a bug, `create new issue <https://github.com/hyperledger/iroha/issues/new>`_ and
+include these details in the issue template: a summary of the problem,
+reproduction steps, and any relevant logs. Please also provide your
+environment details (OS, device specs, Iroha version etc.).
 
 Reporting Vulnerabilities
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +45,7 @@ here <https://hackerone.com/hyperledger>`__ in order to submit
 vulnerabilities and get your reward.
 
 In any case ? feel free to reach to any of existing maintainers in
-Rocket.Chat private messages or in an e-mail (check CONTRIBUTORS.md
+Discord private messages or in an e-mail (check CONTRIBUTORS.md
 file) if you want to discuss whether your discovery is a vulnerability
 or a bug.
 
@@ -75,32 +55,11 @@ Suggesting Improvements
 An *improvement* is a code or idea, which makes **existing** code or
 design faster, more stable, portable, secure or better in any other way.
 
-Improvements are tracked as `GitHub issues <https://github.com/hyperledger/iroha/issues>`_ (this is the preferred option) or as `JIRA
-improvements <https://jira.hyperledger.org/browse/IR-184?jql=project%20%3D%20IR%20and%20issuetype%20%3D%20Improvement%20ORDER%20BY%20updated%20DESC>`_.
+Improvements are tracked as `GitHub issues <https://github.com/hyperledger/iroha/issues>`_.
 
-Again, if you choose GitHub issues, just `click on this link <https://github.com/hyperledger/iroha/issues/new>`_ and follow the instructions in the template.
-
-To submit a new improvement in JIRA, `create new
-issue <https://jira.hyperledger.org/secure/CreateIssue.jspa>`_ and
-include these details:
-
-+---------------------+------------------------------------------------------+
-| Field               | What to enter                                        |
-+=====================+======================================================+
-| Project             | Iroha (IR)                                           |
-+---------------------+------------------------------------------------------+
-| Issue Type          | Improvement                                          |
-+---------------------+------------------------------------------------------+
-| Summary             | Essence of the idea                                  |
-+---------------------+------------------------------------------------------+
-| Description         | What the idea is about; if you have any code         |
-|                     | suggestions, you are welcome to add them here        |
-+---------------------+------------------------------------------------------+
-| Priority            | You can use Medium                                   |
-+---------------------+------------------------------------------------------+
-| Assign              | You can assign the task to yourself if you are       |
-|                     | planning on working on it                            |
-+---------------------+------------------------------------------------------+
+To submit a new improvement, `create new issue <https://github.com/hyperledger/iroha/issues/new>`_ and
+describe the idea: what it improves and why it is valuable. If you
+have any code suggestions, you are welcome to include them.
 
 Asking Questions
 ~~~~~~~~~~~~~~~~
@@ -116,8 +75,8 @@ community could help you. You can also help others!
 Your First Code Contribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Read our `C++ Style Guide <#c-style-guide>`__ and start with checking out `the GitHub board <https://github.com/hyperledger/iroha/projects/1>`_ or the beginner-friendly issues in JIRA with
-`good-first-issue label <https://jira.hyperledger.org/issues/?jql=project%20%3D%20IR%20and%20labels%20%3D%20good-first-issue%20ORDER%20BY%20updated%20DESC>`_.
+Read our `C++ Style Guide <#c-style-guide>`__ and start with checking out `the GitHub board <https://github.com/hyperledger/iroha/projects/1>`_ or issues with the
+`good-first-issue label <https://github.com/hyperledger/iroha/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-issue>`_.
 Indicate somehow that you are working on this task: get in touch with
 maintainers team, community or simply assign this issue to yourself.
 
@@ -202,23 +161,27 @@ Places where community is active
 
 Our community members are active at:
 
-+----------------+--------------------------------------------------------------------+
-| Service        | Link                                                               |
-+================+====================================================================+
-| RocketChat     | https://chat.hyperledger.org/channel/iroha                         |
-+----------------+--------------------------------------------------------------------+
-| StackOverflow  | https://stackoverflow.com/questions/tagged/hyperledger-iroha       |
-+----------------+--------------------------------------------------------------------+
-| Mailing List   | hyperledger-iroha@lists.hyperledger.org                            |
-+----------------+--------------------------------------------------------------------+
-| Gitter         | https://gitter.im/hyperledger-iroha/Lobby                          |
-+----------------+--------------------------------------------------------------------+
-| Telegram       | https://t.me/hl\_iroha                                             |
-+----------------+--------------------------------------------------------------------+
-| YouTube        | https://www.youtube.com/channel/UCYlK9OrZo9hvNYFuf0vrwww           |
-+----------------+--------------------------------------------------------------------+
-| Discord        | https://discord.com/channels/905194001349627914/905205848547155968 |
-+----------------+--------------------------------------------------------------------+
++----------------+-------------------------------------------------------------------------------------------------------+
+| Service        | Link                                                                                                  |
++----------------+-------------------------------------------------------------------------------------------------------+
+| Discord        | https://discord.com/channels/905194001349627914/905205848547155968                                    |
++----------------+-------------------------------------------------------------------------------------------------------+
+|                | **(recommended)**                                                                                     |
++----------------+-------------------------------------------------------------------------------------------------------+
+| RocketChat     | :strikelink:`Rocket.Chat <https://chat.hyperledger.org/channel/iroha>`                                |
++----------------+-------------------------------------------------------------------------------------------------------+
+| Wiki (Iroha 1) | :strikelink:`Iroha 1 <https://lf-hyperledger.atlassian.net/wiki/spaces/iroha/pages/21015959/Iroha+1>` |
++----------------+-------------------------------------------------------------------------------------------------------+
+| StackOverflow  | https://stackoverflow.com/questions/tagged/hyperledger-iroha                                          |
++----------------+-------------------------------------------------------------------------------------------------------+
+| Mailing List   | hyperledger-iroha@lists.hyperledger.org                                                               |
++----------------+-------------------------------------------------------------------------------------------------------+
+| Gitter         | https://gitter.im/hyperledger-iroha/Lobby                                                             |
++----------------+-------------------------------------------------------------------------------------------------------+
+| Telegram       | https://t.me/hl\_iroha                                                                                |
++----------------+-------------------------------------------------------------------------------------------------------+
+| YouTube        | https://www.youtube.com/channel/UCYlK9OrZo9hvNYFuf0vrwww                                              |
++----------------+-------------------------------------------------------------------------------------------------------+
 
 
 --------------
