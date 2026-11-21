@@ -28,6 +28,11 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 SRC_DOCS="$REPO_ROOT/docs/source"
 
+# sphinx-build is invoked from a temp dir below, so the output dir must be
+# absolute or the translated site would be written under $WORK instead
+mkdir -p "$OUT_DIR"
+OUT_DIR=$(cd "$OUT_DIR" && pwd)
+
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 
