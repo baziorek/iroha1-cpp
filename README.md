@@ -20,6 +20,11 @@ modern toolchains. The first stage of modernization is done:
 - GitHub CI repaired and moved to a modern builder image (Ubuntu 24.04,
   GCC 13)
 
+The documentation in `docs/` is built with Sphinx on every change and
+published to **GitHub Pages**:
+<https://baziorek.github.io/iroha1-cpp/> (upstream's own ReadTheDocs
+build of this branch is unstyled/broken).
+
 The rest of this README describes the upstream project and remains valid.
 
 ## What is Hyperledger Iroha?

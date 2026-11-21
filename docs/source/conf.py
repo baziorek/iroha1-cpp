@@ -1,6 +1,5 @@
 import os
 import sys
-import sphinx_rtd_theme
 import yaml
 from sphinx.highlighting import lexers
 from pygments_lexer_solidity import SolidityLexer
@@ -37,12 +36,6 @@ extensions = [
 ]
 
 html_static_path = ['_static']
-
-html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-        ],
-     }
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -73,7 +66,6 @@ gettext_compact = False
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -169,3 +161,8 @@ texinfo_documents = [
 
 # -- Options for iroha_permissions extension ------------------------------
 iroha_permissions_glossary_path = 'concepts_architecture/glossary.rst'
+
+
+def setup(app):
+    # override wide tables in RTD theme
+    app.add_css_file('theme_overrides.css')
