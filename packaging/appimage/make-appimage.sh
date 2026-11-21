@@ -13,7 +13,10 @@ readonly binary=$1 appname=$2 output=$3
 
 readonly appdir_root=$(mktemp -d)
 readonly appdir=$appdir_root/$appname.AppDir
-readonly repo_root=$(git rev-parse --show-toplevel)
+## repo root is two levels up from this script; do not use git here —
+## inside CI containers the checkout may be owned by a different uid and
+## 'git rev-parse' fails with "detected dubious ownership"
+readonly repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
 mkdir -p "$appdir/bin" "$appdir/usr/lib" "$appdir/usr/share/applications"
 

@@ -117,6 +117,12 @@ case usual-mode in
       ;;
 esac
 
+## Free disk space: buildtrees/, packages/ and downloads/ are intermediate
+## artifacts (~20 GB for the full dependency set) that are not needed once
+## installed/ is populated. CI caches the whole vcpkg-build directory, so
+## this also keeps the saved cache small.
+rm -rf "$vcpkg_path/buildtrees" "$vcpkg_path/packages" "$vcpkg_path/downloads"
+
 #################### PROFILING ####################
 ## system macos big sur on macbook pro 2016 i7 2.8GHz
 ## Installation of already built packages takes about 43 sec
