@@ -11,8 +11,18 @@ How Can I Contribute?
 Translating Documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`Here <https://github.com/hyperledger/iroha-docs-l10n>`_ you can translate Iroha documentation into your language – community will be grateful for your help!
-Instructions are included – just follow the `link to the repository <https://github.com/hyperledger/iroha-docs-l10n>`_.
+Translated versions of this documentation are hosted next to the English
+one under ``/<language>/``. Currently available:
+
+* **Türkçe** — `Türkçe dokümantasyon <../tr/>`_ (translated from the
+  archived :strikelink:`hyperledger-iroha/iroha-docs-l10n
+  <https://github.com/hyperledger-iroha/iroha-docs-l10n>` repository;
+  the translation covers Iroha 1.2-era docs and may lag behind the
+  English version)
+
+More languages are planned — including Polish. If you want to
+contribute a translation, please get in touch via
+`Discord <https://discord.com/channels/905194001349627914/905205848547155968>`_.
 
 Reporting Bugs
 ~~~~~~~~~~~~~~

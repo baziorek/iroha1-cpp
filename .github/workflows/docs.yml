@@ -5,6 +5,7 @@ on:
     branches: [ iroha1-main ]
     paths:
       - 'docs/**'
+      - 'CONTRIBUTING.rst'   ## included by docs/source/community/index.rst
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -36,6 +37,11 @@ jobs:
         ## sphinx extensions resolve paths relative to docs/source
         ## (e.g. 'concepts_architecture/glossary.rst'), so build from there
         run: cd docs/source && sphinx-build -b html . ../_build/html
+      - name: Build translated documentation
+        ## Turkish translation taken from the archived
+        ## hyperledger-iroha/iroha-docs-l10n repo; output lands in
+        ## docs/_build/html/<lang>/ next to the English version
+        run: docs/i18n/build.sh docs/_build/html tr
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -172,8 +172,11 @@ def strike_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 def strikelink_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     import re
     from docutils import nodes
-    m = re.match(r'^(.*?)\s*<([^>\s]+)>\s*$', text)
-    label, uri = (m.group(1), m.group(2)) if m else (text, text)
+    m = re.match(r'^(.*?)\s*<([^>\s]+)>\s*$', text, re.S)
+    if m:
+        label, uri = ' '.join(m.group(1).split()), m.group(2)
+    else:
+        label = uri = text
     ref = nodes.reference(rawtext, label, refuri=uri, classes=['strike'])
     return [ref], []
 
