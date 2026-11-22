@@ -8,9 +8,11 @@ namespace iroha_lib {
 Query::Query(
         const iroha::keypair_t& keypair,
         uint64_t counter,
+        const std::string& creator_account_id,
         uint64_t created_time) noexcept
     : counter_(counter),
       created_time_(created_time),
+      creator_account_id_(creator_account_id),
       keypair_(keypair)
 {}
 
@@ -167,6 +169,11 @@ Query& Query::getPeers(const std::string& account_id)
 
 const iroha::protocol::Query Query::signAndAddSignature()
 {
+    if (not creator_account_id_.empty()) {
+        protobuf_query_.mutable_payload()->mutable_meta()
+                ->set_creator_account_id(creator_account_id_);
+    }
+
     auto signature = iroha::sign(
                 iroha::hash(protobuf_query_).to_string(),
                 keypair_.pubkey,

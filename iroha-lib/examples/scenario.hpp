@@ -146,7 +146,8 @@ struct Scenario {
 
     QueryResponse getAssetInfo(const std::string& asset_id)
     {
-        const auto query = iroha_lib::Query(admin_keypair, nextQueryCounter())
+        const auto query = iroha_lib::Query(
+                    admin_keypair, nextQueryCounter(), config.admin_account_id)
                 .getAssetInfo(config.admin_account_id, asset_id)
                 .signAndAddSignature();
         return client->send(query);
@@ -154,7 +155,8 @@ struct Scenario {
 
     QueryResponse getAccountAssets(const std::string& account_id)
     {
-        const auto query = iroha_lib::Query(admin_keypair, nextQueryCounter())
+        const auto query = iroha_lib::Query(
+                    admin_keypair, nextQueryCounter(), config.admin_account_id)
                 .getAccountAssets(account_id)
                 .signAndAddSignature();
         return client->send(query);
@@ -162,7 +164,8 @@ struct Scenario {
 
     QueryResponse getAccountDetail(const std::string& account_id)
     {
-        const auto query = iroha_lib::Query(admin_keypair, nextQueryCounter())
+        const auto query = iroha_lib::Query(
+                    admin_keypair, nextQueryCounter(), config.admin_account_id)
                 .getAccountDetail(account_id)
                 .signAndAddSignature();
         return client->send(query);
@@ -178,7 +181,8 @@ struct Scenario {
             const std::optional<uint64_t> last_tx_height = {},
             const std::optional<Ordering>& ordering = {})
     {
-        const auto query = iroha_lib::Query(admin_keypair, nextQueryCounter())
+        const auto query = iroha_lib::Query(
+                    admin_keypair, nextQueryCounter(), config.admin_account_id)
                 .getAccountTransactions(account_id,
                                         first_tx_hash,
                                         first_tx_time,

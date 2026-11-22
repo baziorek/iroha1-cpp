@@ -17,6 +17,7 @@ file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/iroha_lib_examples_paths.h
 #define IROHA_EXAMPLE_TX_ORDERING "$<TARGET_FILE:irohalib_TxOrderingExample_example>"
 #define IROHA_EXAMPLE_BLOCKS_QUERY "$<TARGET_FILE:irohalib_BlocksQueryExample_example>"
 #define IROHA_EXAMPLE_BATCH "$<TARGET_FILE:irohalib_BatchExample_example>"
+#define IROHA_EXAMPLE_MST "$<TARGET_FILE:irohalib_MstExample_example>"
 #define IROHA_EXAMPLE_INFINITE_BLOCKS_STREAM "$<TARGET_FILE:irohalib_InfiniteBlocksStreamExample_example>"
 ]==]
 )
@@ -30,5 +31,6 @@ add_dependencies(iroha_lib_examples_test
     irohalib_TxOrderingExample_example
     irohalib_BlocksQueryExample_example
     irohalib_BatchExample_example
+    irohalib_MstExample_example
     irohalib_InfiniteBlocksStreamExample_example
     )

@@ -43,10 +43,72 @@ cd examples
 
 ## Examples
 
-Examples describe how to establish connection with an Iroha peer which is running locally. The examples show how to create a new account and send assets to it. 
+The `examples` directory contains ready-to-run programs that demonstrate the main features of `iroha-lib`. Each example is a single `.cpp` file; shared helpers live in the header-only `common.hpp` (environment configuration, status printing, transaction helpers) and `scenario.hpp` (a reusable domain/asset/account scenario), plus `error_codes.hpp` (human-readable mapping of Iroha error codes, ported from `iroha-python`'s `errorCodes2Hr.py`).
 
-In `examples` directory you can find `TxExample.cpp`, `BatchExample.cpp` and `QueryExample.cpp` files. These files demonstrate main features of iroha-helpers. In the `TxExample.cpp` you can find how to build a transaction with several commands. The `BatchExample.cpp` explains how to deal with batch transactions.
-Please explore [examples](https://github.com/hyperledger/iroha/tree/develop/iroha-lib/examples) directory for more usage examples.
+| Example | What it demonstrates | Python counterpart |
+|---|---|---|
+| `TxExample` | Full transaction workflow: `CreateDomain`, `CreateAsset`, `AddAssetQuantity`, `CreateAccount`, `TransferAsset`, `GrantPermission`, `SetAccountDetail`, and the `GetAssetInfo` / `GetAccountAssets` / `GetAccountDetail` queries | `tx-example.py` |
+| `BatchExample` | Atomic exchange batch (MST batching, **not** multisig): two quorum-2 accounts swap assets atomically, including accept and decline flows via pending transactions | `batch-example.py` |
+| `MstExample` | Multi-signature transaction: a `group` account with three signatories and quorum 2; transfers stay pending until a second signatory countersigns | `mst-example.py` |
+| `QueryExample` | Transaction queries with time and height filters (`first_tx_time`, `last_tx_time`, `first_tx_height`, `last_tx_height`) | `query-transactions.py` |
+| `TxOrderingExample` | Transaction pagination with `ordering` (ascending / descending) | `tx-ordering.py` |
+| `BlocksQueryExample` | Signed `BlocksQuery` over the `FetchCommits` server stream: observe blocks as transactions are committed | `blocks-query.py` |
+| `InfiniteBlocksStreamExample` | Long-running block stream; prints every new block until interrupted (Ctrl+C) | `infinite-blocks-stream.py` |
+| `DomainAssetCreation` | Older standalone example (uses gflags) | — |
+
+### Configuration
+
+All ported examples read connection settings from environment variables, with defaults matching the `iroha-python` development setup:
+
+| Variable | Default | Description |
+|---|---|---|
+| `IROHA_HOST_ADDR` | `127.0.0.1` | Iroha node address |
+| `IROHA_PORT` | `50051` | Torii (gRPC) port |
+| `ADMIN_ACCOUNT_ID` | `admin@test` | Account used to sign transactions/queries |
+| `ADMIN_PRIVATE_KEY` | `f101537e…cab70` | Admin private key as hex (no key file needed) |
+
+Private keys are accepted directly as hex strings via `Utils::generateKeypairFromPrivateKey`, so no key files are required.
+
+### Transaction status stream
+
+`GrpcClient::sendStatusStream(tx_hash)` returns a `TxStatusStream` — a wrapper over the `StatusStream` server-streaming RPC. Read `ToriiResponse` statuses until the stream closes (the node closes it on a final status: committed, rejected, or stateless failure):
+
+``` c++
+auto stream = client.sendStatusStream(tx_hash);
+ToriiResponse status;
+while (stream->Read(&status)) {
+    // STATELESS_VALIDATION_SUCCESS -> ENOUGH_SIGNATURES_COLLECTED ->
+    // MST_PENDING? -> STATEFUL_VALIDATION_SUCCESS -> COMMITTED
+}
+```
+
+### Blocks stream
+
+`GrpcClient::sendBlocksStreamQuery(blocks_query)` returns a `BlocksStream` over the `FetchCommits` RPC. Build the query with `iroha_lib::BlocksQuery(account_id, keypair).signAndAddSignature()`:
+
+``` c++
+auto stream = client.sendBlocksStreamQuery(blocks_query);
+BlockQueryResponse response;
+while (stream->Read(&response)) {
+    // response.block_response().block() or block_error_response()
+}
+stream->Cancel();  // stop the stream
+```
+
+### Pending transactions and MST
+
+`Query::getPendingTransactions(account_id)` fetches transactions waiting for more signatures (requires `mst_support` in the node config). To countersign, fetch the pending transaction, clear its signatures (`tx.mutable_signatures()->Clear()`), sign it with another signatory's key via `Utils::addSignature`, and send it again — see `BatchExample.cpp` and `MstExample.cpp`.
+
+`TxBatch::batch(transactions, atomic)` attaches shared `BatchMeta` (type + SHA3-256 reduced hashes of every transaction's reduced payload) to each transaction; call it **before** signing, because the meta is part of the signed payload.
+
+### Integration tests
+
+The examples are covered by `test/integration/iroha_lib_examples` (`iroha_lib_examples_test`), which spins up a real single-node Iroha instance via `IntegrationTestFramework` (PostgreSQL backend, `mst_support` enabled, genesis replicating the `admin@test` / `test` domain environment) and runs each example binary against it. Run it with:
+
+``` bash
+cd build
+ctest -R iroha_lib_examples_test --output-on-failure
+```
 
 
 ## GrpcClient class
@@ -118,9 +180,11 @@ iroha_lib::GrpcClient(
 ## Queries
 
 - [x] [getAccount](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-account)
-- [x] [getAccountAssetTransactions](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-account-asset-transactions)queries.html#get-account-assets)
+- [x] [getAccountAssetTransactions](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-account-asset-transactions)
+- [x] [getAccountAssets](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-account-assets)
 - [x] [getAccountDetail](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-account-detail)
 - [x] [getAccountTransactions](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-account-transactions)
+- [x] [getPendingTransactions](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-pending-transactions)
 - [x] [getTransactions](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-transactions)
 - [x] [getSignatories](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-signatories)
 - [x] [getAssetInfo](https://iroha.readthedocs.io/en/main/develop/api/queries.html#get-asset-info)

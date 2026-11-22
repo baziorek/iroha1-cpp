@@ -159,11 +159,10 @@ std::shared_ptr<iroha::protocol::Query> QueryGenerator::generateGetPendingTransa
                 account_id,
                 counter,
                 created_time);
+    auto* payload = query->mutable_payload()
+            ->mutable_get_pending_transactions();
     if (page_size.has_value()) {
-        query->mutable_payload()
-                ->mutable_get_pending_transactions()
-                ->mutable_pagination_meta()
-                ->set_page_size(page_size.value());
+        payload->mutable_pagination_meta()->set_page_size(page_size.value());
     }
     return query;
 }

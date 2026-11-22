@@ -7,6 +7,7 @@ else()
     foreach(example IN ITEMS
             TxExample
             BatchExample
+            MstExample
             QueryExample
             TxOrderingExample
             BlocksQueryExample

@@ -148,7 +148,7 @@ class IrohaLibExamplesTest : public ::testing::Test {
     {
         itf_ = std::make_unique<
             integration_framework::IntegrationTestFramework>(
-                    1,
+                    10,  // maximum_proposal_size - must fit example batches
                     iroha::StorageType::kPostgres,
                     boost::none,
                     iroha::StartupWsvDataPolicy::kDrop,
@@ -205,6 +205,11 @@ TEST_F(IrohaLibExamplesTest, BlocksQueryExample)
 TEST_F(IrohaLibExamplesTest, BatchExample)
 {
     runExampleAndExpectSuccess(IROHA_EXAMPLE_BATCH);
+}
+
+TEST_F(IrohaLibExamplesTest, MstExample)
+{
+    runExampleAndExpectSuccess(IROHA_EXAMPLE_MST);
 }
 
 TEST_F(IrohaLibExamplesTest, InfiniteBlocksStreamExample)

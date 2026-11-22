@@ -5,8 +5,11 @@
 // Node address and credentials are taken from environment variables:
 //   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
 
+#include <atomic>
+#include <chrono>
 #include <csignal>
 #include <iostream>
+#include <thread>
 
 #include "common.hpp"
 #include "scenario.hpp"
@@ -28,8 +31,10 @@ void onSignal(int)
 
 int main()
 {
+    // only SIGINT (Ctrl+C) is handled gracefully; SIGTERM is left at
+    // its default disposition so that `timeout`/`kill` can terminate
+    // the process even while it is blocked in stream->Read()
     std::signal(SIGINT, onSignal);
-    std::signal(SIGTERM, onSignal);
 
     try {
         Scenario scenario;
@@ -44,6 +49,18 @@ int main()
                     scenario.admin_keypair)
                 .signAndAddSignature();
         auto stream = scenario.client->sendBlocksStreamQuery(blocks_query);
+
+        // stream->Read() cannot be interrupted by a signal handler, so a
+        // watcher thread cancels the stream once SIGINT was received
+        std::atomic<bool> watcher_done{false};
+        std::thread watcher([&] {
+            while (not g_stop and not watcher_done) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+            if (g_stop) {
+                stream->Cancel();
+            }
+        });
 
         BlockQueryResponse response;
         while (not g_stop && stream->Read(&response)) {
@@ -62,6 +79,8 @@ int main()
                           << std::endl;
             }
         }
+        watcher_done = true;
+        watcher.join();
         stream->Cancel();
     } catch (const std::exception& e) {
         std::cerr << "[E] " << e.what() << std::endl;
