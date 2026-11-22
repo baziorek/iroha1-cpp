@@ -10,33 +10,7 @@
 
 #include <string>
 
-#include <fmt/core.h>
-#include <fmt/format.h>
-// Windows includes transitively included by format.h define interface as
-// struct, leading to compilation issues
-#undef interface
-
-namespace fmt {
-  /// Allows to log objects, which have toString() method without calling it,
-  /// e.g. log.info("{}", myObject)
-  template <typename T>
-  struct formatter<
-      T,
-      std::enable_if_t<std::is_same<decltype(std::declval<T>().toString()),
-                                    std::string>::value,
-                       char>> {
-    // The following functions are not defined intentionally.
-    template <typename ParseContext>
-    auto parse(ParseContext &ctx) -> decltype(ctx.begin()) {
-      return ctx.begin();
-    }
-
-    template <typename FormatContext>
-    auto format(const T &val, FormatContext &ctx) -> decltype(ctx.out()) {
-      return format_to(ctx.out(), "{}", val.toString());
-    }
-  };
-}  // namespace fmt
+#include "common/std_format.hpp"
 
 namespace logger {
 
@@ -98,7 +72,7 @@ namespace logger {
              const Args &... args) const {
       if (shouldLog(level)) {
         try {
-          logInternal(level, fmt::format(format, args...));
+          logInternal(level, std::vformat(format, std::make_format_args(args...)));
         } catch (const std::exception &error) {
           std::string error_msg("Exception was thrown while logging: ");
           logInternal(LogLevel::kError, error_msg.append(error.what()));

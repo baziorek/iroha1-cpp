@@ -7,14 +7,16 @@
 #include "ametsuchi/impl/rocksdb_block_storage_factory.hpp"
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "framework/result_gtest_checkers.hpp"
 #include "framework/test_logger.hpp"
 #include "module/shared_model/interface_mocks.hpp"
 
 using namespace iroha::ametsuchi;
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 using ::testing::_;
 using ::testing::Invoke;
@@ -43,7 +45,7 @@ class RocksDbBlockStorageTest : public ::testing::Test {
   }
 
   const std::string block_store_path_ =
-      (temp_directory_path() / unique_path()).string();
+      (temp_directory_path() / iroha::unique_path()).string();
 
   std::function<std::string()> path_provider_ = [&]() {
     return block_store_path_;

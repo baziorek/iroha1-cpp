@@ -1,0 +1,17 @@
+{
+  "name": "iroha-ed25519",
+  "version": "2.0.1",
+  "description": "Ed25519 implementation used by Hyperledger Iroha (ref10 + sha3)",
+  "homepage": "https://github.com/hyperledger/iroha-ed25519",
+  "license": "Apache-2.0",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

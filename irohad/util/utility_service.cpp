@@ -71,7 +71,9 @@ grpc::Status UtilityService::Shutdown(
         proto::Status proto_status;
         proto_status.set_status(makeProtoStatus(status));
 
-        log->trace("Sending {} to {}", proto_status.status(), context->peer());
+        log->trace("Sending {} to {}",
+                   static_cast<int>(proto_status.status()),
+                   context->peer());
 
         if (not writer->Write(proto_status)) {
           log->error("Write to stream has failed for client {}",

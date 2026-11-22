@@ -7,7 +7,7 @@
 #define IROHA_GRANTABLE_PERMISSIONS_FIXTURE_HPP
 
 #include <gtest/gtest.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "builders/protobuf/queries.hpp"
 #include "builders/protobuf/transaction.hpp"
@@ -223,8 +223,8 @@ class GrantablePermissionsFixture : public AcceptanceFixture {
                const shared_model::proto::QueryResponse &query_response) {
       ASSERT_NO_THROW({
         const auto &resp =
-            boost::get<const shared_model::interface::SignatoriesResponse &>(
-                query_response.get());
+            std::get<std::reference_wrapper<const shared_model::interface::SignatoriesResponse>>(
+                query_response.get()).get();
 
         ASSERT_EQ(resp.keys().size(), quantity);
         auto &keys = resp.keys();
@@ -247,8 +247,8 @@ class GrantablePermissionsFixture : public AcceptanceFixture {
                const shared_model::proto::QueryResponse &query_response) {
       ASSERT_NO_THROW({
         const auto &resp =
-            boost::get<const shared_model::interface::AccountResponse &>(
-                query_response.get());
+            std::get<std::reference_wrapper<const shared_model::interface::AccountResponse>>(
+                query_response.get()).get();
 
         ASSERT_EQ(resp.account().quorum(), quorum_quantity);
       });
@@ -267,8 +267,8 @@ class GrantablePermissionsFixture : public AcceptanceFixture {
             &detail](const shared_model::proto::QueryResponse &query_response) {
       ASSERT_NO_THROW({
         const auto &resp =
-            boost::get<const shared_model::interface::AccountDetailResponse &>(
-                query_response.get());
+            std::get<std::reference_wrapper<const shared_model::interface::AccountDetailResponse>>(
+                query_response.get()).get();
         ASSERT_TRUE(resp.detail().find(key) != std::string::npos);
         ASSERT_TRUE(resp.detail().find(detail) != std::string::npos);
       });

@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <fmt/core.h>
 #include <boost/range/adaptor/indexed.hpp>
 #include <boost/range/adaptor/indirected.hpp>
 #include "interfaces/common_objects/transaction_sequence_common.hpp"
@@ -19,6 +18,7 @@
 #include "validators/transaction_validator.hpp"
 #include "validators/transactions_collection/batch_order_validator.hpp"
 #include "validators/validation_error_helpers.hpp"
+#include "common/std_format.hpp"
 
 namespace shared_model {
   namespace validation {
@@ -65,7 +65,7 @@ namespace shared_model {
           auto emplace_result =
               tx_number_by_hash.emplace(tx.value().hash(), tx.index());
           if (not emplace_result.second) {
-            tx_error_creator.addReason(fmt::format(
+            tx_error_creator.addReason(std::format(
                 "Duplicates transaction #{}.", emplace_result.first->second));
           }
         }
@@ -73,7 +73,7 @@ namespace shared_model {
         error_creator |=
             std::move(tx_error_creator)
                 .getValidationErrorWithGeneratedName([&] {
-                  return fmt::format("Transaction #{} with hash {}",
+                  return std::format("Transaction #{} with hash {}",
                                      tx.index(),
                                      tx.value().hash().hex());
                 });

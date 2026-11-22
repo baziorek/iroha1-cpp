@@ -1,6 +1,5 @@
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
-#include <fmt/core.h>
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
@@ -11,9 +10,10 @@
 #include "model/converters/pb_common.hpp"
 #include "grpc_client/GrpcClient.hpp"
 #include "Utils.h"
+#include "common/std_format.hpp"
 
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 
 void verifyPath(
@@ -35,7 +35,7 @@ void verifyKepair(
         const std::string& account_name)
 {
     if (auto error = iroha::expected::resultToOptionalError(keypair)) {
-        const auto error_message = fmt::format(
+        const auto error_message = std::format(
                     "Keypair error= {}."
                     "\nKeypair path= {}, name= {}.\n",
                     error.value(),

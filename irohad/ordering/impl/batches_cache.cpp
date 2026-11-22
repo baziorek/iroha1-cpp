@@ -5,7 +5,6 @@
 
 #include "ordering/impl/batches_cache.hpp"
 
-#include <fmt/core.h>
 #include <mutex>
 
 #include "interfaces/iroha_internal/transaction_batch.hpp"

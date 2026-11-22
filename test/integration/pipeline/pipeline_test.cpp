@@ -4,7 +4,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <boost/variant.hpp>
+#include "common/visitor.hpp"
+#include <variant>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "backend/protobuf/transaction.hpp"
 #include "builders/protobuf/queries.hpp"
@@ -88,7 +89,7 @@ TEST_F(PipelineIntegrationTest, SendQuery) {
                    .finish();
 
   auto check = [](auto &status) {
-    ASSERT_TRUE(boost::apply_visitor(
+    ASSERT_TRUE(iroha::visit(
         shared_model::interface::QueryErrorResponseChecker<
             shared_model::interface::StatefulFailedErrorResponse>(),
         status.get()));
@@ -111,8 +112,8 @@ TEST_F(PipelineIntegrationTest, SendTx) {
 
   auto check_stateless_valid_status = [](auto &status) {
     ASSERT_NO_THROW(
-        boost::get<const shared_model::interface::StatelessValidTxResponse &>(
-            status.get()));
+        std::get<std::reference_wrapper<const shared_model::interface::StatelessValidTxResponse>>(
+            status.get()).get());
   };
   auto check_proposal = [](auto &proposal) {
     ASSERT_EQ(proposal->transactions().size(), 1);
@@ -150,8 +151,8 @@ TEST_F(PipelineIntegrationTest, DISABLED_SendTxSequence) {
   auto check_stateless_valid = [](auto &statuses) {
     for (const auto &status : statuses) {
       EXPECT_NO_THROW(
-          boost::get<const shared_model::interface::StatelessValidTxResponse &>(
-              status.get()));
+          std::get<std::reference_wrapper<const shared_model::interface::StatelessValidTxResponse>>(
+              status.get()).get());
     }
   };
   auto check_proposal = [&tx_size](auto &proposal) {

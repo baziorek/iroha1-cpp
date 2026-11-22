@@ -38,6 +38,7 @@
 
 #if defined(USE_LIBURSA)
 #include "cryptography/ed25519_ursa_impl/crypto_provider.hpp"
+#include "common/std_format.hpp"
 #define ED25519_PROVIDER shared_model::crypto::CryptoProviderEd25519Ursa
 #endif
 
@@ -136,7 +137,7 @@ static shared_model::crypto::Keypair getKeypairFromConfig(
   auto const provider_it = config.providers.find(config.signer);
   if (provider_it == config.providers.end()) {
     throw std::runtime_error{
-        fmt::format("crypto provider `{}' is not specified", config.signer)};
+        std::format("crypto provider `{}' is not specified", config.signer)};
   }
   auto const &signer = provider_it->second;
 
@@ -170,7 +171,7 @@ static shared_model::crypto::Keypair getKeypairFromFile(
                daemon_status_notifier->notify(
                    ::iroha::utility_service::Status::kFailed);
                throw std::runtime_error{
-                   fmt::format("Failed to load keypair: {}", e.error)};
+                   std::format("Failed to load keypair: {}", e.error)};
              });
 }
 
@@ -456,7 +457,7 @@ int main(int argc, char *argv[]) {
     // init pipeline components
     auto init_result = irohad->init();
     if (auto error =
-            boost::get<iroha::expected::Error<std::string>>(&init_result)) {
+            iroha::expected::get<iroha::expected::Error<std::string>>(&init_result)) {
       log->critical("Irohad startup failed: {}", error->error);
       daemon_status_notifier->notify(::iroha::utility_service::Status::kFailed);
       return EXIT_FAILURE;
@@ -500,7 +501,7 @@ int main(int argc, char *argv[]) {
     log->info("Running iroha");
     auto run_result = irohad->run();
     if (auto error =
-            boost::get<iroha::expected::Error<std::string>>(&run_result)) {
+            iroha::expected::get<iroha::expected::Error<std::string>>(&run_result)) {
       log->critical("Irohad startup failed: {}", error->error);
       daemon_status_notifier->notify(::iroha::utility_service::Status::kFailed);
       return EXIT_FAILURE;

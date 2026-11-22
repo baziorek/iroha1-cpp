@@ -4,6 +4,7 @@
  */
 
 #include "torii/query_service.hpp"
+#include "common/visitor.hpp"
 #include "backend/protobuf/proto_query_response_factory.hpp"
 #include "backend/protobuf/proto_transport_factory.hpp"
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
@@ -134,7 +135,7 @@ TEST_F(QueryServiceTest, InvalidWhenDuplicateHash) {
   query_service->Find(query->getTransport(), response);
   ASSERT_TRUE(response.has_error_response());
   shared_model::proto::QueryResponse resp{protocol::QueryResponse{response}};
-  ASSERT_TRUE(boost::apply_visitor(
+  ASSERT_TRUE(iroha::visit(
       shared_model::interface::QueryErrorResponseChecker<
           shared_model::interface::StatelessFailedErrorResponse>(),
       resp.get()));

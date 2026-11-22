@@ -5,6 +5,8 @@
 
 #include "ametsuchi/impl/postgres_setting_query.hpp"
 
+#include <soci/boost-optional.h>
+
 #include <boost/lexical_cast.hpp>
 #include "interfaces/common_objects/types.hpp"
 #include "logger/logger.hpp"

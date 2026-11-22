@@ -4,8 +4,8 @@
  */
 
 #include "ametsuchi/command_executor.hpp"
+#include "common/std_format.hpp"
 
-#include <fmt/core.h>
 
 using namespace iroha::ametsuchi;
 
@@ -17,6 +17,6 @@ CommandError::CommandError(std::string_view command_name,
       error_extra(error_extra) {}
 
 std::string CommandError::toString() const {
-  return fmt::format(
+  return std::format(
       "{}: {} with extra info '{}'", command_name, error_code, error_extra);
 }

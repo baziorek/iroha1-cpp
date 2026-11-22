@@ -4,6 +4,7 @@
  */
 
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
+#include "common/visitor.hpp"
 
 #include "backend/protobuf/query_responses/proto_account_asset_response.hpp"
 #include "backend/protobuf/query_responses/proto_account_detail_response.hpp"
@@ -25,7 +26,7 @@
 namespace {
   /// type of proto variant
   using ProtoQueryResponseVariantType =
-      boost::variant<shared_model::proto::AccountAssetResponse,
+      std::variant<shared_model::proto::AccountAssetResponse,
                      shared_model::proto::AccountDetailResponse,
                      shared_model::proto::AccountResponse,
                      shared_model::proto::ErrorQueryResponse,
@@ -74,7 +75,9 @@ namespace shared_model::proto {
           }
         }()};
 
-    const QueryResponseVariantType ivariant_{variant_};
+    const QueryResponseVariantType ivariant_{iroha::visit(
+        [](const auto &v) { return QueryResponseVariantType(v); },
+        variant_)};
 
     const crypto::Hash hash_{
         iroha::hexstringToBytestring(proto_.query_hash()).get()};

@@ -9,6 +9,7 @@
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "interfaces/common_objects/types.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha;
 using namespace iroha::ametsuchi;
@@ -25,7 +26,7 @@ namespace {
                              kMaxDescriptionSizeKey);
 
     if (auto result = iroha::ametsuchi::canExist(
-            status, [&] { return fmt::format("Max description size key"); });
+            status, [&] { return std::format("Max description size key"); });
         expected::hasError(result))
       return expected::makeError(result.assumeError().description);
 

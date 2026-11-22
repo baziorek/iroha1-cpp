@@ -46,7 +46,7 @@ TEST_F(QueryValidatorTest, StatelessValidTest) {
       [this](auto field, auto query) {
         // Will throw key exception in case new field is added
         try {
-          field_setters.at(field->full_name())(
+          field_setters.at(std::string(field->full_name()))(
               query->GetReflection(), query, field);
         } catch (const std::out_of_range &e) {
           FAIL() << "Missing field setter: " << field->full_name();

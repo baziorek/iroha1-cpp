@@ -6,11 +6,20 @@
 #include "framework/config_helper.hpp"
 
 #include <ciso646>
+#include <cstdio>
+#include <random>
 #include <sstream>
 
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
+
+
+namespace {
+  std::string randomHexSuffix() {
+    std::random_device rd;
+    char buf[16];
+    std::snprintf(buf, sizeof(buf), "%08x", rd());
+    return buf;
+  }
+}  // namespace
 
 namespace integration_framework {
   const std::string kDefaultWorkingDatabaseName{"iroha_default"};
@@ -41,6 +50,6 @@ namespace integration_framework {
 
   std::string getRandomDbName() {
     return std::string{"test_db_"}  // must begin with a letter or underscore
-    + boost::uuids::to_string(boost::uuids::random_generator()()).substr(0, 8);
+    + randomHexSuffix();
   }
 }  // namespace integration_framework

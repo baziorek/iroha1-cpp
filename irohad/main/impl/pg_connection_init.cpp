@@ -5,6 +5,8 @@
 
 #include "main/impl/pg_connection_init.hpp"
 
+#include <libpq-fe.h>
+
 #include <boost/functional/hash.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 
@@ -13,6 +15,7 @@
 #include "common/irohad_version.hpp"
 #include "logger/logger.hpp"
 #include "logger/logger_manager.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 
@@ -90,7 +93,7 @@ namespace {
           *soci::factory_postgresql(),
           postgres_options.maintenanceConnectionString());
     } catch (std::exception &e) {
-      return fmt::format("Could not connect to maintenance database: {}",
+      return std::format("Could not connect to maintenance database: {}",
                          e.what());
     }
   };
@@ -102,7 +105,7 @@ namespace {
           *soci::factory_postgresql(),
           postgres_options.workingConnectionString());
     } catch (std::exception &e) {
-      return fmt::format("Could not connect to working database '{}': {}",
+      return std::format("Could not connect to working database '{}': {}",
                          postgres_options.workingDbName(),
                          e.what());
     }
@@ -209,7 +212,7 @@ namespace {
     try {
       return getMaintenanceSession(postgres_options) |
           [&](auto maintenance_sql) {
-            *maintenance_sql << fmt::format("create database {};",
+            *maintenance_sql << std::format("create database {};",
                                             postgres_options.workingDbName());
             return getWorkingDbSession(postgres_options) | [](auto session)
                        -> iroha::expected::Result<void, std::string> {
@@ -247,7 +250,7 @@ insert into schema_version
         +
         [] {
           auto v = iroha::getIrohadVersion();
-          return fmt::format("{}, {}, {}", v.major, v.minor, v.patch);
+          return std::format("{}, {}, {}", v.major, v.minor, v.patch);
         }()
         + R"();
 CREATE TABLE top_block_info (
@@ -452,12 +455,12 @@ PgConnectionInit::prepareConnectionPool(
   auto options_str = options.workingConnectionString();
 
   auto conn = initPostgresConnection(options_str, pool_size);
-  if (auto e = boost::get<expected::Error<std::string>>(&conn)) {
+  if (auto e = iroha::expected::get<expected::Error<std::string>>(&conn)) {
     return *e;
   }
 
   auto &connection =
-      boost::get<expected::Value<std::shared_ptr<soci::connection_pool>>>(conn)
+      iroha::expected::get<expected::Value<std::shared_ptr<soci::connection_pool>>>(conn)
           .value;
 
   soci::session sql(*connection);

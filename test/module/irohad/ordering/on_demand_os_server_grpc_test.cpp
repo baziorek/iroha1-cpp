@@ -5,7 +5,6 @@
 
 #include "ordering/impl/on_demand_os_server_grpc.hpp"
 
-#include <grpcpp/impl/grpc_library.h>
 #include <gtest/gtest.h>
 #include <utility>
 
@@ -33,9 +32,6 @@ using ::testing::A;
 using ::testing::ByMove;
 using ::testing::Invoke;
 using ::testing::Return;
-
-// required for g_core_codegen_interface intialization
-static grpc::internal::GrpcLibraryInitializer g_gli_initializer;
 
 struct OnDemandOsServerGrpcTest : public ::testing::Test {
   void SetUp() override {

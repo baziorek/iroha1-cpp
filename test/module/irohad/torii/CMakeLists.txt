@@ -47,9 +47,11 @@ addtest(command_sync_client_test
     )
 target_link_libraries(command_sync_client_test
     command_client
+    torii_service
     server_runner
     endpoint
     test_logger
+    sync_subscription
     )
 
 addtest(command_service_replay_test

@@ -11,10 +11,10 @@
 #include <soci/postgresql/soci-postgresql.h>
 #include <soci/soci.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/optional.hpp>
-#include <boost/process.hpp>
-#include <boost/variant.hpp>
+#include <boost/process/v1.hpp>
+#include <variant>
 #include <fstream>
 #include <sstream>
 
@@ -49,7 +49,7 @@
 #include "framework/config_helper.hpp"
 
 using namespace boost::process;
-using namespace boost::filesystem;
+using namespace std::filesystem;
 using namespace std::chrono_literals;
 using namespace common_constants;
 using iroha::operator|;
@@ -76,7 +76,7 @@ class IrohadTest : public AcceptanceFixture {
       : kAddress(kLocalHost),
         kPort(50051),
         kSecurePort(55552),
-        test_data_path_(boost::filesystem::path(PATHTESTDATA)),
+        test_data_path_(std::filesystem::path(PATHTESTDATA)),
         keys_manager_node_(
             "node0",
             test_data_path_,
@@ -172,7 +172,7 @@ class IrohadTest : public AcceptanceFixture {
 
   void launchIroha(
       const std::string &parameters,
-      boost::optional<boost::process::environment> env = boost::none) {
+      boost::optional<boost::process::v1::environment> env = boost::none) {
     iroha_process_.emplace(irohad_executable.string() + parameters,
                            env.value_or(boost::this_process::environment()));
     waitForIroha();
@@ -184,7 +184,7 @@ class IrohadTest : public AcceptanceFixture {
       const boost::optional<std::string> &genesis_block,
       const boost::optional<std::string> &keypair_path,
       const boost::optional<std::string> &additional_params,
-      boost::optional<boost::process::environment> env = boost::none) {
+      boost::optional<boost::process::v1::environment> env = boost::none) {
     launchIroha(
         params(config_path, genesis_block, keypair_path, additional_params),
         std::move(env));
@@ -213,8 +213,8 @@ class IrohadTest : public AcceptanceFixture {
         iroha::ametsuchi::PgConnectionInit::dropWorkingDatabase(
             iroha::ametsuchi::PostgresOptions{pgopts_, db_name_, log_}));
 
-    boost::filesystem::remove_all(test_data_path_);
-    boost::filesystem::remove(config_copy_);
+    std::filesystem::remove_all(test_data_path_);
+    std::filesystem::remove(config_copy_);
   }
 
   std::string params(const boost::optional<std::string> &config_path,
@@ -257,13 +257,13 @@ class IrohadTest : public AcceptanceFixture {
   }
 
   void prepareTestData() {
-    if (boost::filesystem::is_directory(test_data_path_)) {
+    if (std::filesystem::is_directory(test_data_path_)) {
       log_->info("Removing existing test data directory {}.",
                  test_data_path_.string());
-      ASSERT_TRUE(boost::filesystem::remove_all(test_data_path_))
+      ASSERT_TRUE(std::filesystem::remove_all(test_data_path_))
           << "Could not remove directory " << test_data_path_ << ".";
     }
-    ASSERT_TRUE(boost::filesystem::create_directory(test_data_path_))
+    ASSERT_TRUE(std::filesystem::create_directory(test_data_path_))
         << "Could not create directory " << test_data_path_ << ".";
 
     ASSERT_TRUE(keys_manager_admin_.createKeys(boost::none));
@@ -422,7 +422,7 @@ class IrohadTest : public AcceptanceFixture {
 
  protected:
   void setPaths() {
-    path_irohad_ = boost::filesystem::path(PATHIROHAD);
+    path_irohad_ = std::filesystem::path(PATHIROHAD);
     irohad_executable = path_irohad_ / "irohad";
     path_config_ = test_data_path_.parent_path() / "config.sample";
     path_genesis_ = test_data_path_ / "genesis.block";
@@ -435,13 +435,13 @@ class IrohadTest : public AcceptanceFixture {
   }
 
  public:
-  boost::filesystem::path irohad_executable;
+  std::filesystem::path irohad_executable;
   const std::chrono::milliseconds kTimeout = 30s;
   const std::string kAddress;
   const uint16_t kPort;
   const uint16_t kSecurePort;
 
-  boost::optional<child> iroha_process_;
+  boost::optional<boost::process::v1::child> iroha_process_;
 
   /**
    * Command client resubscription settings
@@ -457,13 +457,13 @@ class IrohadTest : public AcceptanceFixture {
   const std::chrono::seconds resubscribe_timeout = std::chrono::seconds(3);
 
  protected:
-  boost::filesystem::path path_irohad_;
-  boost::filesystem::path test_data_path_;
-  boost::filesystem::path path_config_;
-  boost::filesystem::path path_genesis_;
-  boost::filesystem::path path_keypair_node_;
-  boost::filesystem::path path_tls_keypair_;
-  boost::filesystem::path path_root_certificate_;
+  std::filesystem::path path_irohad_;
+  std::filesystem::path test_data_path_;
+  std::filesystem::path path_config_;
+  std::filesystem::path path_genesis_;
+  std::filesystem::path path_keypair_node_;
+  std::filesystem::path path_tls_keypair_;
+  std::filesystem::path path_root_certificate_;
   std::string db_name_;
   std::string pgopts_;
   std::string config_copy_;
@@ -564,7 +564,7 @@ TEST_F(IrohadTest, SendQuery) {
   shared_model::proto::QueryResponse resp{std::move(response)};
 
   ASSERT_NO_THROW(
-      boost::get<const shared_model::interface::RolesResponse &>(resp.get()));
+      std::get<std::reference_wrapper<const shared_model::interface::RolesResponse>>(resp.get()).get());
 }
 
 /**
@@ -648,7 +648,7 @@ TEST_F(IrohadTest, StartWithoutConfigAndKeyFile) {
   ASSERT_FALSE(doc.HasParseError())
       << "Failed to parse irohad config at " << config_copy_;
 
-  boost::process::environment env{boost::this_process::environment()};
+  boost::process::v1::environment env{boost::this_process::environment()};
   env["IROHA_PG_OPT"] = pgopts_;
   env["IROHA_UTILITY_SERVICE_IP"] = kLocalHost.c_str();
   env["IROHA_UTILITY_SERVICE_PORT"] = std::to_string(kUtilityServicePort);
@@ -695,7 +695,7 @@ TEST_F(IrohadTest, StartWithoutConfigAndKeyFile) {
 TEST_F(IrohadTest, StartWithConfigAndEnvironmentParams) {
   rapidjson::Document doc;
   doc.Parse(iroha::readTextFile(config_copy_).assumeValue());
-  boost::process::environment env{boost::this_process::environment()};
+  boost::process::v1::environment env{boost::this_process::environment()};
 
   // pg_opt must be taken from environment
   env["IROHA_PG_OPT"] = pgopts_;

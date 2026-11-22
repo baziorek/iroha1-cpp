@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <boost/range/algorithm/for_each.hpp>
 #include <boost/range/irange.hpp>
-#include <boost/variant.hpp>
+#include <variant>
 #include "cryptography/hash.hpp"
 
 /**
@@ -32,7 +32,7 @@ TEST(ProtoTxResponse, TxResponseLoad) {
     response.GetReflection()->SetEnumValue(
         &response, tx_status, tx_status_enum->value(i)->number());
     auto model_response = shared_model::proto::TransactionResponse(response);
-    ASSERT_EQ(i, model_response.get().which());
+    ASSERT_EQ(i, model_response.get().index());
     ASSERT_EQ(model_response.transactionHash(),
               shared_model::crypto::Hash::fromHexString(hash));
   });

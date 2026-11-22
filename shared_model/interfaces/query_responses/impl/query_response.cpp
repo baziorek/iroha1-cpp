@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "interfaces/query_responses/query_response_variant.hpp"
 
+#include "interfaces/query_responses/query_response.hpp"
+#include "common/visitor.hpp"
 #include "interfaces/query_responses/account_asset_response.hpp"
 #include "interfaces/query_responses/account_detail_response.hpp"
 #include "interfaces/query_responses/account_response.hpp"
@@ -21,22 +22,12 @@
 #include "interfaces/query_responses/transactions_response.hpp"
 #include "utils/visitor_apply_for_all.hpp"
 
-using Variant =
-    shared_model::interface::QueryResponse::QueryResponseVariantType;
-template Variant::~variant();
-template Variant::variant(Variant &&);
-template bool Variant::operator==(const Variant &) const;
-template void Variant::destroy_content() noexcept;
-template int Variant::which() const noexcept;
-template void Variant::indicate_which(int) noexcept;
-template bool Variant::using_backup() const noexcept;
-template Variant::convert_copy_into::convert_copy_into(void *) noexcept;
 
 namespace shared_model {
   namespace interface {
 
     std::string QueryResponse::toString() const {
-      return boost::apply_visitor(detail::ToStringVisitor(), get());
+      return iroha::visit(detail::ToStringVisitor(), get());
     }
 
     bool QueryResponse::operator==(const ModelType &rhs) const {

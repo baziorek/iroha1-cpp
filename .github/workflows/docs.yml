@@ -1,0 +1,61 @@
+name: Docs
+
+on:
+  push:
+    branches: [ iroha1-main ]
+    paths:
+      - 'docs/**'
+      - 'CONTRIBUTING.rst'   ## included by docs/source/community/index.rst
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install "setuptools<81"  ## m2r2 requires pkg_resources, removed in setuptools>=81
+          pip install -r docs/source/requirements.txt
+      - name: Build documentation
+        ## sphinx extensions resolve paths relative to docs/source
+        ## (e.g. 'concepts_architecture/glossary.rst'), so build from there
+        run: cd docs/source && sphinx-build -b html . ../_build/html
+      - name: Build translated documentation
+        ## Turkish translation taken from the archived
+        ## hyperledger-iroha/iroha-docs-l10n repo; output lands in
+        ## docs/_build/html/<lang>/ next to the English version
+        run: docs/i18n/build.sh docs/_build/html tr
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-22.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

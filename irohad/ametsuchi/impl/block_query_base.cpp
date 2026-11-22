@@ -8,6 +8,7 @@
 #include "common/byteutils.hpp"
 #include "common/cloneable.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha::ametsuchi {
 
@@ -21,7 +22,7 @@ namespace iroha::ametsuchi {
     if (not block) {
       return expected::makeError(GetBlockError{
           GetBlockError::Code::kNoBlock,
-          fmt::format("Failed to retrieve block with height {}", height)});
+          std::format("Failed to retrieve block with height {}", height)});
     }
     return std::move(*block);
   }

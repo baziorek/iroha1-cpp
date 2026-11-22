@@ -15,6 +15,7 @@
 #include "main/subscription.hpp"
 #include "subscription/scheduler_impl.hpp"
 #include "validators/default_validator.hpp"
+#include "common/std_format.hpp"
 
 using iroha::torii::QueryService;
 
@@ -125,7 +126,7 @@ grpc::Status QueryService::FetchCommits(
     return grpc::Status::OK;
   }
 
-  std::string client_id = fmt::format("Peer: '{}'", context->peer());
+  std::string client_id = std::format("Peer: '{}'", context->peer());
 
   auto scheduler = std::make_shared<iroha::subscription::SchedulerBase>();
   auto tid = iroha::getSubscription()->dispatcher()->bind(scheduler);

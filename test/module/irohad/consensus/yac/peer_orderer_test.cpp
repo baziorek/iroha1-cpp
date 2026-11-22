@@ -8,7 +8,6 @@
 #include <iostream>
 #include <unordered_map>
 
-#include <boost/accumulators/accumulators.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/range/adaptors.hpp>
 #include <boost/range/counting_range.hpp>

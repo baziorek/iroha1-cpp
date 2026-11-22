@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/variant.hpp>
+#include <variant>
 #include <chrono>
 #include <thread>
 

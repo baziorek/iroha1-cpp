@@ -5,14 +5,14 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/variant.hpp>
+#include <variant>
 
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
 #include "instantiate_test_suite.hpp"
 #include "integration/acceptance/acceptance_fixture.hpp"
+
+#include <nlohmann/json.hpp>
 #include "interfaces/query_responses/account_response.hpp"
 
 using namespace integration_framework;
@@ -128,17 +128,16 @@ TEST_P(HeavyTransactionTest, DISABLED_QueryLargeData) {
   auto query_checker = [&](auto &status) {
     ASSERT_NO_THROW({
       auto &&response =
-          boost::get<const shared_model::interface::AccountResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::AccountResponse>>(
+              status.get()).get();
 
-      boost::property_tree::ptree root;
-      boost::property_tree::read_json(response.account().jsonData(), root);
-      auto user = root.get_child(kUserId);
+      auto root = nlohmann::json::parse(response.account().jsonData());
+      auto &user = root.at(kUserId);
 
       ASSERT_EQ(number_of_times, user.size());
 
       for (auto i = 0u; i < number_of_times; ++i) {
-        ASSERT_EQ(data, user.get<std::string>(name_generator(i)));
+        ASSERT_EQ(nlohmann::json(data), user.at(name_generator(i)));
       }
     });
   };

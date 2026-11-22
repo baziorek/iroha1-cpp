@@ -7,11 +7,11 @@
 #include <gtest/gtest.h>
 
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/variant.hpp>
+#include <filesystem>
+#include <random>
+#include <cstdio>
+#include <fstream>
+#include <variant>
 
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 #include "ametsuchi/impl/rocksdb_common.hpp"
@@ -26,6 +26,16 @@
 #include "interfaces/query_responses/transactions_response.hpp"
 #include "module/shared_model/cryptography/crypto_defaults.hpp"
 #include "test/integration/acceptance/instantiate_test_suite.hpp"
+
+namespace {
+  std::string randomHexSuffix() {
+    std::random_device rd;
+    char buf[16];
+    std::snprintf(buf, sizeof(buf), "%08x", rd());
+    return buf;
+  }
+}  // namespace
+
 
 using namespace common_constants;
 using namespace integration_framework;
@@ -65,8 +75,7 @@ TEST_P(RegressionTest, SequentialInitialization) {
                 .finish();
 
   const std::string dbname = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
+      + randomHexSuffix();
 
   IntegrationTestFramework(1,
                            GetParam(),
@@ -103,11 +112,11 @@ TEST_P(RegressionTest, SequentialInitialization) {
  * @then another ITF instance can restore WSV from blockstore
  */
 TEST_P(RegressionTest, StateRecovery) {
-  auto const wsv_path = (boost::filesystem::temp_directory_path()
-                         / boost::filesystem::unique_path())
+  auto const wsv_path = (std::filesystem::temp_directory_path()
+                         / iroha::unique_path())
                             .string();
-  auto const store_path = (boost::filesystem::temp_directory_path()
-                           / boost::filesystem::unique_path())
+  auto const store_path = (std::filesystem::temp_directory_path()
+                           / iroha::unique_path())
                               .string();
 
   auto userKeypair =
@@ -141,15 +150,14 @@ TEST_P(RegressionTest, StateRecovery) {
   auto checkQuery = [&tx](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::TransactionsResponse &>(
-              status.get());
+          std::get<std::reference_wrapper<const shared_model::interface::TransactionsResponse>>(
+              status.get()).get();
       ASSERT_EQ(resp.transactions().size(), 1);
       ASSERT_EQ(resp.transactions().front(), tx);
     });
   };
   const std::string dbname = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
+      + randomHexSuffix();
 
   using namespace std::chrono;
   IntegrationTestFramework(1,
@@ -187,8 +195,8 @@ TEST_P(RegressionTest, StateRecovery) {
       .recoverState(kAdminKeypair)
       .sendQuery(makeQuery(2, kAdminKeypair), checkQuery);
 
-  boost::filesystem::remove_all(wsv_path);
-  boost::filesystem::remove_all(store_path);
+  std::filesystem::remove_all(wsv_path);
+  std::filesystem::remove_all(store_path);
 }
 
 /**
@@ -198,11 +206,11 @@ TEST_P(RegressionTest, StateRecovery) {
  */
 TEST_P(RegressionTest, PoisonedBlock) {
   using namespace std::chrono;
-  auto const wsv_path = (boost::filesystem::temp_directory_path()
-                         / boost::filesystem::unique_path())
+  auto const wsv_path = (std::filesystem::temp_directory_path()
+                         / iroha::unique_path())
                             .string();
-  auto const store_path = (boost::filesystem::temp_directory_path()
-                           / boost::filesystem::unique_path())
+  auto const store_path = (std::filesystem::temp_directory_path()
+                           / iroha::unique_path())
                               .string();
 
   auto time_now = iroha::time::now();
@@ -226,10 +234,9 @@ TEST_P(RegressionTest, PoisonedBlock) {
   auto hash2 = tx2.hash();
   auto check_one = [](auto &res) { ASSERT_EQ(res->transactions().size(), 1); };
   const std::string dbname = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
-  std::string const block_store_path = (boost::filesystem::temp_directory_path()
-                                        / boost::filesystem::unique_path())
+      + randomHexSuffix();
+  std::string const block_store_path = (std::filesystem::temp_directory_path()
+                                        / iroha::unique_path())
                                            .string();
   IntegrationTestFramework(1,
                            GetParam(),
@@ -277,12 +284,12 @@ TEST_P(RegressionTest, PoisonedBlock) {
       common.commit();
     } break;
     case StorageType::kPostgres: {
-      auto block_path = boost::filesystem::path{block_store_path}
+      auto block_path = std::filesystem::path{block_store_path}
           / iroha::ametsuchi::FlatFile::id_to_name(block_n);
       auto content = iroha::readTextFile(block_path).assumeValue();
       boost::replace_first(content, "133.0", "266.0");
 
-      boost::filesystem::ofstream block_file(block_path);
+      std::ofstream block_file(block_path);
       block_file << content;
       block_file.close();
     } break;
@@ -313,9 +320,9 @@ TEST_P(RegressionTest, PoisonedBlock) {
     ADD_FAILURE() << "Unexpected exception thrown";
   }
 
-  boost::filesystem::remove_all(wsv_path);
-  boost::filesystem::remove_all(store_path);
-  boost::filesystem::remove_all(block_store_path);
+  std::filesystem::remove_all(wsv_path);
+  std::filesystem::remove_all(store_path);
+  std::filesystem::remove_all(block_store_path);
 }
 
 /**

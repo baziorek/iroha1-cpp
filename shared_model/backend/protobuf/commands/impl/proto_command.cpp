@@ -4,6 +4,7 @@
  */
 
 #include "backend/protobuf/commands/proto_command.hpp"
+#include "common/visitor.hpp"
 
 #include "backend/protobuf/commands/proto_add_asset_quantity.hpp"
 #include "backend/protobuf/commands/proto_add_peer.hpp"
@@ -30,7 +31,7 @@
 namespace {
   /// type of proto variant
   using ProtoCommandVariantType =
-      ::boost::variant<shared_model::proto::AddAssetQuantity,
+      ::std::variant<shared_model::proto::AddAssetQuantity,
                        shared_model::proto::AddPeer,
                        shared_model::proto::AddSignatory,
                        shared_model::proto::AppendRole,
@@ -98,7 +99,8 @@ namespace shared_model::proto {
       };
     }()};
 
-    CommandVariantType ivariant_{variant_};
+    CommandVariantType ivariant_{iroha::visit(
+        [](const auto &v) { return CommandVariantType(v); }, variant_)};
   };
 
   Command::Command(TransportType &ref) {

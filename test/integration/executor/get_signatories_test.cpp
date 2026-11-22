@@ -7,12 +7,12 @@
 
 #include <vector>
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include "framework/common_constants.hpp"
 #include "integration/executor/query_permission_test.hpp"
 #include "module/shared_model/mock_objects_factories/mock_command_factory.hpp"
 #include "module/shared_model/mock_objects_factories/mock_query_factory.hpp"
+#include "common/std_format.hpp"
 
 using namespace common_constants;
 using namespace executor_testing;
@@ -29,7 +29,7 @@ struct GetSignatoriesTest : public ExecutorTestBase {
    * a zero-padded serial number.
    */
   std::string makePubKey(size_t n) {
-    return fmt::format("public_key_{:04}", n);
+    return std::format("public_key_{:04}", n);
   }
 
   /**

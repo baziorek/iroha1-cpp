@@ -13,8 +13,6 @@
 #include <string_view>
 #include <utility>
 
-#include <fmt/compile.h>
-#include <fmt/format.h>
 #include <rocksdb/db.h>
 #include <rocksdb/filter_policy.h>
 #include <rocksdb/table.h>
@@ -25,6 +23,7 @@
 #include "common/disable_warnings.h"
 #include "common/irohad_version.hpp"
 #include "common/result.hpp"
+#include "common/std_format.hpp"
 #include "cryptography/hash.hpp"
 #include "interfaces/common_objects/amount.hpp"
 #include "interfaces/common_objects/types.hpp"
@@ -258,68 +257,68 @@ namespace iroha::ametsuchi::fmtstrings {
    */
   // domain_id/account_name
   static auto constexpr kPathAccountRoles{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_ROLES)};
+      (RDB_PATH_ACCOUNT /**/ RDB_ROLES)};
 
-  static auto constexpr kPathWsv{FMT_STRING(RDB_ROOT /**/ RDB_WSV)};
+  static auto constexpr kPathWsv{(RDB_ROOT /**/ RDB_WSV)};
 
-  static auto constexpr kPathStore{FMT_STRING(RDB_ROOT /**/ RDB_STORE)};
+  static auto constexpr kPathStore{(RDB_ROOT /**/ RDB_STORE)};
 
   // domain_id/account_name
-  static auto constexpr kPathAccount{FMT_STRING(RDB_PATH_ACCOUNT)};
+  static auto constexpr kPathAccount{(RDB_PATH_ACCOUNT)};
 
   // no params
-  static auto constexpr kPathPeers{FMT_STRING(
+  static auto constexpr kPathPeers{(
       RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/ RDB_ADDRESS)};
 
   // no params
   static auto constexpr kPathSPeers{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
                      RDB_ADDRESS)};
 
   // hash ➡️ call_id
   static auto constexpr kPathEngineCallIds{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_ENGINE_CALLS /**/ RDB_XXX)};
 
   // domain_id/account_name
   static auto constexpr kPathSignatories{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_SIGNATORIES)};
+      (RDB_PATH_ACCOUNT /**/ RDB_SIGNATORIES)};
 
   // no param
   static auto constexpr kPathRoles{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_ROLES)};
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_ROLES)};
 
   // call_id ➡️ log_ix/address/data
   static auto constexpr kPathEngineLogs{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_LOGS /**/ RDB_XXX)};
 
   // account
   static auto constexpr kPathTransactionByTs{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
                      RDB_ACCOUNTS /**/ RDB_XXX /**/ RDB_TIMESTAMP)};
 
   // address
   static auto constexpr kPathEngineStorage{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_ACCOUNT_KV /**/ RDB_XXX)};
 
   // account
   static auto constexpr kPathTransactionByPosition{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
                      RDB_ACCOUNTS /**/ RDB_XXX /**/ RDB_POSITION)};
 
   // domain_id/account_name ➡️ value
   static auto constexpr kPathAccountDetail{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_DETAILS)};
+      (RDB_PATH_ACCOUNT /**/ RDB_DETAILS)};
 
   // account_domain_id/account_name/asset_id
   static auto constexpr kPathAccountAssets{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_ASSETS)};
+      (RDB_PATH_ACCOUNT /**/ RDB_ASSETS)};
 
   // log_ix ➡️ topic
   static auto constexpr kPathEngineTopics{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_TOPICS /**/ RDB_XXX)};
 
   /**
@@ -329,122 +328,122 @@ namespace iroha::ametsuchi::fmtstrings {
    */
   // height ➡️ block data
   static auto constexpr kBlockDataInStore{
-      FMT_STRING(RDB_ROOT /**/ RDB_STORE /**/ RDB_XXX)};
+      (RDB_ROOT /**/ RDB_STORE /**/ RDB_XXX)};
 
   // hash/index ➡️ call_id
   static auto constexpr kEngineCallId{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_ENGINE_CALLS /**/ RDB_XXX /**/ RDB_XXX)};
 
   // address ➡️ account
   static auto constexpr kEngineAccount{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_ACCOUNTS /**/ RDB_XXX)};
 
   // address/key ➡️ value
   static auto constexpr kEngineStorage{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_ACCOUNT_KV /**/ RDB_XXX /**/ RDB_XXX)};
 
   // call_id ➡️ contract address
   static auto constexpr kEngineDeploy{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_EC_DEPLOYS /**/ RDB_XXX)};
 
   // call_id ➡️ callee/response
   static auto constexpr kEngineCallResponse{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_EC_CON_CALLS /**/ RDB_XXX)};
 
   // call_id/ix ➡️ log_ix/address/data
   static auto constexpr kEngineCallLogs{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_LOGS /**/ RDB_XXX /**/ RDB_XXX)};
 
   // log_ix/ix ➡️ topic
   static auto constexpr kEngineCallTopics{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_TOPICS /**/ RDB_XXX /**/ RDB_XXX)};
 
   // account/height/index/ts ➡️ tx_hash
-  static auto constexpr kTransactionByPosition{FMT_STRING(
+  static auto constexpr kTransactionByPosition{(
       RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/ RDB_ACCOUNTS /**/
           RDB_XXX /**/ RDB_POSITION /**/ RDB_XXX /**/ RDB_XXX /**/ RDB_XXX)};
 
   // account/ts/height/index ➡️ tx_hash
-  static auto constexpr kTransactionByTs{FMT_STRING(
+  static auto constexpr kTransactionByTs{(
       RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/ RDB_ACCOUNTS /**/
           RDB_XXX /**/ RDB_TIMESTAMP /**/ RDB_XXX /**/ RDB_XXX /**/ RDB_XXX)};
 
   // account/height ➡️ tx_hash
-  static auto constexpr kTransactionByHeight{FMT_STRING(
+  static auto constexpr kTransactionByHeight{(
       RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/ RDB_ACCOUNTS /**/
           RDB_XXX /**/ RDB_POSITION /**/ RDB_XXX)};
 
   // account/ts/height/index ➡️ tx_hash
-  static auto constexpr kTransactionByTsLowerBound{FMT_STRING(
+  static auto constexpr kTransactionByTsLowerBound{(
       RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/ RDB_ACCOUNTS /**/
           RDB_XXX /**/ RDB_TIMESTAMP /**/ RDB_XXX)};
 
   // tx_hash ➡️ status
   static auto constexpr kTransactionStatus{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
                      RDB_STATUSES /**/ RDB_XXX)};
 
   // domain_id/account_name/role_name
   static auto constexpr kAccountRole{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_ROLES /**/ RDB_XXX)};
+      (RDB_PATH_ACCOUNT /**/ RDB_ROLES /**/ RDB_XXX)};
 
   // role_name ➡️ permissions
   static auto constexpr kRole{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_ROLES /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_ROLES /**/
                      RDB_XXX)};
 
   // domain_id/account_name/pubkey ➡️ ""
   static auto constexpr kSignatory{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_SIGNATORIES /**/ RDB_XXX)};
+      (RDB_PATH_ACCOUNT /**/ RDB_SIGNATORIES /**/ RDB_XXX)};
 
   // domain_id/asset_name ➡️ precision
   static auto constexpr kAsset{
-      FMT_STRING(RDB_PATH_DOMAIN /**/ RDB_ASSETS /**/ RDB_XXX)};
+      (RDB_PATH_DOMAIN /**/ RDB_ASSETS /**/ RDB_XXX)};
 
   // account_domain_id/account_name/asset_id ➡️ amount
   static auto constexpr kAccountAsset{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_ASSETS /**/ RDB_XXX)};
+      (RDB_PATH_ACCOUNT /**/ RDB_ASSETS /**/ RDB_XXX)};
 
   // domain_id/account_name/writer_id/key ➡️
   // value
   static auto constexpr kAccountDetail{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_DETAILS /**/ RDB_XXX /**/ RDB_XXX)};
+      (RDB_PATH_ACCOUNT /**/ RDB_DETAILS /**/ RDB_XXX /**/ RDB_XXX)};
 
   // pubkey ➡️ address
   static auto constexpr kPeerAddress{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/
                      RDB_ADDRESS /**/ RDB_XXX)};
 
   // pubkey ➡️ address
   static auto constexpr kSPeerAddress{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
                      RDB_ADDRESS /**/ RDB_XXX)};
 
   // pubkey ➡️ tls
   static auto constexpr kPeerTLS{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/
                      RDB_TLS /**/ RDB_XXX)};
 
   // pubkey ➡️ tls
   static auto constexpr kSPeerTLS{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
                      RDB_TLS /**/ RDB_XXX)};
 
   // domain_id/account_name/grantee_domain_id/grantee_account_name
   // ➡️ permissions
   static auto constexpr kGranted{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_GRANTABLE_PER /**/ RDB_XXX)};
+      (RDB_PATH_ACCOUNT /**/ RDB_GRANTABLE_PER /**/ RDB_XXX)};
 
   // key ➡️ value
   static auto constexpr kSetting{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_SETTINGS /**/ RDB_XXX)};
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_SETTINGS /**/ RDB_XXX)};
 
   /**
    * ######################################
@@ -452,72 +451,72 @@ namespace iroha::ametsuchi::fmtstrings {
    * ######################################
    */
   // domain_id ➡️ default role
-  static auto constexpr kDomain{FMT_STRING(RDB_PATH_DOMAIN)};
+  static auto constexpr kDomain{(RDB_PATH_DOMAIN)};
 
   // "" ➡️ next_call_id
   static auto constexpr kEngineNextCallId{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_ENGINE_CALLS /**/ RDB_F_NEXT_ID)};
 
   // "" ➡️ next_log_id
   static auto constexpr kEngineNextLogId{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_EVM_STORAGE /**/
                      RDB_LOGS /**/ RDB_F_NEXT_ID)};
 
   // "" ➡️ height # hash
   static auto constexpr kTopBlock{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_STORE /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_STORE /**/
                      RDB_F_TOP_BLOCK)};
 
   // domain_id/account_name
   static auto constexpr kQuorum{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_OPTIONS /**/ RDB_F_QUORUM)};
+      (RDB_PATH_ACCOUNT /**/ RDB_OPTIONS /**/ RDB_F_QUORUM)};
 
   // account_domain_id/account_name ➡️ size
   static auto constexpr kAccountAssetSize{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_OPTIONS /**/ RDB_F_ASSET_SIZE)};
+      (RDB_PATH_ACCOUNT /**/ RDB_OPTIONS /**/ RDB_F_ASSET_SIZE)};
 
   static auto constexpr kPeersCount{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_PEERS /**/
                      RDB_F_PEERS_COUNT)};
 
   static auto constexpr kSPeersCount{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_NETWORK /**/ RDB_S_PEERS /**/
                      RDB_F_PEERS_COUNT)};
 
   // account ➡️ txs total count
   static auto constexpr kTxsTotalCount{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/
                      RDB_ACCOUNTS /**/ RDB_XXX /**/ RDB_F_TOTAL_COUNT)};
 
   // ➡️ value
   static auto constexpr kBlocksTotalCount{
-      FMT_STRING(RDB_ROOT /**/ RDB_STORE /**/ RDB_F_TOTAL_COUNT)};
+      (RDB_ROOT /**/ RDB_STORE /**/ RDB_F_TOTAL_COUNT)};
 
   // ➡️ txs total count
-  static auto constexpr kAllTxsTotalCount{FMT_STRING(
+  static auto constexpr kAllTxsTotalCount{(
       RDB_ROOT /**/ RDB_WSV /**/ RDB_TRANSACTIONS /**/ RDB_F_TOTAL_COUNT)};
 
   // ➡️ domains total count
   static auto constexpr kDomainsTotalCount{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_DOMAIN /**/ RDB_F_TOTAL_COUNT)};
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_DOMAIN /**/ RDB_F_TOTAL_COUNT)};
 
   // domain_id/account_name/ ➡️ value
   static auto constexpr kAccountDetailsCount{
-      FMT_STRING(RDB_PATH_ACCOUNT /**/ RDB_OPTIONS /**/ RDB_F_TOTAL_COUNT)};
+      (RDB_PATH_ACCOUNT /**/ RDB_OPTIONS /**/ RDB_F_TOTAL_COUNT)};
 
   // ➡️ value
   static auto constexpr kStoreVersion{
-      FMT_STRING(RDB_ROOT /**/ RDB_STORE /**/ RDB_F_VERSION)};
+      (RDB_ROOT /**/ RDB_STORE /**/ RDB_F_VERSION)};
 
   // ➡️ value
   static auto constexpr kWsvVersion{
-      FMT_STRING(RDB_ROOT /**/ RDB_WSV /**/ RDB_F_VERSION)};
+      (RDB_ROOT /**/ RDB_WSV /**/ RDB_F_VERSION)};
 
 }  // namespace iroha::ametsuchi::fmtstrings
 
 namespace {
-  auto constexpr kValue{FMT_STRING("{}")};
+  auto constexpr kValue{("{}")};
 }
 
 namespace iroha::ametsuchi {
@@ -552,7 +551,7 @@ namespace iroha::ametsuchi {
     std::unique_ptr<rocksdb::Transaction> transaction;
 
     /// Buffer for key data
-    fmt::memory_buffer key_buffer;
+    std::string key_buffer;
 
     /// Buffer for value data
     std::string value_buffer;
@@ -584,13 +583,19 @@ namespace iroha::ametsuchi {
     std::string description;
   };
 
+  template <typename... Args>
+  inline std::string runtimeFormat(std::string_view format,
+                                   Args &&... args) {
+    return std::vformat(format, std::make_format_args(args...));
+  }
+
   template <typename T, typename... Args>
   inline expected::Result<T, DbError> makeError(uint32_t code,
                                                 char const *format,
                                                 Args &&... args) {
     assert(format != nullptr);
     return expected::makeError(
-        DbError{code, fmt::format(format, std::forward<Args>(args)...)});
+        DbError{code, runtimeFormat(format, std::forward<Args>(args)...)});
   }
 
   template <typename T>
@@ -1003,7 +1008,7 @@ namespace iroha::ametsuchi {
     /// Encode number into @see valueBuffer
     auto encode(uint64_t number) {
       valueBuffer().clear();
-      fmt::format_to(std::back_inserter(valueBuffer()), kValue, number);
+      std::format_to(std::back_inserter(valueBuffer()), "{}", number);
     }
 
     /// Decode number from @see valueBuffer
@@ -1019,7 +1024,7 @@ namespace iroha::ametsuchi {
              S const &fmtstring,
              Args &&... args) {
       keyBuffer().clear();
-      fmt::format_to(keyBuffer(), fmtstring, std::forward<Args>(args)...);
+      keyBuffer() = runtimeFormat(fmtstring, std::forward<Args>(args)...);
 
       valueBuffer().clear();
       rocksdb::Slice const slice(keyBuffer().data(), keyBuffer().size());
@@ -1052,7 +1057,7 @@ namespace iroha::ametsuchi {
              S const &fmtstring,
              Args &&... args) {
       keyBuffer().clear();
-      fmt::format_to(keyBuffer(), fmtstring, std::forward<Args>(args)...);
+      keyBuffer() = runtimeFormat(fmtstring, std::forward<Args>(args)...);
 
       rocksdb::Slice const slice(keyBuffer().data(), keyBuffer().size());
       if (auto c = cache(); c && c->isCacheable(slice.ToStringView())
@@ -1074,7 +1079,7 @@ namespace iroha::ametsuchi {
              S const &fmtstring,
              Args &&... args) {
       keyBuffer().clear();
-      fmt::format_to(keyBuffer(), fmtstring, std::forward<Args>(args)...);
+      keyBuffer() = runtimeFormat(fmtstring, std::forward<Args>(args)...);
 
       rocksdb::Slice const slice(keyBuffer().data(), keyBuffer().size());
       if (auto c = cache(); c && c->isCacheable(slice.ToStringView())) {
@@ -1092,7 +1097,7 @@ namespace iroha::ametsuchi {
               S const &fmtstring,
               Args &&... args) {
       keyBuffer().clear();
-      fmt::format_to(keyBuffer(), fmtstring, std::forward<Args>(args)...);
+      keyBuffer() = runtimeFormat(fmtstring, std::forward<Args>(args)...);
 
       rocksdb::ReadOptions ro;
       ro.fill_cache = false;
@@ -1112,7 +1117,7 @@ namespace iroha::ametsuchi {
                    S const &fmtstring,
                    Args &&... args) {
       keyBuffer().clear();
-      fmt::format_to(keyBuffer(), fmtstring, std::forward<Args>(args)...);
+      keyBuffer() = runtimeFormat(fmtstring, std::forward<Args>(args)...);
       return enumerate(it, std::forward<F>(func));
     }
 
@@ -1489,7 +1494,7 @@ namespace iroha::ametsuchi {
       Args &&... args) {
     auto status = executeOperation<kOp, kSc>(
         common,
-        [&] { return fmt::format(std::forward<Args>(args)...); },
+        [&] { return runtimeFormat(std::forward<Args>(args)...); },
         cf_type,
         std::forward<Args>(args)...);
     RDB_ERROR_CHECK(status);
@@ -2457,7 +2462,7 @@ namespace iroha::ametsuchi {
         domain,
         account);
     RDB_ERROR_CHECK(canExist(status, [&]() {
-      return fmt::format("Aggregate account {}@{} data", account, domain);
+      return std::format("Aggregate account {}@{} data", account, domain);
     }));
 
     if (!found && have_entries)

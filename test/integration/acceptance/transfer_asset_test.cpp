@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/variant.hpp>
+#include <variant>
 
 #include "ametsuchi/setting_query.hpp"
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
@@ -499,8 +499,8 @@ TEST_P(TransferAsset, BigPrecision) {
   auto check_balance = [](std::string account_id, std::string val) {
     return [a = std::move(account_id), v = val](auto &resp) {
       auto &acc_ast =
-          boost::get<const shared_model::interface::AccountAssetResponse &>(
-              resp.get());
+          std::get<std::reference_wrapper<const shared_model::interface::AccountAssetResponse>>(
+              resp.get()).get();
       for (auto &ast : acc_ast.accountAssets()) {
         if (ast.accountId() == a) {
           ASSERT_EQ(v, ast.balance().toStringRepr());

@@ -5,7 +5,7 @@
 
 #include "backend/protobuf/transaction_responses/proto_tx_response.hpp"
 
-#include <boost/variant/variant.hpp>
+#include <variant>
 #include <limits>
 
 #include "backend/protobuf/transaction_responses/proto_concrete_tx_response.hpp"
@@ -16,7 +16,7 @@
 namespace {
   /// Variant type, that contains all concrete tx responses in the system
   using ProtoResponseVariantType =
-      boost::variant<shared_model::proto::StatelessFailedTxResponse,
+      std::variant<shared_model::proto::StatelessFailedTxResponse,
                      shared_model::proto::StatelessValidTxResponse,
                      shared_model::proto::StatefulFailedTxResponse,
                      shared_model::proto::StatefulValidTxResponse,
@@ -68,7 +68,8 @@ namespace shared_model::proto {
       }
     }()};
 
-    const ResponseVariantType ivariant_{variant_};
+    const ResponseVariantType ivariant_{iroha::visit(
+        [](const auto &v) { return ResponseVariantType(v); }, variant_)};
 
     // stub hash
     const crypto::Hash hash_ = crypto::Hash::fromHexString(proto_.tx_hash());

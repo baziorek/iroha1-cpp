@@ -6,7 +6,7 @@
 #ifndef IROHA_STORAGE_RESULT_HPP
 #define IROHA_STORAGE_RESULT_HPP
 
-#include <boost/variant.hpp>
+#include <variant>
 
 namespace iroha::consensus::yac {
   struct CommitMessage;
@@ -16,7 +16,7 @@ namespace iroha::consensus::yac {
   /**
    * Contains proof of supermajority for all purposes;
    */
-  using Answer = boost::variant<CommitMessage, RejectMessage, FutureMessage>;
+  using Answer = std::variant<CommitMessage, RejectMessage, FutureMessage>;
 
 }  // namespace iroha::consensus::yac
 

@@ -7,6 +7,8 @@
 
 #include <ciso646>
 
+#include <libpq-fe.h>
+
 #include <soci/postgresql/soci-postgresql.h>
 
 #include "logger/logger.hpp"

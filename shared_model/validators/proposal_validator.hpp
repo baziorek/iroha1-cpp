@@ -6,7 +6,6 @@
 #ifndef IROHA_PROPOSAL_VALIDATOR_HPP
 #define IROHA_PROPOSAL_VALIDATOR_HPP
 
-#include <boost/format.hpp>
 #include "interfaces/common_objects/types.hpp"
 #include "interfaces/iroha_internal/proposal.hpp"
 #include "validators/abstract_validator.hpp"

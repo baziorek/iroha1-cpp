@@ -51,7 +51,6 @@ target_link_libraries(iroha-cli
     cli-flags_validators
     keys_manager
     Boost::boost
-    Boost::filesystem
     logger
     logger_manager
     )

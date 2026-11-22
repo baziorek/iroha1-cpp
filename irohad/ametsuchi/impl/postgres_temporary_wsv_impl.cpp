@@ -5,11 +5,13 @@
 
 #include "ametsuchi/impl/postgres_temporary_wsv_impl.hpp"
 
+#include <soci/boost-optional.h>
+
 #include <boost/algorithm/string/join.hpp>
-#include <boost/format.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include "ametsuchi/impl/postgres_command_executor.hpp"
 #include "ametsuchi/impl/postgres_db_transaction.hpp"
+#include "common/std_format.hpp"
 #include "ametsuchi/tx_executor.hpp"
 #include "interfaces/commands/command.hpp"
 #include "interfaces/permission_to_string.hpp"
@@ -35,22 +37,22 @@ namespace iroha::ametsuchi {
     // not using bool since it is not supported by SOCI
     boost::optional<uint8_t> signatories_valid;
 
-    boost::format query(R"(SELECT sum(count) = :signatures_count
+    const std::string query = R"(SELECT sum(count) = :signatures_count
                           AND sum(quorum) <= :signatures_count
                   FROM
                       (SELECT count(public_key)
-                      FROM ( VALUES ('%s') ) AS CTE1(public_key)
+                      FROM ( VALUES ('{}') ) AS CTE1(public_key)
                       WHERE lower(public_key) IN
                           (SELECT public_key
                           FROM account_has_signatory
                           WHERE account_id = :account_id ) ) AS CTE2(count),
                           (SELECT quorum
                           FROM account
-                          WHERE account_id = :account_id) AS CTE3(quorum))");
+                          WHERE account_id = :account_id) AS CTE3(quorum))";
 
     try {
       auto keys_range_size = boost::size(keys_range);
-      sql_ << (query % keys).str(), soci::into(signatories_valid),
+      sql_ << iroha::vformat(query, keys), soci::into(signatories_valid),
           soci::use(keys_range_size, "signatures_count"),
           soci::use(transaction.creatorAccountId(), "account_id");
     } catch (const std::exception &e) {

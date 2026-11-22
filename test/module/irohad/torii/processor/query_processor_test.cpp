@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <boost/variant.hpp>
+#include <variant>
+#include "common/visitor.hpp"
 
 #include "backend/protobuf/block.hpp"
 #include "backend/protobuf/proto_query_response_factory.hpp"
@@ -124,8 +125,7 @@ TEST_F(QueryProcessorTest, QueryProcessorWhereInvokeInvalidQuery) {
 
   auto response = qpi->queryHandle(qry);
   IROHA_ASSERT_RESULT_VALUE(response);
-  ASSERT_NE(boost::get<const shared_model::interface::AccountDetailResponse &>(
-                &response.assumeValue()->get()),
+  ASSERT_NE(iroha::get_wrapped<shared_model::interface::AccountDetailResponse>(&response.assumeValue()->get()),
             nullptr);
 }
 
@@ -158,7 +158,7 @@ TEST_F(QueryProcessorTest, QueryProcessorWithWrongKey) {
 
   auto response = qpi->queryHandle(query);
   IROHA_ASSERT_RESULT_VALUE(response);
-  ASSERT_NO_THROW(boost::apply_visitor(
+  ASSERT_NO_THROW(iroha::visit(
       shared_model::interface::QueryErrorResponseChecker<
           shared_model::interface::StatefulFailedErrorResponse>(),
       response.assumeValue()->get()));

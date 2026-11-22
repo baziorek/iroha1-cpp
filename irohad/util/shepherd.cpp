@@ -49,7 +49,7 @@ DEFINE_bool(status, false, "Watch daemon statuses.");
 DEFINE_validator(status, &validateSingleAction);
 
 bool printStatus(const iroha::utility_service::Status &status) {
-  ::fmt::print("{}", status);
+  std::cout << static_cast<int>(status);
   return true;
 }
 

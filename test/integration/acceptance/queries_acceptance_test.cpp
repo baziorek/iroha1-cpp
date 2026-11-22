@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
 #include "backend/protobuf/transaction.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
@@ -45,8 +45,8 @@ class QueriesAcceptanceTest : public AcceptanceFixture {
   static void checkRolesResponse(const proto::QueryResponse &response) {
     ASSERT_NO_THROW({
       const auto &resp =
-          boost::get<const shared_model::interface::RolesResponse &>(
-              response.get());
+          std::get<std::reference_wrapper<const shared_model::interface::RolesResponse>>(
+              response.get()).get();
       ASSERT_NE(resp.roles().size(), 0);
     });
   }

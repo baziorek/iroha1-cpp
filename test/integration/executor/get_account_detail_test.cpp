@@ -7,7 +7,6 @@
 
 #include <map>
 
-#include <fmt/core.h>
 #include <gtest/gtest.h>
 #include "backend/plain/account_detail_record_id.hpp"
 #include "framework/common_constants.hpp"
@@ -16,6 +15,7 @@
 #include "interfaces/query_responses/account_detail_response.hpp"
 #include "module/shared_model/mock_objects_factories/mock_command_factory.hpp"
 #include "module/shared_model/mock_objects_factories/mock_query_factory.hpp"
+#include "common/std_format.hpp"
 
 using namespace common_constants;
 using namespace executor_testing;
@@ -31,7 +31,7 @@ using shared_model::plain::AccountDetailRecordId;
 
 struct GetAccountDetailTest : public ExecutorTestBase {
   std::string makeAccountName(size_t i) const {
-    return fmt::format("account_{:02}", i);
+    return std::format("account_{:02}", i);
   }
 
   AccountIdType makeAccountId(size_t i) const {
@@ -39,11 +39,11 @@ struct GetAccountDetailTest : public ExecutorTestBase {
   }
 
   std::string makeKey(size_t i) const {
-    return fmt::format("key_{:02}", i);
+    return std::format("key_{:02}", i);
   }
 
   std::string makeValue(size_t writer, size_t key) const {
-    return fmt::format("value_w{:02}_k{:02}", writer, key);
+    return std::format("value_w{:02}_k{:02}", writer, key);
   }
 
   /**

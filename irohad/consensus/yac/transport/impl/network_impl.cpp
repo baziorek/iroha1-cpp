@@ -8,7 +8,6 @@
 #include <grpc++/grpc++.h>
 #include <memory>
 
-#include <fmt/core.h>
 #include "consensus/yac/storage/yac_common.hpp"
 #include "consensus/yac/transport/yac_pb_converters.hpp"
 #include "consensus/yac/vote_message.hpp"
@@ -17,6 +16,7 @@
 #include "main/subscription.hpp"
 #include "network/impl/client_factory.hpp"
 #include "yac.pb.h"
+#include "common/std_format.hpp"
 
 using iroha::consensus::yac::NetworkImpl;
 
@@ -62,7 +62,7 @@ void NetworkImpl::sendState(const shared_model::interface::Peer &to,
       [request(std::move(request)),
        client(std::move(client)),
        log(utils::make_weak(log_)),
-       log_sending_msg(fmt::format("Send votes bundle[size={}] for {} to {}",
+       log_sending_msg(std::format("Send votes bundle[size={}] for {} to {}",
                                    state.size(),
                                    state.front().hash.vote_round,
                                    to))] {

@@ -6,7 +6,7 @@
 #include "backend/protobuf/proto_tx_status_factory.hpp"
 
 #include <gtest/gtest.h>
-#include <boost/variant.hpp>
+#include <variant>
 #include "cryptography/hash.hpp"
 
 using shared_model::proto::ProtoTxStatusFactory;
@@ -34,8 +34,8 @@ TEST(ProtoTransactionStatusFactoryTest, TestStatusType) {
   ASSERT_EQ(response->errorCode(), error_code);
 
   ASSERT_NO_THROW(
-      boost::get<const shared_model::interface::CommittedTxResponse &>(
-          response->get()));
+      std::get<std::reference_wrapper<const shared_model::interface::CommittedTxResponse>>(
+          response->get()).get());
 }
 
 /**

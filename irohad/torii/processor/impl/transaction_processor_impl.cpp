@@ -12,6 +12,7 @@
 #include "logger/logger.hpp"
 #include "simulator/verified_proposal_creator_common.hpp"
 #include "validation/stateful_validator_common.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha {
   namespace torii {
@@ -24,7 +25,7 @@ namespace iroha {
         const auto tx_hash = tx_hash_and_error.tx_hash.hex();
         const auto &cmd_error = tx_hash_and_error.error;
         if (not cmd_error.tx_passed_initial_validation) {
-          return fmt::format(
+          return std::format(
               "Stateful validation error: transaction {} did not pass initial "
               "verification: checking '{}', error code '{}', query arguments: "
               "{}",
@@ -33,7 +34,7 @@ namespace iroha {
               cmd_error.error_code,
               cmd_error.error_extra);
         }
-        return fmt::format(
+        return std::format(
             "Stateful validation error in transaction {}: "
             "command '{}' with index '{}' did not pass "
             "verification with code '{}', query arguments: {}",

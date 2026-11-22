@@ -9,13 +9,13 @@
 #include <iostream>
 
 #include <gtest/gtest.h>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
+#include <filesystem>
 #include "common/hexutils.hpp"
 #include "common/result.hpp"
 #include "framework/result_gtest_checkers.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 namespace {
   const std::string kText =

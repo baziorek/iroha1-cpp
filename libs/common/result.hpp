@@ -13,7 +13,8 @@
 #include <type_traits>
 
 #include <boost/optional.hpp>
-#include <boost/variant.hpp>
+
+#include <variant>
 
 #include "common/visitor.hpp"
 
@@ -87,11 +88,14 @@ namespace iroha {
      * @tparam E error type
      */
     template <typename V, typename E = std::string>
-    class Result : ResultBase, public boost::variant<Value<V>, Error<E>> {
+    class Result : ResultBase, public std::variant<Value<V>, Error<E>> {
       template <typename OV, typename OE>
       friend class Result;
 
-      using variant_type = boost::variant<Value<V>, Error<E>>;
+     public:
+      using variant_type = std::variant<Value<V>, Error<E>>;
+
+     private:
       using variant_type::variant_type;  // inherit constructors
 
      public:
@@ -105,7 +109,9 @@ namespace iroha {
 
       template <typename OV, typename OE>
       Result(Result<OV, OE> r)
-          : Result(visit_in_place(std::move(r),
+          : Result(visit_in_place(
+                static_cast<typename Result<OV, OE>::variant_type &&>(
+                    std::move(r)),
                                   [](Value<OV> &v) -> Result<V, E> {
                                     return ValueType{std::move(v.value)};
                                   },
@@ -130,7 +136,7 @@ namespace iroha {
        */
       template <typename ValueMatch, typename ErrorMatch>
       constexpr auto match(ValueMatch &&value_func, ErrorMatch &&error_func) & {
-        return visit_in_place(*this,
+        return visit_in_place(static_cast<variant_type &>(*this),
                               [f = std::forward<ValueMatch>(value_func)](
                                   ValueType &v) { return f(v); },
                               [f = std::forward<ErrorMatch>(error_func)](
@@ -143,7 +149,7 @@ namespace iroha {
       template <typename ValueMatch, typename ErrorMatch>
       constexpr auto match(ValueMatch &&value_func,
                            ErrorMatch &&error_func) && {
-        return visit_in_place(*this,
+        return visit_in_place(static_cast<variant_type &>(*this),
                               [f = std::forward<ValueMatch>(value_func)](
                                   ValueType &v) { return f(std::move(v)); },
                               [f = std::forward<ErrorMatch>(error_func)](
@@ -156,7 +162,7 @@ namespace iroha {
       template <typename ValueMatch, typename ErrorMatch>
       constexpr auto match(ValueMatch &&value_func,
                            ErrorMatch &&error_func) const & {
-        return visit_in_place(*this,
+        return visit_in_place(static_cast<const variant_type &>(*this),
                               [f = std::forward<ValueMatch>(value_func)](
                                   const ValueType &v) { return f(v); },
                               [f = std::forward<ErrorMatch>(error_func)](
@@ -178,7 +184,7 @@ namespace iroha {
       constexpr Result<Value, E> and_res(const Result<Value, E> &new_res) const
           noexcept {
         return visit_in_place(
-            *this,
+            static_cast<const variant_type &>(*this),
             [res = new_res](ValueType) { return res; },
             [](ErrorType err) -> Result<Value, E> { return err; });
       }
@@ -198,7 +204,7 @@ namespace iroha {
       constexpr Result<Value, E> or_res(const Result<Value, E> &new_res) const
           noexcept {
         return visit_in_place(
-            *this,
+            static_cast<const variant_type &>(*this),
             [](ValueType val) -> Result<Value, E> { return val; },
             [res = new_res](ErrorType) { return res; });
       }
@@ -212,7 +218,8 @@ namespace iroha {
       template <typename ReturnType = const AssumeValueHelper &>
       std::enable_if_t<not std::is_void<ValueInnerType>::value, ReturnType>
       assumeValue() const & {
-        const auto *val = boost::get<ValueType>(this);
+        const auto *val =
+            std::get_if<ValueType>(static_cast<const variant_type *>(this));
         if (val != nullptr) {
           return val->value;
         }
@@ -223,7 +230,7 @@ namespace iroha {
       template <typename ReturnType = AssumeValueHelper &>
       std::enable_if_t<not std::is_void<ValueInnerType>::value, ReturnType>
       assumeValue() & {
-        auto val = boost::get<ValueType>(this);
+        auto val = std::get_if<ValueType>(static_cast<variant_type *>(this));
         if (val != nullptr) {
           return val->value;
         }
@@ -234,7 +241,7 @@ namespace iroha {
       template <typename ReturnType = AssumeValueHelper &&>
       std::enable_if_t<not std::is_void<ValueInnerType>::value, ReturnType>
       assumeValue() && {
-        auto val = boost::get<ValueType>(this);
+        auto val = std::get_if<ValueType>(static_cast<variant_type *>(this));
         if (val != nullptr) {
           return std::move(val->value);
         }
@@ -250,7 +257,8 @@ namespace iroha {
       template <typename ReturnType = const AssumeErrorHelper &>
       std::enable_if_t<not std::is_void<ErrorInnerType>::value, ReturnType>
       assumeError() const & {
-        const auto *err = boost::get<ErrorType>(this);
+        const auto *err =
+            std::get_if<ErrorType>(static_cast<const variant_type *>(this));
         if (err != nullptr) {
           return err->error;
         }
@@ -261,7 +269,7 @@ namespace iroha {
       template <typename ReturnType = AssumeErrorHelper &>
       std::enable_if_t<not std::is_void<ErrorInnerType>::value, ReturnType>
       assumeError() & {
-        auto err = boost::get<ErrorType>(this);
+        auto err = std::get_if<ErrorType>(static_cast<variant_type *>(this));
         if (err != nullptr) {
           return err->error;
         }
@@ -272,13 +280,49 @@ namespace iroha {
       template <typename ReturnType = AssumeErrorHelper &&>
       std::enable_if_t<not std::is_void<ErrorInnerType>::value, ReturnType>
       assumeError() && {
-        auto err = boost::get<ErrorType>(this);
+        auto err = std::get_if<ErrorType>(static_cast<variant_type *>(this));
         if (err != nullptr) {
           return std::move(err->error);
         }
         throw ResultException("Error expected, but got a Value.");
       }
     };
+
+    /**
+     * Pointer access to the held Value/Error alternative of a Result,
+     * mirroring boost::get semantics (nullptr when the other alternative
+     * is held).
+     */
+    template <typename T, typename V, typename E>
+    auto get(const Result<V, E> *result) {
+      return std::get_if<T>(
+          static_cast<const typename Result<V, E>::variant_type *>(result));
+    }
+
+    template <typename T, typename V, typename E>
+    auto get(Result<V, E> *result) {
+      return std::get_if<T>(
+          static_cast<typename Result<V, E>::variant_type *>(result));
+    }
+
+    /// Reference access to the held Value/Error alternative of a Result.
+    template <typename T, typename V, typename E>
+    decltype(auto) get(Result<V, E> &result) {
+      return std::get<T>(
+          static_cast<typename Result<V, E>::variant_type &>(result));
+    }
+
+    template <typename T, typename V, typename E>
+    decltype(auto) get(const Result<V, E> &result) {
+      return std::get<T>(
+          static_cast<const typename Result<V, E>::variant_type &>(result));
+    }
+
+    template <typename T, typename V, typename E>
+    decltype(auto) get(Result<V, E> &&result) {
+      return std::get<T>(
+          static_cast<typename Result<V, E>::variant_type &&>(result));
+    }
 
     template <typename ResultType>
     using ValueOf = typename std::decay_t<ResultType>::ValueType;
@@ -298,11 +342,11 @@ namespace iroha {
      */
     template <typename Err1, typename Err2, typename V, typename Fn>
     Result<V, Err1> map_error(const Result<V, Err2> &res, Fn &&map) noexcept {
-      return visit_in_place(res,
-                            [](Value<V> val) -> Result<V, Err1> { return val; },
-                            [map](Error<Err2> err) -> Result<V, Err1> {
-                              return Error<Err1>{map(err.error)};
-                            });
+      return res.match(
+          [](Value<V> val) -> Result<V, Err1> { return val; },
+          [map](Error<Err2> err) -> Result<V, Err1> {
+            return Error<Err1>{map(err.error)};
+          });
     }
 
     // Factory methods for avoiding type specification
@@ -477,13 +521,15 @@ namespace iroha {
     template <typename ResultType,
               typename = std::enable_if_t<isResult<ResultType>>>
     bool hasValue(const ResultType &result) {
-      return boost::get<ValueOf<ResultType>>(&result);
+      return result.match([](const auto &) { return true; },
+                          [](const auto &) { return false; });
     }
 
     template <typename ResultType,
               typename = std::enable_if_t<isResult<ResultType>>>
     bool hasError(const ResultType &result) {
-      return boost::get<ErrorOf<ResultType>>(&result);
+      return result.match([](const auto &) { return false; },
+                          [](const auto &) { return true; });
     }
 
     /**
@@ -497,11 +543,13 @@ namespace iroha {
               typename = std::enable_if_t<isResult<ResultType>>>
     boost::optional<InnerValueOf<ResultType>> resultToOptionalValue(
         ResultType &&res) noexcept {
-      if (hasValue(res)) {
-        return boost::get<ValueOf<ResultType>>(std::forward<ResultType>(res))
-            .value;
-      }
-      return {};
+      return std::forward<ResultType>(res).match(
+          [](auto &&v) -> boost::optional<InnerValueOf<ResultType>> {
+            return std::forward<decltype(v)>(v).value;
+          },
+          [](auto &&) -> boost::optional<InnerValueOf<ResultType>> {
+            return boost::none;
+          });
     }
 
     /// @return optional with error if present, otherwise none
@@ -509,11 +557,13 @@ namespace iroha {
               typename = std::enable_if_t<isResult<ResultType>>>
     boost::optional<InnerErrorOf<ResultType>> resultToOptionalError(
         ResultType &&res) noexcept {
-      if (hasError(res)) {
-        return boost::get<ErrorOf<ResultType>>(std::forward<ResultType>(res))
-            .error;
-      }
-      return {};
+      return std::forward<ResultType>(res).match(
+          [](auto &&) -> boost::optional<InnerErrorOf<ResultType>> {
+            return boost::none;
+          },
+          [](auto &&e) -> boost::optional<InnerErrorOf<ResultType>> {
+            return std::forward<decltype(e)>(e).error;
+          });
     }
 
     template <typename E, typename V>

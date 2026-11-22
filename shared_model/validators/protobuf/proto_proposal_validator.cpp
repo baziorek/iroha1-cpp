@@ -4,10 +4,10 @@
  */
 #include "validators/protobuf/proto_proposal_validator.hpp"
 
-#include <fmt/core.h>
 #include <boost/range/adaptor/indexed.hpp>
 #include "proposal.pb.h"
 #include "validators/validation_error_helpers.hpp"
+#include "common/std_format.hpp"
 
 namespace shared_model {
   namespace validation {
@@ -26,7 +26,7 @@ namespace shared_model {
         error_creator |=
             std::move(tx_error_creator)
                 .getValidationErrorWithGeneratedName(
-                    [&] { return fmt::format("Transaction #{}", tx.index()); });
+                    [&] { return std::format("Transaction #{}", tx.index()); });
       }
 
       return std::move(error_creator).getValidationError("Protobuf Proposal");

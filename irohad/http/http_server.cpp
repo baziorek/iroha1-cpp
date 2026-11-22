@@ -5,16 +5,16 @@
 
 #include "http/http_server.hpp"
 
-#include <fmt/core.h>
 #include <cassert>
 #include "CivetServer.h"
 
 #include "common/mem_operations.hpp"
 #include "logger/logger.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha::network {
   std::string HttpServer::Options::toString() const {
-    return fmt::format("Options [ports:{}, request_timeout_ms: {}]",
+    return std::format("Options [ports:{}, request_timeout_ms: {}]",
                        ports,
                        request_timeout_ms);
   }

@@ -7,8 +7,6 @@
 
 #include <numeric>
 
-#include <fmt/core.h>
-#include <boost/format.hpp>
 #include "ametsuchi/impl/soci_std_optional.hpp"
 #include "ametsuchi/impl/soci_string_view.hpp"
 #include "ametsuchi/ledger_state.hpp"
@@ -18,6 +16,7 @@
 #include "interfaces/common_objects/asset.hpp"
 #include "interfaces/common_objects/domain.hpp"
 #include "interfaces/common_objects/peer.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha {
   namespace ametsuchi {
@@ -41,7 +40,7 @@ namespace iroha {
           << "INSERT INTO role(role_id) VALUES (:role_id)";
       st.exchange(soci::use(role_name));
       auto msg = [&] {
-        return (boost::format("failed to insert role: '%s'") % role_name).str();
+        return std::format("failed to insert role: '{}'", role_name);
       };
       return execute(st, msg);
     }
@@ -56,10 +55,8 @@ namespace iroha {
       st.exchange(soci::use(role_name));
 
       auto msg = [&] {
-        return (boost::format("failed to insert account role, account: '%s', "
-                              "role name: '%s'")
-                % account_id % role_name)
-            .str();
+        return std::format("failed to insert account role, account: '{}', "
+                              "role name: '{}'", account_id, role_name);
       };
       return execute(st, msg);
     }
@@ -74,11 +71,9 @@ namespace iroha {
       st.exchange(soci::use(role_name));
 
       auto msg = [&] {
-        return (boost::format(
-                    "failed to delete account role, account id: '%s', "
-                    "role name: '%s'")
-                % account_id % role_name)
-            .str();
+        return std::format(
+                    "failed to delete account role, account id: '{}', "
+                    "role name: '{}'", account_id, role_name);
       };
       return execute(st, msg);
     }
@@ -101,10 +96,8 @@ namespace iroha {
             str.end(),
             std::string(),
             [](auto acc, const auto &elem) { return acc + " " + elem; });
-        return (boost::format("failed to insert role permissions, role "
-                              "id: '%s', permissions: [%s]")
-                % role_id % perm_debug_str)
-            .str();
+        return std::format("failed to insert role permissions, role "
+                              "id: '{}', permissions: [{}]", role_id, perm_debug_str);
       };
       return execute(st, msg);
     }
@@ -130,15 +123,13 @@ namespace iroha {
       st.exchange(soci::use(perm_str, "perm"));
 
       auto msg = [&] {
-        return (boost::format("failed to insert account grantable permission, "
-                              "permittee account id: '%s', "
-                              "account id: '%s', "
-                              "permission: '%s'")
-                % permittee_account_id
-                % account_id
+        return std::format("failed to insert account grantable permission, "
+                              "permittee account id: '{}', "
+                              "account id: '{}', "
+                              "permission: '{}'", permittee_account_id,
+                              account_id,
                 // TODO(@l4l) 26/06/18 need to be simplified at IR-1479
-                % shared_model::proto::permissions::toString(permission))
-            .str();
+                shared_model::proto::permissions::toString(permission));
       };
       return execute(st, msg);
     }
@@ -166,13 +157,10 @@ namespace iroha {
       st.exchange(soci::use(perm_str, "perm"));
 
       auto msg = [&] {
-        return (boost::format("failed to delete account grantable permission, "
-                              "permittee account id: '%s', "
-                              "account id: '%s', "
-                              "permission id: '%s'")
-                % permittee_account_id % account_id
-                % shared_model::proto::permissions::toString(permission))
-            .str();
+        return std::format("failed to delete account grantable permission, "
+                              "permittee account id: '{}', "
+                              "account id: '{}', "
+                              "permission id: '{}'", permittee_account_id, account_id, shared_model::proto::permissions::toString(permission));
       };
       return execute(st, msg);
     }
@@ -189,14 +177,11 @@ namespace iroha {
       st.exchange(soci::use(account.jsonData()));
 
       auto msg = [&] {
-        return (boost::format("failed to insert account, "
-                              "account id: '%s', "
-                              "domain id: '%s', "
-                              "quorum: '%d', "
-                              "json_data: %s")
-                % account.accountId() % account.domainId() % account.quorum()
-                % account.jsonData())
-            .str();
+        return std::format("failed to insert account, "
+                              "account id: '{}', "
+                              "domain id: '{}', "
+                              "quorum: '{}', "
+                              "json_data: {}", account.accountId(), account.domainId(), account.quorum(), account.jsonData());
       };
       return execute(st, msg);
     }
@@ -212,10 +197,8 @@ namespace iroha {
       st.exchange(soci::use(precision));
 
       auto msg = [&] {
-        return (boost::format("failed to insert asset, asset id: '%s', "
-                              "domain id: '%s', precision: %d")
-                % asset.assetId() % asset.domainId() % asset.precision())
-            .str();
+        return std::format("failed to insert asset, asset id: '{}', "
+                              "domain id: '{}', precision: {}", asset.assetId(), asset.domainId(), asset.precision());
       };
       return execute(st, msg);
     }
@@ -234,11 +217,8 @@ namespace iroha {
       st.exchange(soci::use(balance));
 
       auto msg = [&] {
-        return (boost::format("failed to upsert account, account id: '%s', "
-                              "asset id: '%s', balance: %s")
-                % asset.accountId() % asset.assetId()
-                % asset.balance().toString())
-            .str();
+        return std::format("failed to upsert account, account id: '{}', "
+                              "asset id: '{}', balance: {}", asset.accountId(), asset.assetId(), asset.balance().toString());
       };
       return execute(st, msg);
     }
@@ -251,7 +231,7 @@ namespace iroha {
       st.exchange(soci::use(signatory));
 
       auto msg = [&] {
-        return fmt::format("failed to insert signatory '{}'",
+        return std::format("failed to insert signatory '{}'",
                            std::string_view{signatory});
       };
       return execute(st, msg);
@@ -267,7 +247,7 @@ namespace iroha {
       st.exchange(soci::use(signatory));
 
       auto msg = [&] {
-        return fmt::format(
+        return std::format(
             "failed to insert account signatory, "
             "account id: '{}', signatory hex string: '{}",
             account_id,
@@ -286,7 +266,7 @@ namespace iroha {
       st.exchange(soci::use(signatory));
 
       auto msg = [&] {
-        return fmt::format(
+        return std::format(
             "failed to delete account signatory, "
             "account id: '{}', signatory hex string: '{}'",
             account_id,
@@ -305,7 +285,7 @@ namespace iroha {
       st.exchange(soci::use(signatory, "pk"));
 
       auto msg = [&] {
-        return fmt::format("failed to delete signatory '{}'",
+        return std::format("failed to delete signatory '{}'",
                            std::string_view{signatory});
       };
       return execute(st, msg);
@@ -314,7 +294,7 @@ namespace iroha {
     WsvCommandResult PostgresWsvCommand::insertPeer(
         const shared_model::interface::Peer &peer) {
       soci::statement st = sql_.prepare
-          << fmt::format("INSERT INTO {}(public_key, address, "
+          << std::format("INSERT INTO {}(public_key, address, "
                          "tls_certificate) VALUES (lower(:pk), :address, "
                          ":tls_certificate)",
                          peer.isSyncingPeer() ? "sync_peer" : "peer");
@@ -323,7 +303,7 @@ namespace iroha {
       st.exchange(soci::use(peer.tlsCertificate()));
 
       auto msg = [&] {
-        return (boost::format("failed to insert %s") % peer.toString()).str();
+        return std::format("failed to insert {}", peer.toString());
       };
       return execute(st, msg);
     }
@@ -331,7 +311,7 @@ namespace iroha {
     WsvCommandResult PostgresWsvCommand::deletePeer(
         const shared_model::interface::Peer &peer) {
       soci::statement st = sql_.prepare
-          << fmt::format("DELETE FROM {} WHERE public_key = "
+          << std::format("DELETE FROM {} WHERE public_key = "
                          "lower(:pk) AND address = :address",
                          peer.isSyncingPeer() ? "sync_peer" : "peer"
 
@@ -341,7 +321,7 @@ namespace iroha {
       st.exchange(soci::use(peer.address()));
 
       auto msg = [&] {
-        return fmt::format(
+        return std::format(
             "failed to delete peer, public key: '{}', address: '{}'",
             peer.pubkey(),
             peer.address());
@@ -358,10 +338,8 @@ namespace iroha {
       st.exchange(soci::use(domain.defaultRole()));
 
       auto msg = [&] {
-        return (boost::format("failed to insert domain, domain id: '%s', "
-                              "default role: '%s'")
-                % domain.domainId() % domain.defaultRole())
-            .str();
+        return std::format("failed to insert domain, domain id: '{}', "
+                              "default role: '{}'", domain.domainId(), domain.defaultRole());
       };
       return execute(st, msg);
     }
@@ -375,10 +353,8 @@ namespace iroha {
       st.exchange(soci::use(account.accountId()));
 
       auto msg = [&] {
-        return (boost::format(
-                    "failed to update account, account id: '%s', quorum: '%s'")
-                % account.accountId() % account.quorum())
-            .str();
+        return std::format(
+                    "failed to update account, account id: '{}', quorum: '{}'", account.accountId(), account.quorum());
       };
       return execute(st, msg);
     }
@@ -405,11 +381,9 @@ namespace iroha {
       st.exchange(soci::use(account_id));
 
       auto msg = [&] {
-        return (boost::format(
-                    "failed to set account key-value, account id: '%s', "
-                    "creator account id: '%s',\n key: '%s', value: '%s'")
-                % account_id % creator_account_id % key % val)
-            .str();
+        return std::format(
+                    "failed to set account key-value, account id: '{}', "
+                    "creator account id: '{}',\\n key: '{}', value: '{}'", account_id, creator_account_id, key, val);
       };
 
       return execute(st, msg);
@@ -426,7 +400,7 @@ namespace iroha {
             soci::use(top_block_info.top_hash.hex(), "hash");
         return expected::Value<void>{};
       } catch (std::exception &e) {
-        return fmt::format("Failed to set top_block_info: {}.", e.what());
+        return std::format("Failed to set top_block_info: {}.", e.what());
       }
     }
 

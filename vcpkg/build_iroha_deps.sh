@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
+shopt -s nullglob
 
 vcpkg_path="${1:-$(pwd)/vcpkg-build}"
 script_dir=$(dirname $(realpath ${BASH_SOURCE[0]}))
@@ -35,33 +36,56 @@ esac
 ## Every time clean build of vcpkgtool takes 43 seconds on MacBook 2016 i7 2.8GHz
 ##                                 and takes 3 minutes on default GitHub runner
 ## ToDo try reuse existing vcpkg_tool
-case $(uname | tr '[:upper:]' '[:lower:]') in
-   windows*|msys*|mingw*)
-      bootstrap(){
-         $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics
-      }
-      # MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
-      BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
-      INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
-      ;;
-   *)
-      bootstrap(){
-         $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries
-      }
-      ;;
+##
+## NOTE: since the vcpkg pin was updated (see VCPKG_COMMIT_SHA), the stock
+## bootstrap-vcpkg.sh downloads a prebuilt vcpkg-tool matching the checkout
+## and is the default on Linux/macOS; set VCPKG_BOOTSTRAP=quick-alternative
+## to build a pinned vcpkg-tool from source with patches from tool-patches/
+## (only needed for the old vcpkg pin).
+VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9
+
+bootstrap_quick_alternative()(
+   vcpkg_tool_path=$vcpkg_path/vcpkg-tool
+   git -C $vcpkg_tool_path fetch origin ||
+      git clone https://github.com/microsoft/vcpkg-tool.git $vcpkg_tool_path
+   cd $vcpkg_tool_path
+   git -c advice.detachedHead=false checkout -f $VCPKG_TOOL_REF
+
+   ## Apply tool patches, bypass if already applied, stop on fail
+   for i in "$script_dir"/tool-patches/*.patch; do
+      if git apply --reverse --check --ignore-whitespace $i &>/dev/null
+         then continue ;fi
+      git apply --ignore-whitespace $i
+   done
+
+   cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -GNinja -DBUILD_TESTING=OFF -DVCPKG_DEVELOPMENT_WARNINGS=OFF
+   cmake --build build -j$(nproc)
+   cp build/vcpkg $vcpkg_path/vcpkg
+)
+
+case ${VCPKG_BOOTSTRAP:-usual} in
    quick-alternative)
-      ## TODO: Do not use `bootstrap` because it is slow and old and has too much logic overhead
-      bootstrap()(
-         vcpkg_tool_path=$vcpkg_path/vcpkg-tool
-         VCPKG_TOOL_REF=2021-05-05-9f849c4c43e50d1b16186ae76681c27b0c1be9d9  #2021-02-24-d67989bce1043b98092ac45996a8230a059a2d7e #
-         git -C $vcpkg_tool_path fetch origin ||
-            git clone https://github.com/microsoft/vcpkg-tool.git $vcpkg_tool_path
-         cd $vcpkg_tool_path
-         git -c advice.detachedHead=false checkout $VCPKG_TOOL_REF
-         cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -GNinja -DBUILD_TESTING=OFF -DVCPKG_DEVELOPMENT_WARNINGS=OFF -DRULE_LAUNCH_COMPILE=ccache
-         cmake --build build
-         cp build/vcpkg $vcpkg_path/vcpkg
-      )
+      case $(uname | tr '[:upper:]' '[:lower:]') in
+         windows*|msys*|mingw*)
+            bootstrap(){ $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics ; }
+            ;;
+         *)
+            bootstrap(){ bootstrap_quick_alternative ; }
+            ;;
+      esac
+      ;;
+   usual)
+      case $(uname | tr '[:upper:]' '[:lower:]') in
+         windows*|msys*|mingw*)
+            bootstrap(){ $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics ; }
+            MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
+            BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
+            INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
+            ;;
+         *)
+            bootstrap(){ $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries ; }
+            ;;
+      esac
       ;;
 esac
 
@@ -70,9 +94,14 @@ bootstrap
 case usual-mode in
    usual-mode)
       ## The old lamp way to install without manifests
+      ## NOTE: mapfile+array is required - specs like soci[boost,postgresql]
+      ## contain glob characters and must not be pathname-expanded
+      ## (nullglob above would silently drop them).
+      mapfile -t deps_list < <(tr -d '\r' < "$script_dir/VCPKG_DEPS_LIST")
       $vcpkg_path/vcpkg install \
+         --overlay-ports=$script_dir/ports \
          --feature-flags=-manifests \
-         $(cat $script_dir/VCPKG_DEPS_LIST | tr -d '\r')
+         "${deps_list[@]}"
       # ( #cd /tmp
       # cat $script_dir/VCPKG_DEPS_LIST | while read pkgspec ;do
       #    $vcpkg_path/vcpkg install --feature-flags=-manifests $pkgspec
@@ -87,6 +116,12 @@ case usual-mode in
       #   --binarysource=files,$BINARYCACHE_PATH,readwrite \
       ;;
 esac
+
+## Free disk space: buildtrees/, packages/ and downloads/ are intermediate
+## artifacts (~20 GB for the full dependency set) that are not needed once
+## installed/ is populated. CI caches the whole vcpkg-build directory, so
+## this also keeps the saved cache small.
+rm -rf "$vcpkg_path/buildtrees" "$vcpkg_path/packages" "$vcpkg_path/downloads"
 
 #################### PROFILING ####################
 ## system macos big sur on macbook pro 2016 i7 2.8GHz

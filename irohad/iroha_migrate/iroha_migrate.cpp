@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <fmt/format.h>
+#include <format>
 #include <gflags/gflags.h>
 
 #include <filesystem>
@@ -25,6 +25,7 @@
 #include "backend/protobuf/proto_query_response_factory.hpp"
 #include "backend/protobuf/proto_tx_status_factory.hpp"
 #include "common/bind.hpp"
+#include "common/std_format.hpp"
 #include "common/irohad_version.hpp"
 #include "common/result_try.hpp"
 #include "consensus/yac/consistency_model.hpp"
@@ -74,67 +75,48 @@ DEFINE_string(export_to,
 
 #define CHECK_RETURN(cond, ...)                                                \
   if (!(cond)) {                                                               \
-    fmt::print("ERROR in " __FILE__ ":" STR(__LINE__) " - {}\n", __VA_ARGS__); \
+    std::cerr << std::format("ERROR in " __FILE__ ":" STR(__LINE__)           \
+                             " - {}\n",                                       \
+                             __VA_ARGS__);                                    \
     return 1;                                                                  \
   }
 #define CHECK_RETURN_FMT(cond, forma, ...)                    \
   if (!(cond)) {                                              \
-    fmt::print("ERROR in " __FILE__ ":" STR(__LINE__) " - "); \
-    fmt::print(FMT_STRING(forma), __VA_ARGS__);               \
-    fmt::print("\n");                                         \
+    std::cerr << "ERROR in " __FILE__ ":" STR(__LINE__) " - " \
+              << iroha::vformat(forma, __VA_ARGS__) << "\n";  \
     return 1;                                                 \
   }
 #define CHECK_TRY_GET_VALUE(name, ...)                                \
   typename decltype(__VA_ARGS__)::ValueInnerType name;                \
   if (auto _tmp_gen_var = (__VA_ARGS__);                              \
       iroha::expected::hasError(_tmp_gen_var)) {                      \
-    fmt::print("ERROR in " __FILE__                                   \
-               ":" STR(__LINE__) " - {}. May be try --drop_state.\n", \
-               _tmp_gen_var.assumeError());                           \
+    std::cerr << std::format(                                       \
+        "ERROR in " __FILE__ ":" STR(__LINE__)                      \
+        " - {}. May be try --drop_state.\n",                        \
+        _tmp_gen_var.assumeError());                                 \
     return 1;                                                         \
   } else {                                                            \
     name = std::move(_tmp_gen_var.assumeValue());                     \
   }
 
 template <>
-struct fmt::formatter<DbError> {
-  constexpr auto parse(format_parse_context &ctx) {
+struct std::formatter<DbError> {
+  constexpr auto parse(std::format_parse_context &ctx) {
     return ctx.begin();
   }
   template <typename FormatContext>
-  auto format(const DbError &e, FormatContext &ctx) {
-    return format_to(ctx.out(), "{} (code:{})", e.description, e.code);
+  auto format(const DbError &e, FormatContext &ctx) const {
+    return std::format_to(ctx.out(), "{} (code:{})", e.description, e.code);
   }
 };
 template <>
-struct fmt::formatter<fs::path> {
-  constexpr auto parse(format_parse_context &ctx) {
+struct std::formatter<IrohadVersion> {
+  constexpr auto parse(std::format_parse_context &ctx) {
     return ctx.begin();
   }
   template <typename FormatContext>
-  auto format(const fs::path &p, FormatContext &ctx) {
-    return format_to(ctx.out(), "{}", p.string());
-  }
-};
-template <>
-struct fmt::formatter<IrohadVersion> {
-  constexpr auto parse(format_parse_context &ctx) {
-    return ctx.begin();
-  }
-  template <typename FormatContext>
-  auto format(const IrohadVersion &v, FormatContext &ctx) {
-    return format_to(ctx.out(), "{}#{}#{}", v.major, v.minor, v.patch);
-  }
-};
-template <typename O>
-struct fmt::formatter<std::optional<O>> {
-  constexpr auto parse(format_parse_context &ctx) {
-    return ctx.begin();
-  }
-  template <typename FormatContext>
-  auto format(const std::optional<O> &o, FormatContext &ctx) {
-    return o ? format_to(ctx.out(), "{}", *o)
-             : format_to(ctx.out(), "_nullopt_");
+  auto format(const IrohadVersion &v, FormatContext &ctx) const {
+    return std::format_to(ctx.out(), "{}#{}#{}", v.major, v.minor, v.patch);
   }
 };
 
@@ -161,11 +143,11 @@ int export_blocks(RocksDbCommon &rdbc) {
     CHECK_TRY_GET_VALUE(blkstr, forBlock(rdbc, count));
     assert(blkstr);
     auto outfilepath =
-        fs::absolute(FLAGS_export_to) / fmt::format("{:016}", count);
+        fs::absolute(FLAGS_export_to) / std::format("{:016}", count);
     auto ofs = ofstream(outfilepath);
-    CHECK_RETURN_FMT(ofs.is_open(), "Failed to open file '{}'", outfilepath);
+    CHECK_RETURN_FMT(ofs.is_open(), "Failed to open file '{}'", outfilepath.string());
     ofs << blkstr;
-    CHECK_RETURN_FMT(ofs.good(), "Failed to write to file '{}'", outfilepath);
+    CHECK_RETURN_FMT(ofs.good(), "Failed to write to file '{}'", outfilepath.string());
     --count;
   }
   cout << "Exported " << total << " blocks." << endl;
@@ -303,7 +285,7 @@ int main(int argc, char *argv[]) try {
                      "");
     auto full_rocksdb_path = fs::absolute(FLAGS_rocksdb_path);
     CHECK_RETURN_FMT(
-        fs::exists(full_rocksdb_path), "Path to RocksDB does not exist '{}'", full_rocksdb_path);
+        fs::exists(full_rocksdb_path), "Path to RocksDB does not exist '{}'", full_rocksdb_path.string());
     // ToDo do not mkdir for rocksdb - readonly!
     auto rdb_port = RdbConnectionInit::init(StartupWsvDataPolicy::kReuse,
                                             RocksDbOptions{FLAGS_rocksdb_path},
@@ -317,16 +299,16 @@ int main(int argc, char *argv[]) try {
   } else {
     auto full_blockstore_path = fs::absolute(FLAGS_block_store_path);
     CHECK_RETURN_FMT(
-        fs::exists(full_blockstore_path), "Path to block store does not exist '{}'", full_blockstore_path);
-    auto first_block_path = full_blockstore_path / fmt::format("{:016}", 1u);
+        fs::exists(full_blockstore_path), "Path to block store does not exist '{}'", full_blockstore_path.string());
+    auto first_block_path = full_blockstore_path / std::format("{:016}", 1u);
     CHECK_RETURN_FMT(fs::exists(first_block_path),
                      "No first block exists under path '{}'",
-                     first_block_path);
+                     first_block_path.string());
     auto wsv = restoreWsv();
     CHECK_RETURN_FMT(iroha::expected::hasValue(wsv), "{}", wsv.assumeError());
-    fmt::print(
-        "Success! WSV in RocksDB was build.\nNext step check consistency with "
-        "Postgres WSV using iroha_wsv_diff.\n");
+    std::cout << "Success! WSV in RocksDB was build.\n"
+                 "Next step check consistency with "
+                 "Postgres WSV using iroha_wsv_diff.\n";
     return 0;
   }
 } catch (std::exception const &ex) {

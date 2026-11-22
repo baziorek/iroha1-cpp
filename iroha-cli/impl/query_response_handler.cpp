@@ -55,7 +55,7 @@ namespace iroha_cli {
       (this->*it->second)(response);
     } else {
       log_->error("Response Handle {} not Implemented",
-                  response.response_case());
+                  static_cast<int>(response.response_case()));
     }
   }
 
@@ -98,7 +98,7 @@ namespace iroha_cli {
     } else {
       // Response of some other type received
       log_->error("Error Response Handle of type {} not Implemented",
-                  response.error_response().reason());
+                  static_cast<int>(response.error_response().reason()));
     }
   }
 

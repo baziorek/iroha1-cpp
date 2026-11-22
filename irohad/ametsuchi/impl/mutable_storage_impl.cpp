@@ -5,8 +5,7 @@
 
 #include "ametsuchi/impl/mutable_storage_impl.hpp"
 
-#include <fmt/core.h>
-#include <boost/variant/apply_visitor.hpp>
+#include <variant>
 #include <stdexcept>
 #include "ametsuchi/command_executor.hpp"
 #include "ametsuchi/impl/block_index_impl.hpp"
@@ -21,6 +20,7 @@
 #include "interfaces/iroha_internal/block.hpp"
 #include "logger/logger.hpp"
 #include "logger/logger_manager.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha::ametsuchi {
 
@@ -148,7 +148,7 @@ namespace iroha::ametsuchi {
     return block_storage_->forEach([&block_storage](auto const &block)
                                        -> expected::Result<void, std::string> {
       if (not block_storage.insert(block)) {
-        return fmt::format("Failed to insert block {}", *block);
+        return std::format("Failed to insert block {}", *block);
       }
       return {};
     }) | [this]()

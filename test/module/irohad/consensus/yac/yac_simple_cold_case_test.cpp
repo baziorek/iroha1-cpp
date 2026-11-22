@@ -112,7 +112,7 @@ TEST_F(YacTest, YacWhenColdStartAndAchieveCommitMessage) {
   auto commit_hash = *yac->onState(msg.votes);
   // verify that commit emitted
   ASSERT_EQ(propagated_hash,
-            boost::get<CommitMessage>(commit_hash).votes.at(0).hash);
+            std::get<CommitMessage>(commit_hash).votes.at(0).hash);
 }
 
 /**
@@ -143,7 +143,7 @@ TEST_F(YacTest, DISABLED_PropagateCommitBeforeNotifyingSubscribersApplyVote) {
     if (maybe_answer) {
       // verify that commits are already sent to the network
       ASSERT_EQ(default_peers.size(), messages.size());
-      messages.push_back(boost::get<CommitMessage>(*maybe_answer).votes);
+      messages.push_back(std::get<CommitMessage>(*maybe_answer).votes);
     }
   }
 
@@ -173,7 +173,7 @@ TEST_F(YacTest, PropagateCommitBeforeNotifyingSubscribersApplyReject) {
     auto vote = createVote(yac_hash, std::to_string(i));
     auto maybe_answer = yac->onState({vote});
     if (maybe_answer) {
-      messages.push_back(boost::get<CommitMessage>(*maybe_answer).votes);
+      messages.push_back(std::get<CommitMessage>(*maybe_answer).votes);
     }
     commit.push_back(vote);
   }
@@ -187,11 +187,11 @@ TEST_F(YacTest, PropagateCommitBeforeNotifyingSubscribersApplyReject) {
 
   auto maybe_answer = yac->onState(reject.votes);
   if (maybe_answer) {
-    messages.push_back(boost::get<CommitMessage>(*maybe_answer).votes);
+    messages.push_back(std::get<CommitMessage>(*maybe_answer).votes);
   }
   maybe_answer = yac->onState(commit);
   if (maybe_answer) {
-    messages.push_back(boost::get<CommitMessage>(*maybe_answer).votes);
+    messages.push_back(std::get<CommitMessage>(*maybe_answer).votes);
   }
 
   // verify that on_commit subscribers are notified
@@ -211,7 +211,7 @@ TEST_F(YacTest, Future) {
   EXPECT_CALL(*crypto, verify(_)).Times(1).WillRepeatedly(Return(true));
 
   auto message = *yac->onState({createVote(hash, "1")});
-  auto commit_message = boost::get<FutureMessage>(message);
+  auto commit_message = std::get<FutureMessage>(message);
   ASSERT_EQ(hash, commit_message.votes.at(0).hash);
 }
 

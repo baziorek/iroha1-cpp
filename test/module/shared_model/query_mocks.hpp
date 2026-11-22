@@ -25,7 +25,6 @@
 #include "interfaces/queries/get_transactions.hpp"
 #include "interfaces/queries/query.hpp"
 #include "interfaces/queries/query_payload_meta.hpp"
-#include "interfaces/queries/query_variant.hpp"
 #include "interfaces/queries/tx_pagination_meta.hpp"
 
 namespace shared_model {

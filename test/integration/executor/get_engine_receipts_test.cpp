@@ -10,7 +10,6 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <boost/format.hpp>
 #include <utility>
 #include "ametsuchi/burrow_storage.hpp"
 #include "ametsuchi/impl/block_index.hpp"

@@ -4,12 +4,13 @@
  */
 
 #include "main/application.hpp"
+#include "common/visitor.hpp"
 
 #include <civetweb.h>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <optional>
 
 #include "ametsuchi/impl/pool_wrapper.hpp"
@@ -1071,8 +1072,8 @@ namespace {
             round_switch.next_round, round_switch.ledger_state)) {
       auto round = [](auto &object) { return object.round; };
       context.log->info("Ignoring object with {} because {} is newer",
-                        std::visit(round, object),
-                        std::visit(round, *maybe_object));
+                        iroha::visit(round, object),
+                        iroha::visit(round, *maybe_object));
       return processGateObject(std::move(context), *maybe_object);
     }
     context.ordering_init->processRoundSwitch(round_switch);
@@ -1184,7 +1185,7 @@ Irohad::RunResult Irohad::run() {
   }
 
   auto &block =
-      boost::get<expected::ValueOf<decltype(block_var)>>(&block_var)->value;
+      iroha::expected::get<expected::ValueOf<decltype(block_var)>>(&block_var)->value;
   auto block_height = block->height();
 
   auto peers = storage->createPeerQuery() |
@@ -1233,7 +1234,7 @@ Irohad::RunResult Irohad::run() {
             auto round = [](auto &object) { return object.round; };
             context.log->info("Ignoring object with {} because {} is newer",
                               initial_round,
-                              std::visit(round, *maybe_object));
+                              iroha::visit(round, *maybe_object));
             return processGateObject(std::move(context), *maybe_object);
           }
           context.ordering_init->processRoundSwitch(round_switch);

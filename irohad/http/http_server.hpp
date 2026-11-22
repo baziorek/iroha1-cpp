@@ -9,11 +9,13 @@
 #include <functional>
 #include <list>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
 #include "common/common.hpp"
+#include "common/std_format.hpp"
 #include "logger/logger_fwd.hpp"
 
 struct mg_context;
@@ -77,5 +79,7 @@ namespace iroha::network {
   };
 
 }  // namespace iroha::network
+
+IROHA_STD_FORMATTER_TO_STRING(iroha::network::HttpServer::Options)
 
 #endif  // IROHA_HTTP_SERVER_HPP

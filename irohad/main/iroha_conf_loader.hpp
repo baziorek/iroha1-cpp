@@ -38,7 +38,7 @@ struct IrohadConfig {
     };
     struct FromWsv {};
     struct None {};
-    using PeerCertProvider = boost::variant<RootCert, FromWsv, None>;
+    using PeerCertProvider = std::variant<RootCert, FromWsv, None>;
 
     boost::optional<std::string> my_tls_creds_path;
     PeerCertProvider peer_certificates;

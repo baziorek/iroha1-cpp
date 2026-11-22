@@ -10,7 +10,7 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include "ametsuchi/tx_cache_response.hpp"
 #include "common/visitor.hpp"
-#include "interfaces/commands/command_variant.hpp"
+#include "interfaces/commands/command.hpp"
 #include "interfaces/commands/transfer_asset.hpp"
 #include "interfaces/iroha_internal/block.hpp"
 #include "logger/logger.hpp"

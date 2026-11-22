@@ -4,6 +4,7 @@
  */
 
 #include <gflags/gflags.h>
+#include <format>
 
 #include <algorithm>
 #include <filesystem>
@@ -154,9 +155,9 @@ expected::Result<void> initialize() try {
 #define STRX(x) #x
 #define STR(x) STRX(x)
 #define PRINT_NAME_HAVE_DIFFERENT(name, x, y) \
-  fmt::print(name " have different " STR(x) ": '{}' and '{}'\n", (x), (y))
+  std::cout << std::format(name " have different " STR(x) ": '{}' and '{}'\n", (x), (y))
 #define TYPES_PRINT_NAME_HAVE_DIFFERENT(type, name, x, y)               \
-  fmt::print(type "-s '{}' have different " STR(x) ": '{}' and '{}'\n", \
+  std::cout << std::format(type "-s '{}' have different " STR(x) ": '{}' and '{}'\n", \
              (name),                                                    \
              (x),                                                       \
              (y))
@@ -194,7 +195,7 @@ expected::Result<void> initialize() try {
   if (not xequal((x), (y), [](auto const &l, auto const &r) { \
         return l.check_equals(r);                             \
       })) {                                                   \
-    fmt::print(type "-s have different " STR(x) ".\n");       \
+    std::cout << std::format(type "-s have different " STR(x) ".\n");       \
     checked_result = false;                                   \
   }
 #define COUNT_INEQUALITIES(type, name, x, y)                 \
@@ -232,13 +233,13 @@ struct short_string {
   }
 };
 template <>
-struct fmt::formatter<short_string> {
-  constexpr auto parse(format_parse_context &ctx) {
+struct std::formatter<short_string> {
+  constexpr auto parse(std::format_parse_context &ctx) {
     return ctx.begin();
   }
   template <typename FormatContext>
-  auto format(const short_string &s, FormatContext &ctx) {
-    return format_to(ctx.out(), "{}{}", s.sstr, s.dots);
+  auto format(const short_string &s, FormatContext &ctx) const {
+    return std::format_to(ctx.out(), "{}{}", s.sstr, s.dots);
   }
 };
 
@@ -388,13 +389,13 @@ struct GrantablePermissions {
   }
 };
 template <>
-struct fmt::formatter<GrantablePermissions> {
-  constexpr auto parse(format_parse_context &ctx) {
+struct std::formatter<GrantablePermissions> {
+  constexpr auto parse(std::format_parse_context &ctx) {
     return ctx.begin();
   }
   template <typename FormatContext>
-  auto format(const GrantablePermissions &gp, FormatContext &ctx) {
-    return format_to(
+  auto format(const GrantablePermissions &gp, FormatContext &ctx) const {
+    return std::format_to(
         ctx.out(), "{{{}:{}}}", gp.permittee_account_id, gp.permission_bits);
   }
 };
@@ -432,14 +433,14 @@ struct Account {
     bool checked_result = true;
     int inequalities_counter = 0;
     if (name != o.name) {
-      fmt::print("Accounts have different name: '{}' and '{}'\n", name, o.name);
+      std::cout << std::format("Accounts have different name: '{}' and '{}'\n", name, o.name);
       ++inequalities_counter;
       return false;
     }
     CHECK_EQUALS_JSON("Accounts", name, details_json, o.details_json)
     CHECK_EQUALS_NAMED("Accounts", name, quorum, o.quorum)
     if (assetsquantity.size() != o.assetsquantity.size()) {
-      fmt::print(
+      std::cout << std::format(
           "Accounts '{}' have different sizes of assetsquantity: '{}' and "
           "'{}'\n",
           name,
@@ -452,14 +453,14 @@ struct Account {
             assetsquantity, o.assetsquantity, [](auto const &l, auto const &r) {
               return l.check_equals(r);
             })) {
-      fmt::print("Accounts '{}' have different assetsquantity\n", name);
+      std::cout << std::format("Accounts '{}' have different assetsquantity\n", name);
       ++inequalities_counter;
       return false;
     }
     if (not xequal(
             signatories, o.signatories, [&](auto const &l, auto const &r) {
               if (l != r) {
-                fmt::print(
+                std::cout << std::format(
                     "Accounts '{}' have different signatories '{}' and '{}'\n",
                     name,
                     l,
@@ -468,12 +469,12 @@ struct Account {
               }
               return true;
             })) {
-      fmt::print("Accounts '{}' have different signatories.\n", name);
+      std::cout << std::format("Accounts '{}' have different signatories.\n", name);
       ++inequalities_counter;
     }
     if (not xequal(roles, o.roles, [&](auto const &l, auto const &r) {
           if (l != r) {
-            fmt::print("Accounts '{}' have different roles '{}' and '{}'\n",
+            std::cout << std::format("Accounts '{}' have different roles '{}' and '{}'\n",
                        name,
                        l,
                        r);
@@ -481,14 +482,14 @@ struct Account {
           }
           return true;
         })) {
-      fmt::print("Accounts '{}' have different roles.\n", name);
+      std::cout << std::format("Accounts '{}' have different roles.\n", name);
       ++inequalities_counter;
     }
     if (not xequal(grantable_permissions,
                    o.grantable_permissions,
                    [&](auto const &l, auto const &r) {
                      if (l != r) {
-                       fmt::print(
+                       std::cout << std::format(
                            "Accounts '{}' have different grantable_permissions "
                            "'{}' and '{}'\n",
                            name,
@@ -498,7 +499,7 @@ struct Account {
                      }
                      return true;
                    })) {
-      fmt::print(
+      std::cout << std::format(
           "Accounts '{}' have different grantable_permissions: sizes are {} "
           "and {}\n",
           name,
@@ -549,7 +550,7 @@ struct Domain {
             begin(other.accounts),
             end(other.accounts),
             [](auto const &l, auto const &r) { return l.check_equals(r); })) {
-      fmt::print("Domains '{}' have different accounts.\n", name);
+      std::cout << std::format("Domains '{}' have different accounts.\n", name);
       return false;
     }
     if (not std::equal(
@@ -558,7 +559,7 @@ struct Domain {
             begin(other.assets_precision),
             end(other.assets_precision),
             [](auto const &l, auto const &r) { return l.check_equals(r); })) {
-      fmt::print("Domains '{}' have different assets_precision.\n", name);
+      std::cout << std::format("Domains '{}' have different assets_precision.\n", name);
       return false;
     }
     return true;
@@ -810,7 +811,7 @@ bool Wsv::from_rocksdb(RocksDbCommon &rdbc) {
               // This is to validate DB layout
               key = {};
             } else {
-              fmt::print("Wrong RocksDB layout: unexpected key '{}'\n",
+              std::cout << std::format("Wrong RocksDB layout: unexpected key '{}'\n",
                          string_view(it->key().data() + key_sz,
                                      it->key().size() - key_sz));
               std::abort();
@@ -823,7 +824,7 @@ bool Wsv::from_rocksdb(RocksDbCommon &rdbc) {
             // This is to validate DB layout
             key = {};
           } else {
-            fmt::print("Wrong RocksDB layout: unexpected key '{}'\n",
+            std::cout << std::format("Wrong RocksDB layout: unexpected key '{}'\n",
                        string_view(it->key().data() + key_sz,
                                    it->key().size() - key_sz));
             std::abort();
@@ -906,7 +907,9 @@ bool Wsv::from_postgres(soci::session &sql) {
     assert(inserted && "Domain was not inserted");
   }
 
-  rs = (sql.prepare << "SELECT * FROM role_has_permissions");
+  rs = (sql.prepare
+        << "SELECT role_id, permission::text AS permission "
+           "FROM role_has_permissions");
   for (auto &r : rs) {
     auto const inserted [[maybe_unused]] =
         roles.insert(Role::from_soci_row(r)).second;
@@ -979,7 +982,10 @@ bool Wsv::from_postgres(soci::session &sql) {
            && "Role was not inserted to domains[id].accounts[id].roles");
   }
 
-  rs = (sql.prepare << "SELECT * FROM account_has_grantable_permissions");
+  rs = (sql.prepare
+        << "SELECT permittee_account_id, account_id, "
+           "permission::text AS permission "
+           "FROM account_has_grantable_permissions");
   for (auto &r : rs) {
     std::string permitter_account_id;
     GrantablePermissions gp;
@@ -987,7 +993,7 @@ bool Wsv::from_postgres(soci::session &sql) {
     auto &acc = find_account_by_id(permitter_account_id);
     auto [it_gp, inserted] = acc.grantable_permissions.insert(gp);
     if (!inserted) {
-      fmt::print("--gp {} already exist in acc {}: {}\n",
+      std::cout << std::format("--gp {} already exist in acc {}: {}\n",
                  gp,
                  permitter_account_id,
                  *it_gp);

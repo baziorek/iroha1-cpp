@@ -60,7 +60,7 @@ grpc::Status BlockLoaderService::retrieveBlocks(
     }
 
     auto &block =
-        boost::get<
+        iroha::expected::get<
             expected::Value<std::unique_ptr<shared_model::interface::Block>>>(
             block_result)
             .value;
@@ -121,7 +121,7 @@ grpc::Status BlockLoaderService::retrieveBlock(
   }
 
   auto &block =
-      boost::get<expected::ValueOf<decltype(block_result)>>(block_result).value;
+      iroha::expected::get<expected::ValueOf<decltype(block_result)>>(block_result).value;
 
   const auto &block_v1 =
       static_cast<shared_model::proto::Block *>(block.get())->getTransport();

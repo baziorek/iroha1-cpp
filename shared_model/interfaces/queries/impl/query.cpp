@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "interfaces/queries/query_variant.hpp"
 
+#include "interfaces/queries/query.hpp"
+#include "common/visitor.hpp"
 #include "interfaces/queries/get_account.hpp"
 #include "interfaces/queries/get_account_asset_transactions.hpp"
 #include "interfaces/queries/get_account_assets.hpp"
@@ -22,15 +23,6 @@
 #include "interfaces/queries/query_payload_meta.hpp"
 #include "utils/visitor_apply_for_all.hpp"
 
-using Variant = shared_model::interface::Query::QueryVariantType;
-template Variant::~variant();
-template Variant::variant(Variant &&);
-template bool Variant::operator==(const Variant &) const;
-template void Variant::destroy_content() noexcept;
-template int Variant::which() const noexcept;
-template void Variant::indicate_which(int) noexcept;
-template bool Variant::using_backup() const noexcept;
-template Variant::convert_copy_into::convert_copy_into(void *) noexcept;
 
 namespace shared_model {
   namespace interface {
@@ -41,7 +33,7 @@ namespace shared_model {
           .appendNamed("creatorId", creatorAccountId())
           .appendNamed("queryCounter", queryCounter())
           .append(Signable::toString())
-          .append(boost::apply_visitor(detail::ToStringVisitor(), get()))
+          .append(iroha::visit(detail::ToStringVisitor(), get()))
           .finalize();
     }
 

@@ -5,6 +5,8 @@
 
 #include "ametsuchi/impl/postgres_query_executor.hpp"
 
+#include <soci/boost-optional.h>
+
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/size.hpp>
 #include "ametsuchi/specific_query_executor.hpp"

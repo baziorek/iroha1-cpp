@@ -19,6 +19,7 @@
 #include "logger/logger.hpp"
 #include "logger/logger_manager.hpp"
 #include "main/subscription.hpp"
+#include "common/std_format.hpp"
 
 namespace iroha::ametsuchi {
 
@@ -112,7 +113,7 @@ namespace iroha::ametsuchi {
     for (auto height = old_height + 1; height <= new_height; ++height) {
       auto maybe_block = blockStore()->fetch(height);
       if (not maybe_block) {
-        return fmt::format("Failed to fetch block {}", height);
+        return std::format("Failed to fetch block {}", height);
       }
       callback_(*std::move(maybe_block));
     }
@@ -160,7 +161,7 @@ namespace iroha::ametsuchi {
 
     try {
       if (not blockStore()->insert(block)) {
-        return fmt::format("Failed to insert block {}", *block);
+        return std::format("Failed to insert block {}", *block);
       }
 
       db_context.commitPrepared(prepared_block_name_);
@@ -193,7 +194,7 @@ namespace iroha::ametsuchi {
                                               block->hash()));
       return expected::makeValue(ledgerState().value());
     } catch (const std::exception &e) {
-      std::string msg(fmt::format("failed to apply prepared block {}: {}",
+      std::string msg(std::format("failed to apply prepared block {}: {}",
                                   block->hash().hex(),
                                   e.what()));
       return expected::makeError(msg);

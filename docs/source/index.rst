@@ -22,6 +22,9 @@ You can download the source code of Hyperledger Iroha and latest releases from `
 
 This documentation will guide you through the installation, deployment, and launch of Iroha network, and explain to you how to write an application for it. We will also see which use case scenarios are feasible now, and are going to be implemented in the future.
 
+.. note::
+    You are reading the documentation of the `iroha1-cpp <https://github.com/baziorek/iroha1-cpp>`_ community fork, which keeps Iroha v1 buildable and maintained. It is **more up-to-date** than the official ReadTheDocs documentation at `iroha.readthedocs.io <https://iroha.readthedocs.io/>`_, which is no longer updated for Iroha v1.
+
 As Hyperledger Iroha is an open-source project, we will also cover contribution part and explain you a working process.
 
 .. toctree::

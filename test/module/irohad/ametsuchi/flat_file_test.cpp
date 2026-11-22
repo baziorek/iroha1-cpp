@@ -6,8 +6,8 @@
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <filesystem>
+#include <fstream>
 #include "common/byteutils.hpp"
 #include "common/files.hpp"
 #include "framework/result_gtest_checkers.hpp"
@@ -15,7 +15,7 @@
 #include "logger/logger.hpp"
 
 using namespace iroha::ametsuchi;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using Identifier = FlatFile::Identifier;
 
 class BlStore_Test : public ::testing::Test {
@@ -28,7 +28,7 @@ class BlStore_Test : public ::testing::Test {
     fs::remove_all(block_store_path);
   }
   std::string block_store_path =
-      (fs::temp_directory_path() / fs::unique_path()).string();
+      (fs::temp_directory_path() / iroha::unique_path()).string();
 
   std::vector<uint8_t> block;
   logger::LoggerPtr flat_file_log_ = getTestLogger("FlatFile");

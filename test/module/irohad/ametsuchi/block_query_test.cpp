@@ -5,7 +5,8 @@
 
 #include "ametsuchi/impl/postgres_block_query.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+#include <fstream>
 #include "ametsuchi/impl/block_index_impl.hpp"
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 #include "ametsuchi/impl/flat_file_block_storage_factory.hpp"
@@ -187,12 +188,12 @@ TEST_F(BlockQueryTest, GetZeroBlock) {
  * @then get no blocks
  */
 TEST_F(BlockQueryTest, GetBlockButItIsNotJSON) {
-  namespace fs = boost::filesystem;
+  namespace fs = std::filesystem;
   size_t block_n = 1;
 
   // write something that is NOT JSON to block #1
   auto block_path = fs::path{block_store_path} / FlatFile::id_to_name(block_n);
-  fs::ofstream block_file(block_path);
+  std::ofstream block_file(block_path);
   std::string content = R"(this is definitely not json)";
   block_file << content;
   block_file.close();
@@ -216,12 +217,12 @@ TEST_F(BlockQueryTest, GetBlockButItIsNotJSON) {
  * @then get no blocks
  */
 TEST_F(BlockQueryTest, GetBlockButItIsInvalidBlock) {
-  namespace fs = boost::filesystem;
+  namespace fs = std::filesystem;
   size_t block_n = 1;
 
   // write bad block instead of block #1
   auto block_path = fs::path{block_store_path} / FlatFile::id_to_name(block_n);
-  fs::ofstream block_file(block_path);
+  std::ofstream block_file(block_path);
   std::string content = R"({
   "testcase": [],
   "description": "make sure this is valid json, but definitely not a block"

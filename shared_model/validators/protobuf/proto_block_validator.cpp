@@ -7,11 +7,11 @@
 
 #include <ciso646>
 
-#include <fmt/core.h>
 #include <boost/range/adaptor/indexed.hpp>
 #include "block.pb.h"
 #include "validators/validation_error_helpers.hpp"
 #include "validators/validators_common.hpp"
+#include "common/std_format.hpp"
 
 namespace shared_model::validation {
   std::optional<ValidationError> ProtoBlockValidator::validate(
@@ -37,7 +37,7 @@ namespace shared_model::validation {
          payload.rejected_transactions_hashes() | boost::adaptors::indexed(1)) {
       if (not validateHexString(hash.value())) {
         error_creator.addChildError(ValidationError{
-            fmt::format(
+            std::format(
                 "Rejected transaction hash #{} {}", hash.index(), hash.value()),
             {"Not a hex string."}});
       }

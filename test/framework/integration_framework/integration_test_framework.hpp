@@ -6,7 +6,9 @@
 #ifndef IROHA_INTEGRATION_FRAMEWORK_HPP
 #define IROHA_INTEGRATION_FRAMEWORK_HPP
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <chrono>
 #include <condition_variable>
 #include <map>
@@ -146,11 +148,11 @@ namespace integration_framework {
         milliseconds block_waiting = milliseconds(20000),
         milliseconds tx_response_waiting_ms = milliseconds(10000),
         logger::LoggerManagerTreePtr log_manager = getDefaultItfLogManager(),
-        std::string db_wsv_path = (boost::filesystem::temp_directory_path()
-                                   / boost::filesystem::unique_path())
+        std::string db_wsv_path = (std::filesystem::temp_directory_path()
+                                   / iroha::unique_path())
                                       .string(),
-        std::string db_store_path = (boost::filesystem::temp_directory_path()
-                                     / boost::filesystem::unique_path())
+        std::string db_store_path = (std::filesystem::temp_directory_path()
+                                     / iroha::unique_path())
                                         .string());
 
     ~IntegrationTestFramework();

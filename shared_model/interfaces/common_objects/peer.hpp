@@ -7,6 +7,7 @@
 #define IROHA_SHARED_MODEL_PEER_HPP
 
 #include "interfaces/base/model_primitive.hpp"
+#include "common/std_format.hpp"
 #include "interfaces/common_objects/types.hpp"
 
 #include <optional>
@@ -46,5 +47,7 @@ namespace shared_model {
     };
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::Peer)
 
 #endif  // IROHA_SHARED_MODEL_PEER_HPP

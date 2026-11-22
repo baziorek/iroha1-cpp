@@ -7,7 +7,8 @@
 #define IROHA_SHARED_MODEL_TRANSACTION_VALIDATOR_HPP
 
 #include <boost/range/adaptor/indexed.hpp>
-#include <boost/variant.hpp>
+#include "common/visitor.hpp"
+#include <variant>
 
 #include "common/bind.hpp"
 #include "interfaces/commands/add_asset_quantity.hpp"
@@ -48,8 +49,7 @@ namespace shared_model {
      * so copy constructor and assignment operator are disabled explicitly
      */
     template <typename FieldValidator>
-    class CommandValidatorVisitor
-        : public boost::static_visitor<std::optional<ValidationError>> {
+    class CommandValidatorVisitor {
       CommandValidatorVisitor(FieldValidator validator)
           : validator_(std::move(validator)) {}
 
@@ -299,7 +299,7 @@ namespace shared_model {
         };
 
         for (auto cmd : tx.commands() | boost::adaptors::indexed(1)) {
-          boost::apply_visitor(command_validator_visitor_, cmd.value().get()) |
+          iroha::visit(command_validator_visitor_, cmd.value().get()) |
               [&cmd, &error_creator](auto error) {
                 error_creator.addChildError(ValidationError{
                     std::string{"Command #"} + std::to_string(cmd.index()),

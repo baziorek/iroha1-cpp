@@ -8,7 +8,6 @@ add_library(logger
     logger_spdlog.cpp
 )
 target_link_libraries(logger
-    fmt::fmt
     spdlog::spdlog
     Boost::boost
 )

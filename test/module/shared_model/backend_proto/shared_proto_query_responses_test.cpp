@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <boost/range/algorithm/for_each.hpp>
 #include <boost/range/irange.hpp>
-#include <boost/variant.hpp>
+#include <variant>
 #include "common/byteutils.hpp"
 #include "cryptography/hash.hpp"
 #include "interfaces/query_responses/error_query_response.hpp"
@@ -33,7 +33,7 @@ TEST(QueryResponse, QueryResponseLoad) {
         &response, refl->GetMessage(response, field).New(), field);
     shared_model::proto::QueryResponse shared_response{
         iroha::protocol::QueryResponse{response}};
-    ASSERT_EQ(i, shared_response.get().which());
+    ASSERT_EQ(i, shared_response.get().index());
     ASSERT_EQ(shared_response.queryHash(), shared_model::crypto::Hash(hash));
   });
 }
@@ -64,10 +64,10 @@ TEST(QueryResponse, ErrorResponseLoad) {
         ASSERT_NO_THROW({
           ASSERT_EQ(
               i,
-              boost::get<const shared_model::interface::ErrorQueryResponse &>(
-                  shared_response.get())
+              std::get<std::reference_wrapper<const shared_model::interface::ErrorQueryResponse>>(
+                  shared_response.get()).get()
                   .get()
-                  .which());
+                  .index());
           ASSERT_EQ(shared_response.queryHash(),
                     shared_model::crypto::Hash(hash));
         });

@@ -6,14 +6,15 @@
 #ifndef IROHA_QUERY_ERROR_RESPONSE_VISITOR_HPP
 #define IROHA_QUERY_ERROR_RESPONSE_VISITOR_HPP
 
-#include <boost/variant.hpp>
 #include "common/visitor.hpp"
 #include "interfaces/query_responses/error_query_response.hpp"
+
+#include <variant>
 
 namespace shared_model {
   namespace interface {
     template <typename Error>
-    class QueryErrorResponseChecker : public boost::static_visitor<bool> {
+    class QueryErrorResponseChecker {
      public:
       bool operator()(
           const shared_model::interface::ErrorQueryResponse &status) const {
@@ -30,7 +31,7 @@ namespace shared_model {
 
     template <typename Error, typename QueryVariant>
     bool checkForQueryError(QueryVariant &&query) {
-      return boost::apply_visitor(
+      return iroha::visit(
           shared_model::interface::QueryErrorResponseChecker<Error>(),
           std::forward<QueryVariant>(query));
     }

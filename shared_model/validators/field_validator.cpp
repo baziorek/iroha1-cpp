@@ -8,9 +8,7 @@
 #include <limits>
 #include <string_view>
 
-#include <fmt/core.h>
 #include <boost/algorithm/string_regex.hpp>
-#include <boost/format.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include "common/bind.hpp"
 #include "cryptography/crypto_provider/crypto_verifier.hpp"
@@ -27,6 +25,7 @@
 #include "interfaces/queries/tx_pagination_meta.hpp"
 #include "validators/field_validator.hpp"
 #include "validators/validation_error_helpers.hpp"
+#include "common/std_format.hpp"
 
 // TODO: 15.02.18 nickaleks Change structure to compositional IR-978
 
@@ -52,7 +51,7 @@ namespace {
       if (not std::regex_match(value.begin(), value.end(), regex_)) {
         return shared_model::validation::ValidationError(
             name_,
-            {fmt::format("passed value: '{}' does not match regex '{}'.{}",
+            {std::format("passed value: '{}' does not match regex '{}'.{}",
                          value,
                          pattern_,
                          format_description_)});
@@ -87,7 +86,7 @@ namespace {
       R"#((6553[0-5]|655[0-2]\d|65[0-4]\d\d|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3}|0)$)#"};
   const RegexValidator kPeerAddressValidator{
       "PeerAddress",
-      fmt::format("(({})|({})):{}",
+      std::format("(({})|({})):{}",
                   kIpV4Pattern,
                   kDomainValidator.getPattern(),
                   kPortPattern),
@@ -111,11 +110,11 @@ namespace {
       "Hex", R"#(([0-9a-fA-F][0-9a-fA-F])*)#", "Hex encoded string expected"};
   const RegexValidator kPublicKeyHexValidator{
       "PublicKeyHex",
-      fmt::format("[A-Fa-f0-9]{{1,{}}}",
+      std::format("[A-Fa-f0-9]{{1,{}}}",
                   shared_model::crypto::CryptoVerifier::kMaxPublicKeySize * 2)};
   const RegexValidator kSignatureHexValidator{
       "SignatureHex",
-      fmt::format("[A-Fa-f0-9]{{1,{}}}",
+      std::format("[A-Fa-f0-9]{{1,{}}}",
                   shared_model::crypto::CryptoVerifier::kMaxSignatureSize * 2)};
   const RegexValidator kEvmAddressValidator{
       "EvmHexAddress",
@@ -144,7 +143,7 @@ namespace shared_model {
       if (description.size() > kMaxDescriptionSize) {
         return ValidationError(
             "Description",
-            {fmt::format("Size should be less or equal '{}'.",
+            {std::format("Size should be less or equal '{}'.",
                          kMaxDescriptionSize)});
       }
       return std::nullopt;
@@ -231,7 +230,7 @@ namespace shared_model {
       if (value.size() > value_size) {
         return ValidationError(
             "AccountDetailValue",
-            {fmt::format(
+            {std::format(
                 "Detail value size should be less or equal '{}' characters",
                 value_size)});
       }
@@ -301,12 +300,12 @@ namespace shared_model {
       if (now + future_gap_ < timestamp) {
         return ValidationError(
             "CreatedTime",
-            {fmt::format(
+            {std::format(
                 "sent from future, timestamp: {}, now: {}", timestamp, now)});
       } else if (now > max_delay_.count() + timestamp) {
         return ValidationError(
             "CreatedTime",
-            {fmt::format("too old, timestamp: {}, now: {}", timestamp, now)});
+            {std::format("too old, timestamp: {}, now: {}", timestamp, now)});
       }
       return std::nullopt;
     }
@@ -321,7 +320,7 @@ namespace shared_model {
       if (counter <= 0) {
         return ValidationError(
             "Counter",
-            {fmt::format("Counter should be > 0, passed value: {}", counter)});
+            {std::format("Counter should be > 0, passed value: {}", counter)});
       }
       return std::nullopt;
     }
@@ -360,7 +359,7 @@ namespace shared_model {
         }
         error_creator |= std::move(sig_error_creator)
                              .getValidationErrorWithGeneratedName([&] {
-                               return fmt::format("Signature #{} ({})",
+                               return std::format("Signature #{} ({})",
                                                   signature.index(),
                                                   signature.value().toString());
                              });
@@ -383,7 +382,7 @@ namespace shared_model {
       if (height <= 0) {
         return ValidationError(
             "Height",
-            {fmt::format("Should be > 0, passed value: {}.", height)});
+            {std::format("Should be > 0, passed value: {}.", height)});
       }
       return std::nullopt;
     }
@@ -393,7 +392,7 @@ namespace shared_model {
       if (hash.size() != hash_size) {
         return ValidationError(
             "Hash",
-            {fmt::format(
+            {std::format(
                 "Invalid size: {}, should be {}.", hash.size(), hash_size)});
       }
       return std::nullopt;
@@ -408,7 +407,7 @@ namespace shared_model {
       if (page_size <= 0) {
         return ValidationError(
             "PageSize",
-            {fmt::format("Passed value is {} ({}), while it must be a non-zero "
+            {std::format("Passed value is {} ({}), while it must be a non-zero "
                          "positive.",
                          (page_size == 0 ? "zero" : "negative"),
                          page_size)});
@@ -431,12 +430,12 @@ namespace shared_model {
 
         if (entry.field >= Field::kMaxValueCount) {
           return ValidationError(
-              "Ordering", {fmt::format("Passed field value is unknown.")});
+              "Ordering", {std::format("Passed field value is unknown.")});
         }
 
         if (entry.direction >= Direction::kMaxValueCount) {
           return ValidationError(
-              "Ordering", {fmt::format("Passed direction value is unknown")});
+              "Ordering", {std::format("Passed direction value is unknown")});
         }
       }
       return std::nullopt;

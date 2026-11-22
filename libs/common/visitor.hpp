@@ -6,11 +6,75 @@
 #ifndef IROHA_VISITOR_HPP
 #define IROHA_VISITOR_HPP
 
-#include <boost/variant/apply_visitor.hpp>  // for boost::apply_visitor
-#include <type_traits>                      // for std::decay
-#include <utility>                          // for std::forward
+#include <functional>  // for std::reference_wrapper
+#include <memory>      // for std::addressof
+#include <type_traits>  // for std::decay
+#include <utility>      // for std::forward
+#include <variant>      // for std::visit
 
 namespace iroha {
+
+  namespace detail {
+    template <typename T>
+    struct is_reference_wrapper : std::false_type {};
+
+    template <typename T>
+    struct is_reference_wrapper<std::reference_wrapper<T>>
+        : std::true_type {};
+
+    template <typename T>
+    inline constexpr bool is_reference_wrapper_v =
+        is_reference_wrapper<std::remove_cv_t<std::remove_reference_t<T>>>::
+            value;
+
+    /**
+     * @brief Visitor adapter which unwraps std::reference_wrapper
+     * alternatives before invoking the wrapped visitor, so visitors observe
+     * the referred objects (like boost::variant of references did) instead
+     * of the wrapper itself.
+     */
+    template <typename Visitor>
+    struct unwrap_reference_wrapper_visitor {
+      Visitor visitor;
+
+      template <typename T>
+      decltype(auto) operator()(std::reference_wrapper<T> wrapped) {
+        return visitor(wrapped.get());
+      }
+
+      template <typename T>
+      requires(not is_reference_wrapper_v<T>)
+      decltype(auto) operator()(T &&value) {
+        return visitor(std::forward<T>(value));
+      }
+    };
+  }  // namespace detail
+
+  /**
+   * @brief std::visit which additionally unwraps std::reference_wrapper
+   * variant alternatives before calling the visitor.
+   */
+  template <typename Visitor, typename... Variants>
+  constexpr decltype(auto) visit(Visitor &&visitor, Variants &&...variants) {
+    return std::visit(
+        detail::unwrap_reference_wrapper_visitor<
+            std::remove_reference_t<Visitor>>{std::forward<Visitor>(visitor)},
+        std::forward<Variants>(variants)...);
+  }
+
+  /**
+   * @brief Pointer-based accessor for variants holding
+   * std::reference_wrapper<const T> alternatives. Returns a pointer to the
+   * referred object, or nullptr if the variant does not hold T.
+   */
+  template <typename T, typename Variant>
+  constexpr const T *get_wrapped(const Variant *variant) noexcept {
+    if (auto wrapped =
+            std::get_if<std::reference_wrapper<const T>>(variant)) {
+      return std::addressof(wrapped->get());
+    }
+    return nullptr;
+  }
 
   template <typename... Lambdas>
   struct lambda_visitor;
@@ -44,7 +108,7 @@ namespace iroha {
    * is essentially the same as
    *
    * @code
-   * struct visitor : public boost::static_visitor<int> {
+   * struct visitor {
    *   int operator()(int a) { return 1; }
    *   int operator()(std::string b) { return 2; }
    * }
@@ -60,9 +124,9 @@ namespace iroha {
   }
 
   /**
-   * @brief Inplace visitor for boost::variant.
+   * @brief Inplace visitor for std::variant.
    * @code
-   *   boost::variant<int, std::string> value = "1234";
+   *   std::variant<int, std::string> value = "1234";
    *   ...
    *   visit_in_place(value,
    *                  [](int v) { std::cout << "(int)" << v; },
@@ -77,9 +141,8 @@ namespace iroha {
   template <typename TVariant, typename... TVisitors>
   constexpr decltype(auto) visit_in_place(TVariant &&variant,
                                           TVisitors &&... visitors) {
-    return boost::apply_visitor(
-        make_visitor(std::forward<TVisitors>(visitors)...),
-        std::forward<TVariant>(variant));
+    return iroha::visit(make_visitor(std::forward<TVisitors>(visitors)...),
+                        std::forward<TVariant>(variant));
   }
 
   /// apply Matcher to optional T

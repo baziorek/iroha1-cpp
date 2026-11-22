@@ -5,12 +5,13 @@
 
 #include "ametsuchi/impl/flat_file/flat_file.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <ciso646>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -24,6 +25,7 @@
 // clang-format off
 #include <windows.h>
 #include <fileapi.h>
+#include "common/std_format.hpp"
 // clang-format on
 #endif
 
@@ -56,10 +58,10 @@ boost::optional<Identifier> FlatFile::name_to_id(const std::string &name) {
 
 iroha::expected::Result<std::unique_ptr<FlatFile>, std::string>
 FlatFile::create(const std::string &path, logger::LoggerPtr log) {
-  boost::system::error_code err;
-  if (not boost::filesystem::is_directory(path, err)
-      and not boost::filesystem::create_directory(path, err)) {
-    return fmt::format(
+  std::error_code err;
+  if (not std::filesystem::is_directory(path, err)
+      and not std::filesystem::create_directory(path, err)) {
+    return std::format(
         "Cannot create storage dir '{}': {}", path, err.message());
   }
 
@@ -69,13 +71,13 @@ FlatFile::create(const std::string &path, logger::LoggerPtr log) {
 bool FlatFile::add(Identifier id, const Bytes &block) {
   // TODO(x3medima17): Change bool to generic Result return type
 
-  const auto tmp_file_name = boost::filesystem::path{dump_dir_}
+  const auto tmp_file_name = std::filesystem::path{dump_dir_}
       / (id_to_name(id) + kTempFileExtension);
-  const auto file_name = boost::filesystem::path{dump_dir_} / id_to_name(id);
+  const auto file_name = std::filesystem::path{dump_dir_} / id_to_name(id);
 
   // Write block to binary file
-  if (boost::filesystem::exists(tmp_file_name)
-      || boost::filesystem::exists(file_name)) {
+  if (std::filesystem::exists(tmp_file_name)
+      || std::filesystem::exists(file_name)) {
     // File already exist
     log_->warn("insertion for {} failed, because file already exists", id);
     return false;
@@ -118,9 +120,9 @@ bool FlatFile::add(Identifier id, const Bytes &block) {
 
   file->close();
 
-  boost::system::error_code error_code;
-  boost::filesystem::rename(tmp_file_name, file_name, error_code);
-  if (error_code != boost::system::errc::success) {
+  std::error_code error_code;
+  std::filesystem::rename(tmp_file_name, file_name, error_code);
+  if (static_cast<bool>(error_code)) {
     log_->error(
         "insertion for {} failed, because {}", id, error_code.message());
     return false;
@@ -132,8 +134,8 @@ bool FlatFile::add(Identifier id, const Bytes &block) {
 
 boost::optional<FlatFile::Bytes> FlatFile::get(Identifier id) const {
   const auto filename =
-      boost::filesystem::path{dump_dir_} / FlatFile::id_to_name(id);
-  if (not boost::filesystem::exists(filename)) {
+      std::filesystem::path{dump_dir_} / FlatFile::id_to_name(id);
+  if (not std::filesystem::exists(filename)) {
     log_->info("get({}) file not found", id);
     return boost::none;
   }
@@ -151,8 +153,8 @@ Identifier FlatFile::last_id() const {
 
 void FlatFile::reload() {
   available_blocks_.clear();
-  for (auto it = boost::filesystem::directory_iterator{dump_dir_};
-       it != boost::filesystem::directory_iterator{};
+  for (auto it = std::filesystem::directory_iterator{dump_dir_};
+       it != std::filesystem::directory_iterator{};
        ++it) {
     // skip non-block files
     if (!std::regex_match(it->path().filename().string(),
@@ -162,7 +164,7 @@ void FlatFile::reload() {
     if (auto id = FlatFile::name_to_id(it->path().filename().string())) {
       available_blocks_.insert(*id);
     } else {
-      boost::filesystem::remove(it->path());
+      std::filesystem::remove(it->path());
     }
   }
 }

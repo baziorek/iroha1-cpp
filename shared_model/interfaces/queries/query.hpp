@@ -6,7 +6,8 @@
 #ifndef IROHA_SHARED_MODEL_QUERY_HPP
 #define IROHA_SHARED_MODEL_QUERY_HPP
 
-#include <boost/variant/variant_fwd.hpp>
+#include <functional>
+#include <variant>
 #include "interfaces/base/signable.hpp"
 #include "interfaces/common_objects/types.hpp"
 
@@ -37,7 +38,7 @@ namespace shared_model {
      private:
       /// Shortcut type for const reference
       template <typename... Value>
-      using wrap = boost::variant<const Value &...>;
+      using wrap = std::variant<std::reference_wrapper<const Value>...>;
 
      public:
       /// Type of variant, that handle concrete query

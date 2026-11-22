@@ -1,4 +1,4 @@
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 
 #include "crypto/keys_manager_impl.hpp"
@@ -8,7 +8,7 @@
 
 
 using namespace iroha::protocol;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 
 void verifyPath(

@@ -5,7 +5,9 @@
 
 #include <gmock/gmock.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <string>
 #include <unordered_map>
 
@@ -13,14 +15,15 @@
 #include "ametsuchi/impl/rocksdb_common.hpp"
 #include "common/result.hpp"
 #include "cryptography/hash.hpp"
+#include "common/std_format.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace iroha::ametsuchi;
 
 class RocksDBIndexerTest : public ::testing::Test {
  public:
   void SetUp() override {
-    db_name_ = (fs::temp_directory_path() / fs::unique_path()).string();
+    db_name_ = (fs::temp_directory_path() / iroha::unique_path()).string();
     auto db_port = std::make_shared<RocksDBPort>();
     db_port->initialize(db_name_);
     tx_context_ = std::make_shared<RocksDBContext>(db_port);
@@ -45,15 +48,15 @@ class RocksDBIndexerTest : public ::testing::Test {
         common, account_2_, ts_1_, 1, 2);
 
     common.valueBuffer().assign(
-        fmt::format("{}#{}#{}", "asset", ts_1_, hash_1_));
+        std::format("{}#{}#{}", "asset", ts_1_, hash_1_));
     forTransactionByPosition<kDbOperation::kPut>(
         common, account_1_, ts_1_, 1, 1);
 
-    common.valueBuffer().assign(fmt::format("{}#{}#{}", "", ts_2_, hash_2_));
+    common.valueBuffer().assign(std::format("{}#{}#{}", "", ts_2_, hash_2_));
     forTransactionByPosition<kDbOperation::kPut>(
         common, account_1_, ts_2_, 2, 1);
 
-    common.valueBuffer().assign(fmt::format("{}#{}#{}", "", ts_1_, hash_3_));
+    common.valueBuffer().assign(std::format("{}#{}#{}", "", ts_1_, hash_3_));
     forTransactionByPosition<kDbOperation::kPut>(
         common, account_2_, ts_1_, 1, 2);
 

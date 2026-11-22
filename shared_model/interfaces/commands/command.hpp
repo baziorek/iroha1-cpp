@@ -6,8 +6,10 @@
 #ifndef IROHA_SHARED_MODEL_COMMAND_HPP
 #define IROHA_SHARED_MODEL_COMMAND_HPP
 
-#include <boost/variant/variant_fwd.hpp>
+#include <functional>
+#include <variant>
 
+#include "common/std_format.hpp"
 #include "interfaces/base/model_primitive.hpp"
 
 namespace shared_model {
@@ -42,7 +44,7 @@ namespace shared_model {
      private:
       /// const reference shortcut type
       template <typename... Value>
-      using wrap = boost::variant<const Value &...>;
+      using wrap = std::variant<std::reference_wrapper<const Value>...>;
 
      public:
       /// Type of variant, that handle concrete command
@@ -80,11 +82,14 @@ namespace shared_model {
 
       template <class CmdType>
       bool is() const {
-        return boost::get<CmdType const &>(&get()) != nullptr;
+        return std::holds_alternative<std::reference_wrapper<const CmdType>>(
+            get());
       }
     };
 
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::Command)
 
 #endif  // IROHA_SHARED_MODEL_COMMAND_HPP

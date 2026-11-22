@@ -9,7 +9,9 @@
 #include <string_view>
 
 #include <gtest/gtest.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <fstream>
 #include <string>
 #include "crypto/keys_manager_impl.hpp"
@@ -22,7 +24,7 @@
 #endif
 
 using namespace iroha;
-using namespace boost::filesystem;
+using namespace std::filesystem;
 using namespace std::string_literals;
 using namespace shared_model::crypto;
 
@@ -43,13 +45,13 @@ class KeyManager : public ::testing::Test {
   }
 
   void TearDown() {
-    boost::filesystem::remove_all(test_dir);
+    std::filesystem::remove_all(test_dir);
   }
 
-  const path test_dir = boost::filesystem::temp_directory_path()
-      / boost::filesystem::unique_path();
+  const path test_dir = std::filesystem::temp_directory_path()
+      / iroha::unique_path();
   const std::string filepath =
-      (test_dir / boost::filesystem::unique_path()).string();
+      (test_dir / iroha::unique_path()).string();
   const path pub_key_path = filepath + KeysManagerImpl::kPublicKeyExtension;
   const path pri_key_path = filepath + KeysManagerImpl::kPrivateKeyExtension;
 
@@ -60,8 +62,8 @@ class KeyManager : public ::testing::Test {
   const logger::LoggerPtr kKeysManagerLogger = getTestLogger("KeysManager");
   KeysManagerImpl manager = KeysManagerImpl(filepath, kKeysManagerLogger);
   const std::string passphrase = "test";
-  const std::string nonexistent = (boost::filesystem::temp_directory_path()
-                                   / boost::filesystem::unique_path())
+  const std::string nonexistent = (std::filesystem::temp_directory_path()
+                                   / iroha::unique_path())
                                       .string();
 };
 
@@ -143,7 +145,7 @@ TYPED_TEST(KeyManager, LoadInaccessiblePrikey) {
 
 TYPED_TEST(KeyManager, CreateKeypairInNonexistentDir) {
   KeysManagerImpl manager =
-      KeysManagerImpl(boost::filesystem::unique_path().string(),
+      KeysManagerImpl(iroha::unique_path().string(),
                       this->nonexistent,
                       this->kKeysManagerLogger);
   ASSERT_FALSE(manager.createKeys(this->passphrase));

@@ -8,9 +8,9 @@
 #include <gtest/gtest.h>
 #include <soci/postgresql/soci-postgresql.h>
 #include <soci/soci.h>
-#include <boost/filesystem.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <filesystem>
+#include <random>
+#include <cstdio>
 #include "ametsuchi/impl/in_memory_block_storage.hpp"
 #include "ametsuchi/impl/in_memory_block_storage_factory.hpp"
 #include "ametsuchi/impl/k_times_reconnection_strategy.hpp"
@@ -25,6 +25,16 @@
 #include "module/irohad/pending_txs_storage/pending_txs_storage_mock.hpp"
 #include "validators/field_validator.hpp"
 
+namespace {
+  std::string randomHexSuffix() {
+    std::random_device rd;
+    char buf[16];
+    std::snprintf(buf, sizeof(buf), "%08x", rd());
+    return buf;
+  }
+}  // namespace
+
+
 using namespace iroha::ametsuchi;
 using namespace iroha::expected;
 
@@ -38,8 +48,7 @@ class StorageInitTest : public ::testing::Test {
  protected:
   // generate random valid dbname
   std::string dbname_ = "d"
-      + boost::uuids::to_string(boost::uuids::random_generator()())
-            .substr(0, 8);
+      + randomHexSuffix();
 
   std::string pg_opt_without_dbname_;
   std::string pgopt_;
@@ -100,12 +109,12 @@ TEST_F(StorageInitTest, CreateStorageWithDatabase) {
       pool_size_,
       getTestLoggerManager()->getChild("Storage"));
 
-  if (auto e = boost::get<iroha::expected::Error<std::string>>(&pool)) {
+  if (auto e = iroha::expected::get<iroha::expected::Error<std::string>>(&pool)) {
     FAIL() << e->error;
   }
 
   auto pool_wrapper = std::move(
-      boost::get<iroha::expected::Value<std::shared_ptr<PoolWrapper>>>(pool)
+      iroha::expected::get<iroha::expected::Value<std::shared_ptr<PoolWrapper>>>(pool)
           .value);
 
   std::shared_ptr<StorageImpl> storage;

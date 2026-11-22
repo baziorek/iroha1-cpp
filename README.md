@@ -1,5 +1,32 @@
 # Welcome!
 
+## About this repository
+
+This is a community fork of **Hyperledger Iroha 1** (the C++ implementation),
+maintained upstream at [hyperledger/iroha](https://github.com/hyperledger/iroha)
+on the `iroha1-main` branch. Upstream development has effectively stopped —
+the last public commit dates back to **May 2024** — yet Iroha 1 is still
+intensively used in production by several initiatives, including the
+**National Bank of Cambodia**.
+
+The goal of this fork is to keep Iroha 1 buildable and maintainable with
+modern toolchains. The first stage of modernization is done:
+
+- C++ standard raised to **C++23**
+- Dependencies updated to current versions via latest **vcpkg**
+- Legacy dependencies replaced where the standard library suffices
+  (`fmt` → `std::format`, `boost::format`, `boost::variant`,
+  `boost::filesystem`, and several unused Boost libraries removed)
+- GitHub CI repaired and moved to a modern builder image (Ubuntu 24.04,
+  GCC 13)
+
+The documentation in `docs/` is built with Sphinx on every change and
+published to **GitHub Pages**:
+<https://baziorek.github.io/iroha1-cpp/> (upstream's own ReadTheDocs
+build of this branch is unstyled/broken).
+
+The rest of this README describes the upstream project and remains valid.
+
 ## What is Hyperledger Iroha?
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

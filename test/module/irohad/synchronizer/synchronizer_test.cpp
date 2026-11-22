@@ -8,7 +8,6 @@
 
 #include <string_view>
 
-#include <gmock/gmock-generated-matchers.h>
 #include <gmock/gmock.h>
 #include <boost/range/adaptor/transformed.hpp>
 #include "backend/protobuf/block.hpp"

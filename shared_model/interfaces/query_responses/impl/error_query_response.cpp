@@ -4,9 +4,10 @@
  */
 
 #include "interfaces/query_responses/error_query_response.hpp"
+#include "common/visitor.hpp"
 
-#include <boost/variant/apply_visitor.hpp>
-#include <boost/variant/variant.hpp>
+#include <variant>
+#include <variant>
 #include "interfaces/query_responses/error_responses/no_account_assets_error_response.hpp"
 #include "interfaces/query_responses/error_responses/no_account_detail_error_response.hpp"
 #include "interfaces/query_responses/error_responses/no_account_error_response.hpp"
@@ -24,7 +25,7 @@ namespace shared_model {
     std::string ErrorQueryResponse::toString() const {
       return detail::PrettyStringBuilder()
           .init("ErrorQueryResponse")
-          .append(boost::apply_visitor(detail::ToStringVisitor(), get()))
+          .append(iroha::visit(detail::ToStringVisitor(), get()))
           .appendNamed("errorMessage", errorMessage())
           .finalize();
     }

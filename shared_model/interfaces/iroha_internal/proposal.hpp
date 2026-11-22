@@ -7,6 +7,7 @@
 #define IROHA_SHARED_MODEL_PROPOSAL_HPP
 
 #include "cryptography/default_hash_provider.hpp"
+#include "common/std_format.hpp"
 #include "interfaces/base/model_primitive.hpp"
 #include "interfaces/common_objects/types.hpp"
 #include "interfaces/transaction.hpp"
@@ -52,5 +53,7 @@ namespace shared_model {
 
   }  // namespace interface
 }  // namespace shared_model
+
+IROHA_STD_FORMATTER_TO_STRING(shared_model::interface::Proposal)
 
 #endif  // IROHA_SHARED_MODEL_PROPOSAL_HPP

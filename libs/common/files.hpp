@@ -6,10 +6,14 @@
 #ifndef IROHA_FILES_HPP
 #define IROHA_FILES_HPP
 
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <filesystem>
 #include <string>
 #include <vector>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 #include "common/result_fwd.hpp"
 #include "logger/logger_fwd.hpp"
 
@@ -19,12 +23,26 @@
 namespace iroha {
 
   /**
+   * Generate a unique path inside the temp directory.
+   * Replacement for boost::filesystem::unique_path().
+   */
+  inline std::filesystem::path unique_path() {
+    static std::atomic<std::uint64_t> counter{0};
+    const auto tick =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch())
+            .count();
+    return std::to_string(tick) + "-" +
+           std::to_string(counter.fetch_add(1, std::memory_order_relaxed));
+  }
+
+  /**
    * Remove all files and directories inside a folder.
    * Keeps the target folder.
    * @param dir - target folder
    * @param log - a log for local messages
    */
-  void remove_dir_contents(const boost::filesystem::path &dir,
+  void remove_dir_contents(const std::filesystem::path &dir,
                            const logger::LoggerPtr &log);
 
   /**
@@ -33,7 +51,7 @@ namespace iroha {
    * @param path - path to the file
    */
   iroha::expected::Result<std::string, std::string> readTextFile(
-      const boost::filesystem::path &path);
+      const std::filesystem::path &path);
 
   /**
    * Read file in binary mode, and either return its contents as a byte vector
@@ -41,6 +59,6 @@ namespace iroha {
    * @param path - path to the file
    */
   iroha::expected::Result<std::vector<uint8_t>, std::string> readBinaryFile(
-      const boost::filesystem::path &path);
+      const std::filesystem::path &path);
 }  // namespace iroha
 #endif  // IROHA_FILES_HPP

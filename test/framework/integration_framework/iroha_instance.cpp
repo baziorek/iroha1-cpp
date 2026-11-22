@@ -5,7 +5,9 @@
 
 #include "framework/integration_framework/iroha_instance.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+
+#include "common/files.hpp"
 #include <cstdlib>
 #include <sstream>
 
@@ -17,7 +19,7 @@
 #include "logger/logger.hpp"
 #include "main/impl/pg_connection_init.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 static constexpr std::chrono::milliseconds kMstEmissionPeriod = 100ms;
 
@@ -35,7 +37,7 @@ namespace integration_framework {
         rocksdb_filepath_(
             config_.database_config
                 ? config_.database_config->path
-                : (fs::temp_directory_path() / fs::unique_path()).string()),
+                : (fs::temp_directory_path() / iroha::unique_path()).string()),
         listen_ip_(listen_ip),
         irohad_log_manager_(std::move(irohad_log_manager)),
         log_(std::move(log)),
@@ -44,7 +46,7 @@ namespace integration_framework {
   void IrohaInstance::init() {
     auto init_result = test_irohad_->init();
     if (auto error =
-            boost::get<iroha::expected::Error<std::string>>(&init_result)) {
+            iroha::expected::get<iroha::expected::Error<std::string>>(&init_result)) {
       std::string error_msg("Irohad startup failed: ");
       error_msg.append(error->error);
       log_->critical("{}", error_msg);
@@ -112,7 +114,7 @@ namespace integration_framework {
     log_->info("removing storage");
     iroha::ametsuchi::PgConnectionInit::dropWorkingDatabase(pg_opt);
     if (config_.block_store_path) {
-      boost::filesystem::remove_all(config_.block_store_path.value());
+      std::filesystem::remove_all(config_.block_store_path.value());
     }
   }
 

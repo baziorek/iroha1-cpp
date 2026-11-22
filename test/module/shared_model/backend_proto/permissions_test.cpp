@@ -95,7 +95,7 @@ TYPED_TEST(ProtoPermission, FromTransport) {
 TYPED_TEST(ProtoPermission, FromToTransport) {
   auto desc = TypeParam::descriptor();
   boost::for_each(boost::irange(0, TypeParam::size()), [&](auto i) {
-    TypeParam::parse(desc->value(i)->name(), &this->perm);
+    TypeParam::parse(std::string(desc->value(i)->name()), &this->perm);
     auto converted = fromTransport(this->perm);
     ASSERT_EQ(this->perm, toTransport(converted));
   });

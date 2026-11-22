@@ -7,6 +7,7 @@
 #define QUERY_PERMISSION_TEST_BASE_HPP_
 
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
+#include "common/visitor.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
 #include "integration/acceptance/query_permission_fixture.hpp"
 #include "utils/query_error_response_visitor.hpp"
@@ -23,7 +24,7 @@ using BlockType = std::shared_ptr<const shared_model::interface::Block>;
 template <typename TError>
 auto inline getQueryErrorChecker() {
   return [](auto &response) {
-    ASSERT_TRUE(boost::apply_visitor(
+    ASSERT_TRUE(iroha::visit(
         shared_model::interface::QueryErrorResponseChecker<TError>(),
         response.get()))
         << "Actual response: " << response.toString();

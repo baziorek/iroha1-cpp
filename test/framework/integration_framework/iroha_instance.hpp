@@ -7,10 +7,10 @@
 #define IROHA_IROHA_INSTANCE_HPP
 
 #include <boost/optional.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <chrono>
 #include <memory>
+#include <cstdio>
+#include <random>
 #include <string>
 
 #include "ametsuchi/impl/postgres_options.hpp"
@@ -19,6 +19,16 @@
 #include "main/iroha_conf_loader.hpp"
 #include "main/startup_params.hpp"
 #include "torii/tls_params.hpp"
+
+namespace {
+  std::string randomHexSuffix() {
+    std::random_device rd;
+    char buf[16];
+    std::snprintf(buf, sizeof(buf), "%08x", rd());
+    return buf;
+  }
+}  // namespace
+
 
 namespace shared_model {
   namespace interface {

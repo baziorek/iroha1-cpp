@@ -55,13 +55,13 @@ class PostgresBlockStorageTest : public ::testing::Test {
         pool_size_,
         getTestLoggerManager()->getChild("Storage"));
 
-    if (auto e = boost::get<iroha::expected::Error<std::string>>(&pool)) {
+    if (auto e = iroha::expected::get<iroha::expected::Error<std::string>>(&pool)) {
       storage_logger_->error("Pool initialization error: {}", e->error);
       std::terminate();
     }
 
     pool_wrapper_ = std::move(
-        boost::get<iroha::expected::Value<std::shared_ptr<PoolWrapper>>>(pool)
+        iroha::expected::get<iroha::expected::Value<std::shared_ptr<PoolWrapper>>>(pool)
             .value);
 
     auto validator = std::make_unique<MockBlockIValidator>();

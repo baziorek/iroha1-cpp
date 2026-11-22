@@ -6,8 +6,9 @@
 #ifndef IROHA_SHARED_MODEL_QUERY_VALIDATOR_HPP
 #define IROHA_SHARED_MODEL_QUERY_VALIDATOR_HPP
 
-#include <boost/variant/apply_visitor.hpp>
-#include <boost/variant/static_visitor.hpp>
+#include <variant>
+#include "common/visitor.hpp"
+#include <variant>
 
 #include "common/bind.hpp"
 #include "interfaces/queries/get_account.hpp"
@@ -36,8 +37,7 @@ namespace shared_model {
      * @tparam FieldValidator - field validator type
      */
     template <typename FieldValidator>
-    class QueryValidatorVisitor
-        : public boost::static_visitor<std::optional<ValidationError>> {
+    class QueryValidatorVisitor {
       QueryValidatorVisitor(FieldValidator validator)
           : validator_(std::move(validator)) {}
 
@@ -228,7 +228,7 @@ namespace shared_model {
             field_validator_.validateCreatedTime(qry.createdTime());
         error_creator |= field_validator_.validateCounter(qry.queryCounter());
         error_creator |=
-            boost::apply_visitor(query_field_validator_, qry.get());
+            iroha::visit(query_field_validator_, qry.get());
 
         return std::move(error_creator).getValidationError("Query");
       }

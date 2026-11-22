@@ -22,7 +22,7 @@ namespace shared_model {
 
       /**
        * @tparm ProtoLoader generic param so it can be handled
-       *                    in the load for the boost::variant
+       *                    in the load for the interface variant
        */
       template <typename ProtoLoader>
       explicit TrivialProto(ProtoLoader &&ref)

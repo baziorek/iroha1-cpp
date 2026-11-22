@@ -7,7 +7,7 @@
 
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/join.hpp>
-#include <boost/variant.hpp>
+#include <variant>
 #include "backend/protobuf/proto_tx_status_factory.hpp"
 #include "builders/protobuf/transaction.hpp"
 #include "framework/batch_helper.hpp"
@@ -111,7 +111,7 @@ class TransactionProcessorTest : public ::testing::Test {
     for (const auto &tx : transactions) {
       auto tx_status = status_map.find(tx.hash());
       ASSERT_NE(tx_status, status_map.end());
-      ASSERT_NO_THROW(boost::get<const Status &>(tx_status->second->get()));
+      ASSERT_NO_THROW(std::get<std::reference_wrapper<const Status>>(tx_status->second->get()).get());
     }
   }
 
@@ -411,8 +411,8 @@ TEST_F(TransactionProcessorTest, MultisigExpired) {
   EXPECT_CALL(*status_bus, publish(_))
       .WillRepeatedly(testing::Invoke([](auto response) {
         ASSERT_NO_THROW(
-            boost::get<const shared_model::interface::MstExpiredResponse &>(
-                response->get()));
+            std::get<std::reference_wrapper<const shared_model::interface::MstExpiredResponse>>(
+                response->get()).get());
       }));
   tp->batchHandle(framework::batch::createBatchFromSingleTransaction(tx));
   tp->processExpiredBatch(

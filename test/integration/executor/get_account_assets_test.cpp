@@ -5,8 +5,9 @@
 
 #include "integration/executor/executor_fixture.hpp"
 
+#include "common/std_format.hpp"
+
 #include <gtest/gtest.h>
-#include <boost/format.hpp>
 #include "backend/protobuf/queries/proto_query.hpp"
 #include "framework/common_constants.hpp"
 #include "integration/executor/query_permission_test.hpp"
@@ -24,7 +25,7 @@ using shared_model::interface::permissions::Role;
 
 struct GetAccountAssetsTest : public ExecutorTestBase {
   std::string makeAssetName(size_t i) {
-    return (boost::format("asset_%03d") % i).str();
+    return std::format("asset_{:03}", i);
   }
 
   std::string makeAssetDomain(size_t i) {
@@ -36,7 +37,7 @@ struct GetAccountAssetsTest : public ExecutorTestBase {
   }
 
   Amount makeAssetQuantity(size_t n) {
-    return Amount{(boost::format("%d.0") % n).str()};
+    return Amount{std::format("{}.0", n)};
   }
 
   /**

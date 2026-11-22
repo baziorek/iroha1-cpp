@@ -7,7 +7,6 @@ addtest(irohad_test irohad_test.cpp)
 target_link_libraries(irohad_test
         ametsuchi
         Boost::boost
-        Boost::filesystem
         SOCI::postgresql
         SOCI::core
         RapidJSON::rapidjson

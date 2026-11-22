@@ -8,7 +8,8 @@
 
 #include "interfaces/base/model_primitive.hpp"
 
-#include <boost/variant/variant_fwd.hpp>
+#include <functional>
+#include <variant>
 #include "interfaces/common_objects/types.hpp"
 
 namespace shared_model {
@@ -37,7 +38,7 @@ namespace shared_model {
      private:
       /// Shortcut type for const reference
       template <typename... Value>
-      using w = boost::variant<const Value &...>;
+      using w = std::variant<std::reference_wrapper<const Value>...>;
 
      public:
       /// Type of container with all concrete query response

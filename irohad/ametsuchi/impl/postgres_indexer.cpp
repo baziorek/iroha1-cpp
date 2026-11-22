@@ -5,10 +5,9 @@
 
 #include "ametsuchi/impl/postgres_indexer.hpp"
 
-#include <fmt/core.h>
 #include <soci/soci.h>
-#include <boost/format.hpp>
 #include "cryptography/hash.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha::ametsuchi;
 using namespace shared_model::interface::types;
@@ -57,7 +56,7 @@ iroha::expected::Result<void, std::string> PostgresIndexer::flush() {
           "INSERT INTO tx_status_by_hash"
           "(hash, status) VALUES ";
       for (size_t ix = 0; ix < tx_hash_status_.hash.size(); ++ix) {
-        cache_ += fmt::format("('{}','{}')",
+        cache_ += std::format("('{}','{}')",
                               tx_hash_status_.hash[ix],
                               tx_hash_status_.status[ix]);
         if (ix != tx_hash_status_.hash.size() - 1)
@@ -80,7 +79,7 @@ iroha::expected::Result<void, std::string> PostgresIndexer::flush() {
           "(creator_id, hash, asset_id, ts, height, index) VALUES ";
       for (size_t ix = 0; ix < tx_positions_.account.size(); ++ix) {
         if (tx_positions_.asset_id[ix]) {
-          cache_ += fmt::format("('{}','{}','{}',{},{},{})",
+          cache_ += std::format("('{}','{}','{}',{},{},{})",
                                 tx_positions_.account[ix],
                                 tx_positions_.hash[ix],
                                 *tx_positions_.asset_id[ix],
@@ -88,7 +87,7 @@ iroha::expected::Result<void, std::string> PostgresIndexer::flush() {
                                 tx_positions_.height[ix],
                                 tx_positions_.index[ix]);
         } else {
-          cache_ += fmt::format("('{}','{}',NULL,{},{},{})",
+          cache_ += std::format("('{}','{}',NULL,{},{},{})",
                                 tx_positions_.account[ix],
                                 tx_positions_.hash[ix],
                                 tx_positions_.ts[ix],

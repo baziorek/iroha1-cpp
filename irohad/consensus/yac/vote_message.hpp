@@ -9,6 +9,7 @@
 #include <memory>
 
 #include <boost/functional/hash.hpp>
+#include "common/std_format.hpp"
 #include "consensus/yac/yac_hash_provider.hpp"  // for YacHash
 #include "interfaces/common_objects/signature.hpp"
 #include "utils/string_builder.hpp"
@@ -53,5 +54,7 @@ namespace std {
     }
   };
 }  // namespace std
+
+IROHA_STD_FORMATTER_TO_STRING(iroha::consensus::yac::VoteMessage)
 
 #endif  // IROHA_VOTE_MESSAGE_HPP

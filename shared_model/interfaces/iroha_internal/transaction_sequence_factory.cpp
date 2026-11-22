@@ -7,7 +7,6 @@
 
 #include <unordered_map>
 
-#include <fmt/core.h>
 #include "interfaces/iroha_internal/batch_meta.hpp"
 #include "interfaces/iroha_internal/transaction_batch_factory_impl.hpp"
 #include "interfaces/iroha_internal/transaction_batch_helpers.hpp"
@@ -15,6 +14,7 @@
 #include "interfaces/transaction.hpp"
 #include "validators/transactions_collection/batch_order_validator.hpp"
 #include "validators/validation_error_helpers.hpp"
+#include "common/std_format.hpp"
 
 namespace shared_model {
   namespace interface {
@@ -75,7 +75,7 @@ namespace shared_model {
         } else {
           batch_factory->createTransactionBatch(tx.value())
               .match(insert_batch, [&tx_error_creator](const auto &err) {
-                tx_error_creator.addReason(fmt::format(
+                tx_error_creator.addReason(std::format(
                     "Could not create transaction batch from this tx: {}.",
                     err.error));
               });
@@ -84,7 +84,7 @@ namespace shared_model {
         error_creator |=
             std::move(tx_error_creator)
                 .getValidationErrorWithGeneratedName([&] {
-                  return fmt::format("Transaction #{} with reduced hash {}",
+                  return std::format("Transaction #{} with reduced hash {}",
                                      tx.index(),
                                      tx.value()->reducedHash().hex());
                 });
@@ -94,14 +94,14 @@ namespace shared_model {
         validation::ValidationErrorCreator batch_error_creator;
         batch_factory->createTransactionBatch(it.second).match(
             insert_batch, [&batch_error_creator](const auto &err) {
-              batch_error_creator.addReason(fmt::format(
+              batch_error_creator.addReason(std::format(
                   "Could not create transaction batch: {}.", err.error));
             });
 
         error_creator |=
             std::move(batch_error_creator)
                 .getValidationErrorWithGeneratedName([&] {
-                  return fmt::format("Batch from meta with reduced hash {}.",
+                  return std::format("Batch from meta with reduced hash {}.",
                                      it.first.hex());
                 });
       }

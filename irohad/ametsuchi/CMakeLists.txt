@@ -47,7 +47,6 @@ target_link_libraries(flat_file_storage
     shared_model_proto_backend
     logger
     Boost::boost
-    Boost::filesystem
     Boost::iostreams
     )
 
@@ -216,7 +215,6 @@ if(USE_BURROW)
     add_library(burrow_vm_caller impl/burrow_vm_caller.cpp)
     target_link_libraries(burrow_vm_caller
         burrow_vm_caller_generated
-        fmt::fmt
         proto_command_executor
         proto_specific_query_executor
         )
@@ -262,13 +260,13 @@ add_library(ametsuchi_rocksdb
     impl/rocksdb_specific_query_executor.cpp
     )
 target_link_libraries(ametsuchi_rocksdb
+    ametsuchi
     RocksDB::rocksdb
     logger
     logger_manager
     libs_files
     common
     Boost::boost
-    Boost::filesystem
     im_memory_block_storage
     shared_model_proto_backend
     shared_model_plain_backend

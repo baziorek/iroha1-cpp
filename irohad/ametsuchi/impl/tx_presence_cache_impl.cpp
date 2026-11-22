@@ -46,7 +46,7 @@ namespace iroha {
       }
       return block_query->checkTxPresence(hash) |
           [this, &hash](const auto &status) {
-            std::visit(make_visitor(
+            iroha::visit(make_visitor(
                            [](const tx_cache_status_responses::Missing &) {
                              // don't put this hash into cache since "Missing"
                              // can become "Committed" or "Rejected" later

@@ -6,6 +6,7 @@
 #ifndef IROHA_RADIX_TREE_HPP
 #define IROHA_RADIX_TREE_HPP
 
+#include <cstring>
 #include <cstddef>
 #include <memory>
 #include <optional>

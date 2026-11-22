@@ -4,8 +4,8 @@
  */
 
 #include "ametsuchi/impl/rocksdb_specific_query_executor.hpp"
+#include "common/visitor.hpp"
 
-#include <fmt/core.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <rocksdb/utilities/transaction.h>
@@ -38,6 +38,7 @@
 #include "interfaces/queries/tx_pagination_meta.hpp"
 #include "interfaces/transaction.hpp"
 #include "pending_txs_storage/pending_txs_storage.hpp"
+#include "common/std_format.hpp"
 
 using namespace iroha;
 using namespace iroha::ametsuchi;
@@ -83,7 +84,7 @@ std::shared_ptr<RocksDBContext> RocksDbSpecificQueryExecutor::getTxContext() {
 
 QueryExecutorResult RocksDbSpecificQueryExecutor::execute(
     const shared_model::interface::Query &qry) {
-  return boost::apply_visitor(
+  return iroha::visit(
       [this, &qry](const auto &query) {
         auto &query_hash = qry.hash();
         try {
@@ -97,7 +98,7 @@ QueryExecutorResult RocksDbSpecificQueryExecutor::execute(
               expected::hasError(perm_result))
             return query_response_factory_->createErrorQueryResponse(
                 ErrorQueryType::kStatefulFailed,
-                fmt::format("Query: {}, message: {}",
+                std::format("Query: {}, message: {}",
                             query.toString(),
                             perm_result.assumeError().description),
                 perm_result.assumeError().code,
@@ -110,7 +111,7 @@ QueryExecutorResult RocksDbSpecificQueryExecutor::execute(
                    expected::hasError(result))
             return query_response_factory_->createErrorQueryResponse(
                 ErrorQueryType::kStatefulFailed,
-                fmt::format("Query: {}, message: {}",
+                std::format("Query: {}, message: {}",
                             query.toString(),
                             result.assumeError().description),
                 result.assumeError().code,
@@ -120,7 +121,7 @@ QueryExecutorResult RocksDbSpecificQueryExecutor::execute(
         } catch (std::exception &e) {
           return query_response_factory_->createErrorQueryResponse(
               ErrorQueryType::kStatefulFailed,
-              fmt::format("Query: {}, message: {}", query.toString(), e.what()),
+              std::format("Query: {}, message: {}", query.toString(), e.what()),
               1001,
               query_hash);
         }
@@ -169,7 +170,7 @@ operator()(
       expected::hasError(result))
     return query_response_factory_->createErrorQueryResponse(
         ErrorQueryType::kNoAccount,
-        fmt::format("Query: {}, message: {}",
+        std::format("Query: {}, message: {}",
                     query.toString(),
                     result.assumeError().description),
         result.assumeError().code,
@@ -193,7 +194,7 @@ operator()(
                                domain_id,
                                account_name);
   RDB_ERROR_CHECK(canExist(status, [&]() {
-    return fmt::format("Enumerate roles for account {}", query.accountId());
+    return std::format("Enumerate roles for account {}", query.accountId());
   }));
 
   return query_response_factory_->createAccountResponse(
@@ -269,14 +270,14 @@ operator()(
                     domain_id,
                     account_name);
   RDB_ERROR_CHECK(canExist(status, [&]() {
-    return fmt::format("Enumerate signatories for account {}",
+    return std::format("Enumerate signatories for account {}",
                        query.accountId());
   }));
 
   if (signatories.empty())
     return query_response_factory_->createErrorQueryResponse(
         ErrorQueryType::kNoSignatories,
-        fmt::format("{}, status: not found", query.toString()),
+        std::format("{}, status: not found", query.toString()),
         0,
         query_hash);
 
@@ -308,7 +309,7 @@ RocksDbSpecificQueryExecutor::getTransactionsFromBlock(uint64_t block_id,
   auto opt_block = block_store_.fetch(block_id);
   if (not opt_block) {
     return iroha::expected::makeError(
-        fmt::format("Failed to retrieve block with id {}", block_id));
+        std::format("Failed to retrieve block with id {}", block_id));
   }
   auto &block = opt_block.value();
 
@@ -316,7 +317,7 @@ RocksDbSpecificQueryExecutor::getTransactionsFromBlock(uint64_t block_id,
   auto const tx_id = tx_index;
   if (tx_id >= block_size)
     return iroha::expected::makeError(
-        fmt::format("Failed to retrieve transaction with id {} "
+        std::format("Failed to retrieve transaction with id {} "
                     "from block height {}.",
                     tx_id,
                     block_id));
@@ -506,7 +507,7 @@ RocksDbSpecificQueryExecutor::readTxs(
   }
 
   RDB_ERROR_CHECK(canExist(status, [&]() {
-    return fmt::format("Enumerate transactions for account {}",
+    return std::format("Enumerate transactions for account {}",
                        query.accountId());
   }));
 
@@ -571,7 +572,7 @@ operator()(
         expected::hasError(r))
       return query_response_factory_->createErrorQueryResponse(
           ErrorQueryType::kStatefulFailed,
-          fmt::format("Query: {}, message: {}",
+          std::format("Query: {}, message: {}",
                       query.toString(),
                       r.assumeError().description),
           ErrorCodes::kNoTransaction,
@@ -708,7 +709,7 @@ operator()(
       domain_id,
       account_name);
   RDB_ERROR_CHECK(canExist(status, [&] {
-    return fmt::format("Account {} assets", query.accountId());
+    return std::format("Account {} assets", query.accountId());
   }));
 
   if (assets.empty() and req_first_asset_id)
@@ -736,7 +737,7 @@ operator()(
       expected::hasError(r))
     return query_response_factory_->createErrorQueryResponse(
         ErrorQueryType::kNoAccountDetail,
-        fmt::format("Query: {}, message: {}",
+        std::format("Query: {}, message: {}",
                     query.toString(),
                     r.assumeError().description),
         r.assumeError().code,
@@ -853,7 +854,7 @@ operator()(
       expected::hasError(result))
     return query_response_factory_->createErrorQueryResponse(
         ErrorQueryType::kNoAsset,
-        fmt::format("Query: {}, message: {}",
+        std::format("Query: {}, message: {}",
                     query.toString(),
                     result.assumeError().description),
         result.assumeError().code,
@@ -965,11 +966,11 @@ operator()(
 
   auto status = enum_peers(fmtstrings::kPathPeers, false);
   RDB_ERROR_CHECK(
-      canExist(status, [&]() { return fmt::format("Enumerate peers"); }));
+      canExist(status, [&]() { return std::format("Enumerate peers"); }));
 
   status = enum_peers(fmtstrings::kPathSPeers, true);
   RDB_ERROR_CHECK(
-      canExist(status, [&]() { return fmt::format("Enumerate peers"); }));
+      canExist(status, [&]() { return std::format("Enumerate peers"); }));
 
   for (auto &peer : peers) {
     RDB_TRY_GET_VALUE(opt_tls,
@@ -1025,7 +1026,7 @@ operator()(
                 forCallEngineCallResponse<kDbOperation::kGet,
                                           kDbEntry::kCanExist>(common, call_id);
             expected::hasError(result)) {
-          error = fmt::format("CallEngineResponse code: {}, failed: {}",
+          error = std::format("CallEngineResponse code: {}, failed: {}",
                               result.template assumeError().code,
                               result.template assumeError().description);
           return false;
@@ -1040,7 +1041,7 @@ operator()(
                 forCallEngineDeploy<kDbOperation::kGet, kDbEntry::kCanExist>(
                     common, call_id);
             expected::hasError(result)) {
-          error = fmt::format("CallEngineDeploy code: {}, failed: {}",
+          error = std::format("CallEngineDeploy code: {}, failed: {}",
                               result.template assumeError().code,
                               result.template assumeError().description);
           return false;
@@ -1082,7 +1083,7 @@ operator()(
                   fmtstrings::kPathEngineTopics,
                   log_id);
               if (!topics_status.ok()) {
-                error = fmt::format("enumerate CallEngineTopics failed.");
+                error = std::format("enumerate CallEngineTopics failed.");
                 return false;
               }
 
@@ -1093,7 +1094,7 @@ operator()(
             fmtstrings::kPathEngineLogs,
             call_id);
         if (!logs_status.ok()) {
-          error = fmt::format("enumerate CallEngineLogs failed.");
+          error = std::format("enumerate CallEngineLogs failed.");
           return false;
         }
 
@@ -1104,7 +1105,7 @@ operator()(
       fmtstrings::kPathEngineCallIds,
       query.txHash());
   RDB_ERROR_CHECK(canExist(status, [&] {
-    return fmt::format("PathEngineCallsIds enumeration failed: {}",
+    return std::format("PathEngineCallsIds enumeration failed: {}",
                        query.txHash());
   }));
 
