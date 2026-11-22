@@ -69,8 +69,8 @@ You can find all the Iroha Docker Images by `searching the Docker Hub <https://h
 There are currently the following images:
 
 - ``iroha`` -- general build of Iroha 1.x; 
-- ``iroha-burrow`` -- build that has Iroha 1.x with `Burrow integration <../integrations/index.html#hyperledger-burrow>`_;
-- ``iroha-ursa`` -- build that has Iroha 1.x with `Ursa integration <../https://iroha.readthedocs.io/en/develop/integrations/index.html#hyperledger-ursa>`_;
+- ``iroha-burrow`` -- build that has Iroha 1.x with `Burrow integration <../integrations/index.html#hyperledger-burrow>`_ (deprecated: Burrow is EOL);
+- ``iroha-ursa`` -- build that has Iroha 1.x with `Ursa integration <../integrations/index.html#hyperledger-ursa>`_ (deprecated: Ursa is EOL);
 - ``iroha2`` -- Iroha 2 build;
 - ``iroha-builder`` -- a special image that allows you to run an Iroha builder within Docker.
 
@@ -262,7 +262,7 @@ Building Iroha
 
 .. code-block:: shell
 
-  cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake . -DCMAKE_BUILD_TYPE=RELEASE   -GNinja -DUSE_BURROW=OFF -DUSE_URSA=OFF -DTESTING=OFF -DPACKAGE_DEB=OFF
+  cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake . -DCMAKE_BUILD_TYPE=RELEASE   -GNinja -DUSE_BURROW=OFF -DUSE_LIBURSA=OFF -DTESTING=OFF -DPACKAGE_DEB=OFF
 
 The cmake parameters such as ``-DUSE_BURROW=ON`` are exactly the parameters you can choose for your very special build. You can see the full list and description of these parameters `here <#cmake-parameters>`_.
 
@@ -320,6 +320,8 @@ Main Parameters
 +----------------------------------+                 +---------+------------------------------------------------------------------------+
 | USE_BURROW                       |                 | OFF     | Enables the HL Burrow EVM integration                                  |
 +----------------------------------+-----------------+---------+------------------------------------------------------------------------+
+
+.. warning:: The ``USE_LIBURSA`` and ``USE_BURROW`` options are **deprecated**: Hyperledger Ursa reached End of Life on 27 April 2023 and Hyperledger Burrow on 12 May 2022. Both integrations are kept for compatibility with older deployments only.
 
 .. note:: If you would like to use HL Ursa cryptography for your build, please install `Rust <https://www.rust-lang.org/tools/install>`_ in addition to other dependencies. Learn more about HL Ursa integration `here <../integrations/index.html#hyperledger-ursa>`_.
 
