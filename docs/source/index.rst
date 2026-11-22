@@ -13,9 +13,6 @@ Hyperledger Iroha documentation
 
     **Note that Iroha v1 and Iroha v2 are incompatible**. You can read about their differences in the `Iroha 2 documentation <https://hyperledger.github.io/iroha-2-docs/guide/iroha-2.html>`_.
 
-.. warning::
-    For secure deployment on platforms other than new Linux versions, please read `this note <deploy/index.html#security-notice>`_ first before deploying Iroha in production.
-
 Welcome! Hyperledger Iroha is a simple blockchain platform you can use to make trusted, secure, and fast applications by bringing the power of permission-based blockchain with Crash fault-tolerant consensus. It's free, open-source, and works on Linux and Mac OS, with a variety of mobile and desktop libraries.
 
 You can download the source code of Hyperledger Iroha and latest releases from `GitHub page <https://github.com/hyperledger/iroha>`_.
