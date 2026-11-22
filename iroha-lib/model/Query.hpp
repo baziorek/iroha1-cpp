@@ -17,19 +17,26 @@ public:
     Query& getAccountAssets(const std::string& account_id);
     Query& getAccountDetail(const std::string& account_id);
     Query& getAccountTransactions(const std::string& account_id,
-                                  const std::optional<std::string*>& first_tx_hash={},
-                                  const std::optional<google::protobuf::Timestamp*>& first_tx_time={},
-                                  const std::optional<google::protobuf::Timestamp*>& last_tx_time={},
+                                  const std::optional<std::string>& first_tx_hash={},
+                                  const std::optional<google::protobuf::Timestamp>& first_tx_time={},
+                                  const std::optional<google::protobuf::Timestamp>& last_tx_time={},
                                   const std::optional<uint64_t> first_tx_height={},
-                                  const std::optional<uint64_t> last_tx_height={});
+                                  const std::optional<uint64_t> last_tx_height={},
+                                  const std::optional<uint32_t> page_size={},
+                                  const std::optional<Ordering>& ordering={});
     Query& getAccountAssetTransactions(
             const std::string& account_id,
             const std::string& asset_id,
-            const std::optional<std::string*>& first_tx_hash={},
-            const std::optional<google::protobuf::Timestamp*>& first_tx_time={},
-            const std::optional<google::protobuf::Timestamp*>& last_tx_time={},
+            const std::optional<std::string>& first_tx_hash={},
+            const std::optional<google::protobuf::Timestamp>& first_tx_time={},
+            const std::optional<google::protobuf::Timestamp>& last_tx_time={},
             const std::optional<uint64_t> first_tx_height={},
-            const std::optional<uint64_t> last_tx_height={});
+            const std::optional<uint64_t> last_tx_height={},
+            const std::optional<uint32_t> page_size={},
+            const std::optional<Ordering>& ordering={});
+    Query& getPendingTransactions(
+            const std::string& account_id,
+            const std::optional<uint32_t> page_size={});
     Query& getTransactions(
             const std::string& account_id,
             const std::vector<std::string>& tx_hashes);

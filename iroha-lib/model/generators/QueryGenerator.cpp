@@ -64,11 +64,13 @@ std::shared_ptr<iroha::protocol::Query> QueryGenerator::generateGetAccountTransa
         const std::string& account_id,
         uint64_t counter,
         const uint64_t created_time,
-        const std::optional<std::string*>& first_tx_hash,
-        const std::optional<google::protobuf::Timestamp*>& first_tx_time,
-        const std::optional<google::protobuf::Timestamp*>& last_tx_time,
+        const std::optional<std::string>& first_tx_hash,
+        const std::optional<google::protobuf::Timestamp>& first_tx_time,
+        const std::optional<google::protobuf::Timestamp>& last_tx_time,
         const std::optional<uint64_t> first_tx_height,
-        const std::optional<uint64_t> last_tx_height)
+        const std::optional<uint64_t> last_tx_height,
+        const std::optional<uint32_t> page_size,
+        const std::optional<Ordering>& ordering)
 {
     auto query = generateQuery(
                 account_id,
@@ -76,20 +78,27 @@ std::shared_ptr<iroha::protocol::Query> QueryGenerator::generateGetAccountTransa
                 created_time);
     auto queryPayload = query->mutable_payload()->mutable_get_account_transactions();
     queryPayload->set_account_id(account_id);
+    auto* paginationMeta = queryPayload->mutable_pagination_meta();
+    if (page_size.has_value()) {
+        paginationMeta->set_page_size(page_size.value());
+    }
+    if (ordering.has_value()) {
+        *paginationMeta->mutable_ordering() = ordering.value();
+    }
     if (first_tx_hash.has_value()) {
-        query->mutable_payload()->mutable_get_account_transactions()->mutable_pagination_meta()->set_allocated_first_tx_hash(first_tx_hash.value());
+        paginationMeta->set_first_tx_hash(first_tx_hash.value());
     }
     if (first_tx_time.has_value()) {
-        query->mutable_payload()->mutable_get_account_transactions()->mutable_pagination_meta()->set_allocated_first_tx_time(first_tx_time.value());
+        *paginationMeta->mutable_first_tx_time() = first_tx_time.value();
     }
     if (last_tx_time.has_value()) {
-        query->mutable_payload()->mutable_get_account_transactions()->mutable_pagination_meta()->set_allocated_last_tx_time(last_tx_time.value());
+        *paginationMeta->mutable_last_tx_time() = last_tx_time.value();
     }
     if (first_tx_height.has_value()) {
-        query->mutable_payload()->mutable_get_account_transactions()->mutable_pagination_meta()->set_first_tx_height(first_tx_height.value());
+        paginationMeta->set_first_tx_height(first_tx_height.value());
     }
     if (last_tx_height.has_value()) {
-        query->mutable_payload()->mutable_get_account_transactions()->mutable_pagination_meta()->set_last_tx_height(last_tx_height.value());
+        paginationMeta->set_last_tx_height(last_tx_height.value());
     }
     return query;
 }
@@ -99,11 +108,13 @@ std::shared_ptr<iroha::protocol::Query> QueryGenerator::generateGetAccountAssetT
         uint64_t counter,
         const uint64_t created_time,
         const std::string& assetId,
-        const std::optional<std::string*>& first_tx_hash,
-        const std::optional<google::protobuf::Timestamp*>& first_tx_time,
-        const std::optional<google::protobuf::Timestamp*>& last_tx_time,
+        const std::optional<std::string>& first_tx_hash,
+        const std::optional<google::protobuf::Timestamp>& first_tx_time,
+        const std::optional<google::protobuf::Timestamp>& last_tx_time,
         const std::optional<uint64_t> first_tx_height,
-        const std::optional<uint64_t> last_tx_height)
+        const std::optional<uint64_t> last_tx_height,
+        const std::optional<uint32_t> page_size,
+        const std::optional<Ordering>& ordering)
 {
     auto query = generateQuery(
                 account_id,
@@ -113,20 +124,46 @@ std::shared_ptr<iroha::protocol::Query> QueryGenerator::generateGetAccountAssetT
     queryPayload->set_account_id(account_id);
     queryPayload->set_asset_id(assetId);
 
+    auto* paginationMeta = queryPayload->mutable_pagination_meta();
+    if (page_size.has_value()) {
+        paginationMeta->set_page_size(page_size.value());
+    }
+    if (ordering.has_value()) {
+        *paginationMeta->mutable_ordering() = ordering.value();
+    }
     if (first_tx_hash.has_value()) {
-        query->mutable_payload()->mutable_get_account_asset_transactions()->mutable_pagination_meta()->set_allocated_first_tx_hash(first_tx_hash.value());
+        paginationMeta->set_first_tx_hash(first_tx_hash.value());
     }
     if (first_tx_time.has_value()) {
-        query->mutable_payload()->mutable_get_account_asset_transactions()->mutable_pagination_meta()->set_allocated_first_tx_time(first_tx_time.value());
+        *paginationMeta->mutable_first_tx_time() = first_tx_time.value();
     }
     if (last_tx_time.has_value()) {
-        query->mutable_payload()->mutable_get_account_asset_transactions()->mutable_pagination_meta()->set_allocated_last_tx_time(last_tx_time.value());
+        *paginationMeta->mutable_last_tx_time() = last_tx_time.value();
     }
     if (first_tx_height.has_value()) {
-        query->mutable_payload()->mutable_get_account_asset_transactions()->mutable_pagination_meta()->set_first_tx_height(first_tx_height.value());
+        paginationMeta->set_first_tx_height(first_tx_height.value());
     }
     if (last_tx_height.has_value()) {
-        query->mutable_payload()->mutable_get_account_asset_transactions()->mutable_pagination_meta()->set_last_tx_height(last_tx_height.value());
+        paginationMeta->set_last_tx_height(last_tx_height.value());
+    }
+    return query;
+}
+
+std::shared_ptr<iroha::protocol::Query> QueryGenerator::generateGetPendingTransactions(
+        const std::string& account_id,
+        uint64_t counter,
+        const uint64_t created_time,
+        const std::optional<uint32_t> page_size)
+{
+    auto query = generateQuery(
+                account_id,
+                counter,
+                created_time);
+    if (page_size.has_value()) {
+        query->mutable_payload()
+                ->mutable_get_pending_transactions()
+                ->mutable_pagination_meta()
+                ->set_page_size(page_size.value());
     }
     return query;
 }

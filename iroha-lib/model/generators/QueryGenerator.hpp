@@ -26,21 +26,30 @@ public:
             const std::string& account_id,
             uint64_t counter,
             const uint64_t created_time,
-            const std::optional<std::string*>& first_tx_hash={},
-            const std::optional<google::protobuf::Timestamp*>& first_tx_time={},
-            const std::optional<google::protobuf::Timestamp*>& last_tx_time={},
+            const std::optional<std::string>& first_tx_hash={},
+            const std::optional<google::protobuf::Timestamp>& first_tx_time={},
+            const std::optional<google::protobuf::Timestamp>& last_tx_time={},
             const std::optional<uint64_t> first_tx_height={},
-            const std::optional<uint64_t> last_tx_height={});
+            const std::optional<uint64_t> last_tx_height={},
+            const std::optional<uint32_t> page_size={},
+            const std::optional<Ordering>& ordering={});
     std::shared_ptr<iroha::protocol::Query> generateGetAccountAssetTransactions(
             const std::string& account_id,
             uint64_t counter,
             const uint64_t created_time,
             const std::string& assetId,
-            const std::optional<std::string*>& first_tx_hash={},
-            const std::optional<google::protobuf::Timestamp*>& first_tx_time={},
-            const std::optional<google::protobuf::Timestamp*>& last_tx_time={},
+            const std::optional<std::string>& first_tx_hash={},
+            const std::optional<google::protobuf::Timestamp>& first_tx_time={},
+            const std::optional<google::protobuf::Timestamp>& last_tx_time={},
             const std::optional<uint64_t> first_tx_height={},
-            const std::optional<uint64_t> last_tx_height={});
+            const std::optional<uint64_t> last_tx_height={},
+            const std::optional<uint32_t> page_size={},
+            const std::optional<Ordering>& ordering={});
+    std::shared_ptr<iroha::protocol::Query> generateGetPendingTransactions(
+            const std::string& account_id,
+            uint64_t counter,
+            const uint64_t created_time,
+            const std::optional<uint32_t> page_size={});
     std::shared_ptr<iroha::protocol::Query> generateGetTransactions(
             const std::string& account_id,
             uint64_t counter,

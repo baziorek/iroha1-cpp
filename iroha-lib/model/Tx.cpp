@@ -160,7 +160,7 @@ Tx& Tx::revokePermission(
         const std::string& account_id,
         const iroha::protocol::GrantablePermission permission)
 {
-    auto cmd = cmd_generator_.generateGrantPermission(
+    auto cmd = cmd_generator_.generateRevokePermission(
                 account_id,
                 permission);
     addCommand(*cmd);

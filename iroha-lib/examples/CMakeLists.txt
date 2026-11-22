@@ -1,55 +1,32 @@
 if (APPLE)
     message("iroha-lib does not support MacOS currently!")
 else()
-    ###### irohalib_tx_example:
-    add_executable(irohalib_tx_example
-        TxExample.cpp
+    ###### iroha-lib examples:
+    # Each executable is a single .cpp that uses the shared helpers in
+    # common.hpp / scenario.hpp (header-only).
+    foreach(example IN ITEMS
+            TxExample
+            BatchExample
+            QueryExample
+            TxOrderingExample
+            BlocksQueryExample
+            InfiniteBlocksStreamExample
+            DomainAssetCreation
     )
+        add_executable(irohalib_${example}_example
+            ${example}.cpp
+        )
 
-    target_link_libraries(irohalib_tx_example
-        iroha_lib_model
-        logger_manager
-    )
+        target_link_libraries(irohalib_${example}_example
+            iroha_lib_model
+            logger_manager
+        )
 
-    add_install_step_for_bin(irohalib_tx_example)
+        add_install_step_for_bin(irohalib_${example}_example)
+    endforeach()
 
-
-    ###### irohalib_batch_example:
-    add_executable(irohalib_batch_example
-        BatchExample.cpp
-    )
-
-    target_link_libraries(irohalib_batch_example
-        iroha_lib_model
-        logger_manager
-    )
-
-    add_install_step_for_bin(irohalib_batch_example)
-
-
-    ###### irohalib_query_example:
-    add_executable(irohalib_query_example
-        QueryExample.cpp
-    )
-
-    target_link_libraries(irohalib_query_example
-        iroha_lib_model
-        logger_manager
-    )
-
-    add_install_step_for_bin(irohalib_query_example)
-
-
-    ###### irohalib_domainassetcreation_example:
-    add_executable(irohalib_domainassetcreation_example
-        DomainAssetCreation.cpp
-    )
-
-    target_link_libraries(irohalib_domainassetcreation_example
-        iroha_lib_model
-        logger_manager
+    # DomainAssetCreation additionally uses gflags
+    target_link_libraries(irohalib_DomainAssetCreation_example
         gflags
     )
-
-    add_install_step_for_bin(irohalib_domainassetcreation_example)
 endif()

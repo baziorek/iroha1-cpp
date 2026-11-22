@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_library(iroha_lib_model
+    BlocksQuery.hpp
+    BlocksQuery.cpp
     Query.hpp
     Query.cpp
     Tx.hpp

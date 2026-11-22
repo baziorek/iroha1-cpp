@@ -83,4 +83,46 @@ ToriiResponse GrpcClient::getTxStatus(const std::string& tx_hash)
                 &toriiResponse);
     return toriiResponse;
 }
+
+bool TxStatusStream::Read(ToriiResponse* response)
+{
+    return reader_->Read(response);
+}
+
+void TxStatusStream::Cancel()
+{
+    context_.TryCancel();
+}
+
+bool BlocksStream::Read(BlockQueryResponse* response)
+{
+    return reader_->Read(response);
+}
+
+void BlocksStream::Cancel()
+{
+    context_.TryCancel();
+}
+
+std::unique_ptr<TxStatusStream> GrpcClient::sendStatusStream(
+        const std::string& tx_hash)
+{
+    auto stream = std::make_unique<TxStatusStream>();
+    TxStatusRequest statusRequest;
+    statusRequest.set_tx_hash(tx_hash);
+    stream->reader_ = command_stub_->StatusStream(
+                &stream->context_,
+                statusRequest);
+    return stream;
+}
+
+std::unique_ptr<BlocksStream> GrpcClient::sendBlocksStreamQuery(
+        const iroha::protocol::BlocksQuery& blocks_query)
+{
+    auto stream = std::make_unique<BlocksStream>();
+    stream->reader_ = query_stub_->FetchCommits(
+                &stream->context_,
+                blocks_query);
+    return stream;
+}
 }  // namespace iroha_lib

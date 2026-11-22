@@ -42,11 +42,13 @@ Query& Query::getAccountDetail(const std::string& account_id)
 }
 
 Query& Query::getAccountTransactions(const std::string& account_id,
-                                     const std::optional<std::string*>& first_tx_hash,
-                                     const std::optional<google::protobuf::Timestamp*>& first_tx_time,
-                                     const std::optional<google::protobuf::Timestamp*>& last_tx_time,
+                                     const std::optional<std::string>& first_tx_hash,
+                                     const std::optional<google::protobuf::Timestamp>& first_tx_time,
+                                     const std::optional<google::protobuf::Timestamp>& last_tx_time,
                                      const std::optional<uint64_t> first_tx_height,
-                                     const std::optional<uint64_t> last_tx_height)
+                                     const std::optional<uint64_t> last_tx_height,
+                                     const std::optional<uint32_t> page_size,
+                                     const std::optional<Ordering>& ordering)
 {
     protobuf_query_ = *query_generator_.generateGetAccountTransactions(
                 account_id,
@@ -56,17 +58,21 @@ Query& Query::getAccountTransactions(const std::string& account_id,
                 first_tx_time,
                 last_tx_time,
                 first_tx_height,
-                last_tx_height);
+                last_tx_height,
+                page_size,
+                ordering);
     return *this;
 }
 
 Query& Query::getAccountAssetTransactions(const std::string& account_id,
                                           const std::string& asset_id,
-                                          const std::optional<std::string*>& first_tx_hash,
-                                          const std::optional<google::protobuf::Timestamp*>& first_tx_time,
-                                          const std::optional<google::protobuf::Timestamp*>& last_tx_time,
+                                          const std::optional<std::string>& first_tx_hash,
+                                          const std::optional<google::protobuf::Timestamp>& first_tx_time,
+                                          const std::optional<google::protobuf::Timestamp>& last_tx_time,
                                           const std::optional<uint64_t> first_tx_height,
-                                          const std::optional<uint64_t> last_tx_height)
+                                          const std::optional<uint64_t> last_tx_height,
+                                          const std::optional<uint32_t> page_size,
+                                          const std::optional<Ordering>& ordering)
 {
     protobuf_query_ = *query_generator_.generateGetAccountAssetTransactions(
                 account_id,
@@ -77,7 +83,21 @@ Query& Query::getAccountAssetTransactions(const std::string& account_id,
                 first_tx_time,
                 last_tx_time,
                 first_tx_height,
-                last_tx_height);
+                last_tx_height,
+                page_size,
+                ordering);
+    return *this;
+}
+
+Query& Query::getPendingTransactions(
+        const std::string& account_id,
+        const std::optional<uint32_t> page_size)
+{
+    protobuf_query_ = *query_generator_.generateGetPendingTransactions(
+                account_id,
+                counter_,
+                created_time_,
+                page_size);
     return *this;
 }
 

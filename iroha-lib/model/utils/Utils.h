@@ -26,6 +26,18 @@ iroha::keypair_t generateKeypair(
         const std::string& key_path,
         const logger::LoggerManagerTreePtr& log_manager);
 
+iroha::keypair_t generateKeypairFromPrivateKey(
+        const std::string& private_key_hex);
+
+iroha::keypair_t generateRandomKeypair();
+
+std::string getPublicKeyHexFromPrivateKey(
+        const std::string& private_key_hex);
+
+void addSignature(
+        iroha::protocol::Transaction& tx,
+        const iroha::keypair_t& keypair);
+
 const std::string getTransactionHash(const Transaction& tx);
 
 void printTransactionStatus(

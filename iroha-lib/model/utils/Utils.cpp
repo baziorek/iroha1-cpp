@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "crypto/keys_manager_impl.hpp"
+#include "cryptography/ed25519_sha3_impl/internal/ed25519_impl.hpp"
 #include "logger/logger_manager.hpp"
 #include "model/converters/pb_common.hpp"
 #include "grpc_client/GrpcClient.hpp"
@@ -74,6 +75,46 @@ iroha::keypair_t generateKeypair(
     return iroha::keypair_t(
                 iroha::pubkey_t::from_hexstring(keypair.assumeValue().publicKey()).assumeValue(),
                 iroha::privkey_t::from_string(toBinaryString(keypair.assumeValue().privateKey())).assumeValue());
+}
+
+
+iroha::keypair_t generateKeypairFromPrivateKey(
+        const std::string& private_key_hex)
+{
+    auto privkey = iroha::privkey_t::from_hexstring(private_key_hex);
+    if (iroha::expected::hasError(privkey)) {
+        throw std::invalid_argument(
+            "Invalid private key hex: " + privkey.assumeError());
+    }
+    return iroha::create_keypair(privkey.assumeValue());
+}
+
+
+iroha::keypair_t generateRandomKeypair()
+{
+    return iroha::create_keypair();
+}
+
+
+std::string getPublicKeyHexFromPrivateKey(
+        const std::string& private_key_hex)
+{
+    return generateKeypairFromPrivateKey(private_key_hex).pubkey.to_hexstring();
+}
+
+
+void addSignature(
+        iroha::protocol::Transaction& tx,
+        const iroha::keypair_t& keypair)
+{
+    const auto signature = iroha::sign(
+                iroha::hash(tx).to_string(),
+                keypair.pubkey,
+                keypair.privkey);
+
+    auto proto_signature = tx.add_signatures();
+    proto_signature->set_public_key(keypair.pubkey.to_hexstring());
+    proto_signature->set_signature(signature.to_hexstring());
 }
 
 

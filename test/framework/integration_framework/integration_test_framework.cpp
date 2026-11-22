@@ -824,6 +824,10 @@ size_t IntegrationTestFramework::internalPort() const {
   return config_.internal_port;
 }
 
+size_t IntegrationTestFramework::toriiPort() const {
+  return torii_port_;
+}
+
 void IntegrationTestFramework::done() {
   log_->info("done");
   iroha_instance_->terminateAndCleanup();

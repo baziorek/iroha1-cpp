@@ -99,6 +99,11 @@ public:
             const std::optional<std::string>& old_value,
             bool check_empty);
 
+    const iroha::protocol::Transaction& getTransaction() const
+    {
+        return protobuf_transaction_;
+    }
+
     const iroha::protocol::Transaction signAndAddSignature();
 };
 

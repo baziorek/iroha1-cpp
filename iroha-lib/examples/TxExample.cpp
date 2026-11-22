@@ -1,91 +1,60 @@
+// Port of iroha-python examples/tx-example.py:
+// CreateDomain+CreateAsset, AddAssetQuantity, CreateAccount, TransferAsset,
+// GrantPermission, SetAccountDetail + GetAssetInfo/GetAccountAssets/
+// GetAccountDetail queries.
+//
+// Node address and credentials are taken from environment variables:
+//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+// (same names and defaults as the Python examples).
+
 #include <iostream>
 
-#include "model/Tx.hpp"
-#include "model/utils/Utils.h"
+#include "scenario.hpp"
 
 
-iroha::protocol::Transaction generateTransactionWhichCreatesDomainAndAsset(
-        const std::string& account_name,
-        const std::string& key_path,
-        const std::string& domain_id,
-        const std::string& user_default_role,
-        const std::string& asset_name)
+int main()
 {
-    auto log_manager = std::make_shared<logger::LoggerManagerTree>(
-                logger::LoggerConfig{logger::LogLevel::kInfo,
-                                     logger::getDefaultLogPatterns()})->getChild("CLI");
-    const auto keypair = generateKeypair(
-                account_name,
-                key_path,
-                log_manager);
+    try {
+        iroha_example::Scenario scenario;
+        scenario.init();
 
-    return iroha_lib::Tx(
-                account_name,
-                keypair)
-            .createDomain(
-                domain_id,
-                user_default_role)
-            .createAsset(
-                asset_name,
-                domain_id,
-                0)
-            .signAndAddSignature();
-}
+        scenario.createDomainAndAsset("domain", "coin");
+        scenario.addCoinToAdmin("coin#domain");
+        scenario.createAccount("userone", "domain");
+        scenario.transferCoin(scenario.config.admin_account_id,
+                              "userone@domain", "coin#domain");
+        scenario.userGrantsToAdminSetAccountDetailPermission("userone@domain");
+        scenario.setAccountDetail("userone@domain", "age", "18");
 
+        const auto asset_info = scenario.getAssetInfo("coin#domain");
+        iroha_example::printErrorIfAny(asset_info, "GetAssetInfo");
+        if (asset_info.has_asset_response()) {
+            const auto& data = asset_info.asset_response().asset();
+            std::cout << "Asset id = " << data.asset_id()
+                      << ", precision = " << data.precision() << std::endl;
+        }
 
-void sendSampleTransaction(
-        const std::string& account_name,
-        const std::string& key_path,
-        const std::string& peer_ip,
-        uint16_t torii_port,
-        const std::string& domain_id,
-        const std::string& user_default_role,
-        const std::string& asset_name)
-{
-    const auto tx_proto = generateTransactionWhichCreatesDomainAndAsset(
-                account_name,
-                key_path,
-                domain_id,
-                user_default_role,
-                asset_name);
+        const auto account_assets = scenario.getAccountAssets("userone@domain");
+        iroha_example::printErrorIfAny(account_assets, "GetAccountAssets");
+        if (account_assets.has_account_assets_response()) {
+            for (const auto& asset :
+                 account_assets.account_assets_response().account_assets()) {
+                std::cout << "Asset id = " << asset.asset_id()
+                          << ", balance = " << asset.balance() << std::endl;
+            }
+        }
 
-    iroha_lib::GrpcClient(
-                peer_ip,
-                torii_port)
-            .send(tx_proto);
-
-    const auto tx_hash = getTransactionHash(tx_proto);
-    printTransactionStatus(
-                peer_ip,
-                torii_port,
-                tx_hash);
-}
-
-
-void run(const std::string& key_path)
-{
-    auto account_name = "admin@test";
-    const auto peer_ip = "127.0.0.1";
-    uint16_t torii_port = 50051;
-    const auto user_default_role = "user";
-
-    sendSampleTransaction(
-                account_name,
-                key_path,
-                peer_ip,
-                torii_port,
-                "domainsamplev1",
-                user_default_role,
-                "assetnamesamplev1");
-}
-
-
-int main(int argc, char** argv)
-{
-    if (argc > 1 && argc < 3) {
-        run(argv[1]);
-    } else {
-        std::cout << "Usage: " << argv[0] << " key_path\n";
+        const auto account_detail = scenario.getAccountDetail("userone@domain");
+        iroha_example::printErrorIfAny(account_detail, "GetAccountDetail");
+        if (account_detail.has_account_detail_response()) {
+            std::cout << "Account id = userone@domain"
+                      << ", details = "
+                      << account_detail.account_detail_response().detail()
+                      << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
     }
     return 0;
 }
