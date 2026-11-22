@@ -54,9 +54,9 @@ on:
     inputs:
       build_spec:
         description: |
-          See chatops-gen-matrix.sh, example "/build ubuntu macos gcc-13 burrow"
+          See chatops-gen-matrix.sh, example "/build ubuntu macos gcc-14 burrow"
           EXAMPLE build_spec:
-            /build ubuntu release gcc13
+            /build ubuntu release gcc14
             /build macos llvm release; /build macos clang ursa release
             /build all
             /build ubuntu all              ## build all possible configurations on Ubuntu
@@ -70,7 +70,8 @@ on:
             ursa
             release|Release
             debug|Debug
-            gcc|gcc-13|gcc13
+            gcc|gcc-14|gcc14
+            gcc-13|gcc13
             clang
             llvm
             skip-testing|skip_testing
@@ -85,7 +86,7 @@ jobs:
   ## This workflow is created for everything except pull requests from forks
   ## This job allows to skip the workflow completely for pull_requests from forks
   check_if_pull_request_comes_from_the_same_repo:
-    runs-on: ubuntu-22.04 #ubuntu-latest
+    runs-on: ubuntu-24.04 #ubuntu-latest
     name: Pull requests from forks should use other workflow
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
     steps:
@@ -110,7 +111,7 @@ jobs:
   ## anyway please read .github/README.md
   check_workflow_yaml_coressponds_to_src_yaml:
     needs: check_if_pull_request_comes_from_the_same_repo
-    runs-on: ubuntu-22.04 #ubuntu-latest
+    runs-on: ubuntu-24.04 #ubuntu-latest
     name: Check if github workflows were properly made from sources
     steps:
       - &step_detect_commented_pr
@@ -147,7 +148,7 @@ jobs:
   ## - on schedule '/build all'
   generate_matrixes:
     needs: check_if_pull_request_comes_from_the_same_repo
-    runs-on: ubuntu-22.04 #ubuntu-latest
+    runs-on: ubuntu-24.04 #ubuntu-latest
     #container: ubuntu:latest
     if: ${{ (github.event_name != 'comment') || ( github.event.comment &&
           github.event.issue.pull_request &&
@@ -188,10 +189,10 @@ jobs:
                                   true
                                 else
                                   #echo  >/tmp/comment_body "/build debug; /build ubuntu release debug normal"
-                                  echo  >/tmp/comment_body "/build ubuntu debug release gcc-13"
+                                  echo  >/tmp/comment_body "/build ubuntu debug release gcc-14"
                                 fi ;;
             push)               commit_message_body_build_spec >/tmp/comment_body || {
-                                  echo "/build ubuntu debug release gcc-13"
+                                  echo "/build ubuntu debug release gcc-14"
                                 } >/tmp/comment_body ;;
             workflow_dispatch)  echo >/tmp/comment_body "${{github.event.inputs.build_spec}}" ;;
             *)                  echo >&2 "::error::Unexpected event"; false ;;
@@ -224,7 +225,7 @@ jobs:
   ## and conditional tags :edge for development branch, and :latest for git-tags.
   Docker-iroha-builder:
     needs: check_workflow_yaml_coressponds_to_src_yaml
-    runs-on: ubuntu-22.04 #ubuntu-latest #[ self-hosted, Linux ]
+    runs-on: ubuntu-24.04 #ubuntu-latest #[ self-hosted, Linux ]
     permissions:
       contents: read
       packages: write
@@ -342,10 +343,10 @@ jobs:
         ## GITHUB_TOKEN can push to ghcr.io/<owner>/<repo> (image name must
         ## match the repository name); skipped for PRs from forks where the
         ## token is read-only - they reuse a previously pushed tag instead.
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo == github.event.pull_request.base.repo }}
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
         with: &step_docker_build_and_push_ghcr-with
           <<: *step_docker_build_and_push_with
-          push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo == github.event.pull_request.base.repo }}
+          push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
           tags:   ${{ steps.meta_ghcr.outputs.tags }}
           labels: ${{ steps.meta_ghcr.outputs.labels }}
       # - &step_docker_move_cache
@@ -380,7 +381,7 @@ jobs:
     needs:
       - Docker-iroha-builder
       - generate_matrixes
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: read
@@ -526,7 +527,7 @@ jobs:
           _os=${OS:+-$OS}  _cc=${cc:+-$cc}  _build_type=${build_type:+-$build_type}  _uses=${uses:+-$uses}
           echo >>$GITHUB_ENV  ARTIFACT_SUFFIX=$_os$_cc$_build_type$_uses
           echo >>$GITHUB_ENV  _uses_suffix=$_uses
-          echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc13 && echo $_cc)
+          echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - &step_artifact_irohad
         name: Upload artifact irohad
@@ -669,14 +670,14 @@ jobs:
   ## Package release binaries (irohad, iroha-cli) as AppImages.
   ## Reuses the 'irohad-<suffix>' artifact uploaded by build-UR legs;
   ## matrix_appimage contains at most the single
-  ## 'ubuntu gcc-13 Release normal' configuration.
+  ## 'ubuntu gcc-14 Release normal' configuration.
   appimage:
     name: Package AppImages
     needs:
       - Docker-iroha-builder
       - generate_matrixes
       - build-UR
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: read
@@ -698,7 +699,7 @@ jobs:
         name: Download release binaries
         uses: actions/download-artifact@v4
         with:
-          pattern: irohad-ubuntu-gcc13-rel
+          pattern: irohad-ubuntu-gcc14-rel
           merge-multiple: true
           path: dist-bin
       -
@@ -722,13 +723,13 @@ jobs:
   ## The result docker image is pushed with tags :branch_name, :pr-NUMBER, :tag_name,
   ## and :latest (for git-tags).
   ## Those docker image tags could be extended with suffixes with compiler and build type like
-  ## -gcc13, -clang, -debug, -gcc13-debug. Like :latest-debug, :main-debug, :1.3.0-gcc13-debug.
+  ## -gcc14, -clang, -debug, -gcc14-debug. Like :latest-debug, :main-debug, :1.3.0-gcc14-debug.
   ## Result image name could look like: hyperledger/iroha:pr-1117, hyperledger/iroha:nightly.
   docker-R: &job_docker_image_release
     needs:
       - build-UR
       - generate_matrixes
-    runs-on: ubuntu-22.04 #ubuntu-latest
+    runs-on: ubuntu-24.04 #ubuntu-latest
     permissions:
       contents: read
       packages: write

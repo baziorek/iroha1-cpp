@@ -16,9 +16,9 @@ echoerr(){
    echo >&2 '::error::'"$@"
 }
 
-readonly ALL_oses="ubuntu macos windows" ALL_build_types="Debug Release" ALL_cmake_opts="normal burrow ursa" ALL_compilers="gcc-13 clang llvm msvc"
+readonly ALL_oses="ubuntu macos windows" ALL_build_types="Debug Release" ALL_cmake_opts="normal burrow ursa" ALL_compilers="gcc-14 gcc-13 clang llvm msvc"
 readonly DEFAULT_oses="ubuntu macos windows" DEFAULT_build_types="Debug" DEFAULT_cmake_opts="normal"
-readonly DEFAULT_ubuntu_compilers="gcc-13" AVAILABLE_ubuntu_compilers="gcc-13 clang"
+readonly DEFAULT_ubuntu_compilers="gcc-14" AVAILABLE_ubuntu_compilers="gcc-14 gcc-13 clang"
 readonly DEFAULT_macos_compilers="clang"  AVAILABLE_macos_compilers="clang gcc-13" ## Also "llvm gcc-13" but they fail
 readonly DEFAULT_windows_compilers="msvc" AVAILABLE_windows_compilers="msvc" ## Also "clang mingw cygwin" but they are redundant
 
@@ -87,7 +87,8 @@ handle_user_line(){
          ursa)                      cmake_opts+=" $1 "  ;;
          release|Release)           build_types+=" Release " ;;
          debug|Debug)               build_types+=" Debug"  ;;
-         gcc|gcc-13|gcc13)         compilers+=" gcc-13 " ;;
+         gcc|gcc-14|gcc14)         compilers+=" gcc-14 " ;;
+         gcc-13|gcc13)             compilers+=" gcc-13 " ;;
          clang)                      compilers+=" clang " ;;
          llvm)                      compilers+=" $1 " ;;
          msvc)                      compilers+=" $1 " ;;
@@ -172,6 +173,6 @@ echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/'                          | json_
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/'             | json_include >matrix_ubuntu_release
 echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/'               | json_include >matrix_ubuntu_debug
 echo "$MATRIX" | awk -v IGNORECASE=1 '/macos/'                           | json_include >matrix_macos
-echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/ && /gcc-13/' | json_include >matrix_dockerimage_release
-echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/   && /gcc-13/' | json_include >matrix_dockerimage_debug
-echo "$MATRIX" | awk '$1=="ubuntu" && $2=="gcc-13" && $3=="Release" && $4=="normal"' | json_include >matrix_appimage
+echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /release/ && /gcc-14/' | json_include >matrix_dockerimage_release
+echo "$MATRIX" | awk -v IGNORECASE=1 '/ubuntu/ && /debug/   && /gcc-14/' | json_include >matrix_dockerimage_debug
+echo "$MATRIX" | awk '$1=="ubuntu" && $2=="gcc-14" && $3=="Release" && $4=="normal"' | json_include >matrix_appimage

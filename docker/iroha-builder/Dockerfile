@@ -12,8 +12,8 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             apt-utils software-properties-common wget gpg-agent \
             libtool \
-            # compilers (gcc-13 is the default gcc on ubuntu 24.04)
-            build-essential g++-13 cmake ninja-build \
+            # compilers (gcc-13 is the default gcc on ubuntu 24.04; keep both for CI matrix)
+            build-essential g++-13 g++-14 cmake ninja-build \
             gdb gdbserver \
             # CI dependencies
             git ssh tar gzip ca-certificates gnupg \

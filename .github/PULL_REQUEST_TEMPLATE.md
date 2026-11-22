@@ -10,7 +10,7 @@
 
 Closes #{issue_number} <!-- Replace with an actual number,  -->
 
-<!-- Link if e.g. JIRA issue or  from another repository -->
+<!-- Link if the issue is tracked elsewhere, e.g. in another repository -->
 
 ### Benefits
 
@@ -18,7 +18,7 @@ Closes #{issue_number} <!-- Replace with an actual number,  -->
 
 ### Checklist
 
-- [ ] I've read `CONTRIBUTING.md`
+- [ ] I've read `CONTRIBUTING.rst`
 - [ ] I've used the standard signed-off commit format (or will squash just before merging)
 - [ ] All applicable CI checks pass (or I promised to make them pass later)
 - [ ] (optional) I've written unit tests for the code changes
@@ -29,5 +29,4 @@ Closes #{issue_number} <!-- Replace with an actual number,  -->
 <!-- USEFUL LINKS 
  - https://www.secondstate.io/articles/dco
  - https://discord.gg/hyperledger (please ask us any questions)
- - https://t.me/hyperledgeriroha (if you prefer telegram)
 -->
