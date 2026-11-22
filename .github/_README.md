@@ -22,15 +22,14 @@ The workflow is started on pull request creation or update. The workflow is paus
 
 USAGE of Iroha1
 -----
-GitHub Actions Workflow [`Iroha1`](build-iroha1.src.yml) solves task of automated build and deployment Iroha1 from Hyperledger/iroha repository.
+GitHub Actions Workflow [`Iroha1`](build-iroha1.src.yml) solves task of automated build and deployment of Iroha1 in this fork (originally written for Hyperledger/iroha).
 There are events when it is running:
 - on **pull request** to Iroha1 main and development branches
 - on **push** to main or development branches including event when PR is **merged**
 - on **workflow dispatch** to run WF manually on special branch with defined buildspec through web interface or via CLI tool
-- **scheduled** every night
 - _(under construction PR #XX) on **comment to PR** which contains buildspec._
 
-Default `buildspec` is _`/build all`_
+Default `buildspec` for pushes is _`/build ubuntu debug release gcc-14`_
 
 ### Buildspec
 Build matrix is a way to select among number of configurations to be built.
@@ -45,7 +44,7 @@ List of files
   Same as previous, but for forks
 - `workflows/build-iroha1.yml`
   Result worflow taken by GitHub and generated with make-workflows script. Long file of repeated code. DO NOT EDIT MANUALLY.
-- `workflows/build-iroha1.yml`
+- `workflows/build-iroha1-fork.yml`
   Same as previous, but for forks
 - `make-workflows.sh`
   A tool to generate workflows/*.yml from *.src.yml - evaluates anchors. [Read the docs](_README.make-workflows.md).
@@ -72,7 +71,8 @@ List of files
     ursa
     release|Release
     debug|Debug
-    gcc|gcc-13|gcc13
+    gcc|gcc-14|gcc14
+    gcc-13|gcc13
     clang
     llvm
     msvc
