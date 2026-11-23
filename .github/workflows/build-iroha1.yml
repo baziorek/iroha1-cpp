@@ -1172,6 +1172,64 @@ jobs:
         with:
           name: iroha-appimage
           path: dist/*.AppImage
+  ## On git tags, attach the Release-leg artifacts (deb package,
+  ## AppImages, standalone binaries) to a GitHub Release.
+  ## The build-UR legs already ran the full CTest suite, so a release
+  ## is only published for a green build.
+  release:
+    name: GitHub Release
+    needs:
+      - build-UR
+      - appimage
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Show context
+        run: |
+          echo "::group::GitHub context"
+          cat <<'END'
+          ${{ toJson(github) }}
+          END
+          echo "::endgroup::"
+          echo "::group::GitHub needs"
+          cat <<'END'
+          ${{ toJson(needs) }}
+          END
+          echo "::endgroup::"
+      - name: Download release artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: |
+            iroha-deb-ubuntu-gcc14-rel*
+            iroha-appimage*
+            irohad-ubuntu-gcc14-rel*
+          merge-multiple: true
+          path: dist
+      - name: List release artifacts
+        run: ls -lhR dist || true
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+          body: |
+            **Community fork — unsupported release.**
+
+            This is a community-maintained fork of Hyperledger Iroha 1.x.
+            It contains **no functional changes** to Iroha itself — only
+            build-system updates, dependency refreshes and maintenance
+            cleanups. It is maintained by a single person (with
+            AI-assisted development), **not** by the original development
+            team. While the changes are intended to be safe, **no
+            production or commercial-use warranty is provided**.
+
+            For commercial deployments evaluate this fork carefully or
+            consider the officially supported
+            [Hyperledger Iroha v2](https://github.com/hyperledger/iroha).
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md)
+            for the full list of changes since the previous release.
   ## Build and publish docker image named 'hyperledger/iroha'  with irohad and iroha tools inside.
   ## The result docker image is pushed with tags :branch_name, :pr-NUMBER, :tag_name,
   ## and :latest (for git-tags).
