@@ -4,7 +4,9 @@ Python Library
 Where to Get
 ^^^^^^^^^^^^
 
-A supported python library for Iroha is available at its `own Hyperledger iroha-python repo <https://github.com/hyperledger/iroha-python/>`__.
+For this documentation (the ``iroha1-cpp`` fork), use the `iroha1-python <https://github.com/baziorek/iroha1-python>`__ fork — it contains the **original ``iroha-python`` sources unchanged**, rebuilt against modern dependencies so it installs and works on current Python versions.
+
+The upstream project is also available at its `own Hyperledger iroha-python repo <https://github.com/hyperledger/iroha-python/>`__, but it is no longer maintained and does not build against current toolchains.
 Python 3+ is supported.
 
 You can also install Python library via pip:

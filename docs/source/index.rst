@@ -22,6 +22,14 @@ This documentation will guide you through the installation, deployment, and laun
 .. note::
     You are reading the documentation of the `iroha1-cpp <https://github.com/baziorek/iroha1-cpp>`_ community fork, which keeps Iroha v1 buildable and maintained. It is **more up-to-date** than the official ReadTheDocs documentation at `iroha.readthedocs.io <https://iroha.readthedocs.io/>`_, which is no longer updated for Iroha v1.
 
+    The matching Python client is the `iroha1-python <https://github.com/baziorek/iroha1-python>`_ fork — the original ``iroha-python`` sources **unchanged**, rebuilt against modern dependencies so that it installs and works on current systems.
+
+.. note::
+    Iroha v1 is a mature, production-proven platform. It powers `Bakong <https://www.nbc.gov.kh/english/economic_research/bakong.php>`_, the national payment system of the National Bank of Cambodia, in production since October 2020 — tens of millions of accounts and over a billion transactions per year, with real-time settlement between banks. The technology is also used in academic and research projects.
+
+.. warning::
+    The ``iroha1-cpp`` and ``iroha1-python`` forks contain **no functional changes** to Iroha itself — only build-system updates, dependency refreshes and maintenance cleanups. They are maintained by a single person (with AI-assisted development), **not** by the original development team that designed, tested and operated the system for years. While the changes are intended to be safe, **no production or commercial-use warranty is provided**. If you plan a commercial deployment, evaluate the fork carefully or consider the officially supported `Hyperledger Iroha v2 <https://github.com/hyperledger/iroha>`_ instead.
+
 As Hyperledger Iroha is an open-source project, we will also cover contribution part and explain you a working process.
 
 .. toctree::

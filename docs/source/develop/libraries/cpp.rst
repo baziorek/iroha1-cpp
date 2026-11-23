@@ -37,7 +37,8 @@ Required dependencies: ``protobuf``, ``grpc``, ``boost``, ``spdlog``,
 automatically by the toolchain file.
 
 To also build the bundled examples (``TxExample``, ``BatchExample``,
-``QueryExample``, ``DomainAssetCreation``):
+``QueryExample``, ``TxOrderingExample``, ``BlocksQueryExample``,
+``MstExample``, ``InfiniteBlocksStreamExample``, ``DomainAssetCreation``):
 
 .. code:: sh
 
@@ -59,20 +60,52 @@ Using the Library
 The main entry points are:
 
 * ``iroha_lib::Tx`` / ``iroha_lib::TxBatch`` — create, sign and send
-  transactions (see ``model/generators/CommandGenerator.hpp``).
+  transactions (see ``model/Tx.hpp``, ``model/TxBatch.hpp``).
 * ``iroha_lib::Query`` — build and send queries
-  (see ``model/generators/QueryGenerator.hpp``).
+  (see ``model/Query.hpp``).
+* ``iroha_lib::BlocksQuery`` — build signed blocks queries for the
+  ``FetchCommits`` stream (see ``model/BlocksQuery.hpp``).
 * ``iroha_lib::GrpcClient`` — low-level gRPC client for the Torii
-  ``CommandService`` and ``QueryService`` endpoints
+  ``CommandService`` and ``QueryService`` endpoints, including
+  server-streaming ``sendStatusStream`` / ``sendBlocksStreamQuery``
   (see ``grpc_client/GrpcClient.hpp``).
+* ``iroha_lib::createKeyFiles`` / ``iroha_lib::loadKeyFiles``
+  (``model/utils/key_files.hpp``) — generate and load key files in the
+  ``KeysManagerImpl`` format (``<name>.pub`` / ``<name>.priv``, optional
+  passphrase encryption).
+* ``iroha_lib::generateGenesisBlock`` / ``readPeersAddresses``
+  (``model/utils/genesis.hpp``) — sample genesis block generation,
+  equivalent of ``iroha-cli --genesis_block``.
 
-Key files are loaded with ``libs/crypto`` ``KeysManager`` and signatures
-use the ed25519/SHA3 implementation from ``shared_model``.
+Key pairs can be created from a hex private key with
+``Utils::generateKeypairFromPrivateKey`` (``model/utils/Utils.h``) or
+randomly with ``Utils::generateRandomKeypair``; signatures use the
+ed25519/SHA3 implementation from ``shared_model``.
 
-Working examples are in ``iroha-lib/examples/`` — e.g. ``TxExample.cpp``
-demonstrates creating a transaction, signing it with a key file and
-sending it to a node (peer ``127.0.0.1:50051`` is hardcoded):
+All examples read connection settings from environment variables, with
+defaults matching the ``iroha-python`` development setup
+(``IROHA_HOST_ADDR``, ``IROHA_PORT``, ``ADMIN_ACCOUNT_ID``,
+``ADMIN_PRIVATE_KEY`` — see ``examples/common.hpp``).
+
+Quick start — building, signing and sending a transaction that creates
+a domain and an asset (from ``examples/scenario.hpp``):
+
+.. literalinclude:: ../../../../iroha-lib/examples/scenario.hpp
+   :language: c++
+   :lines: 44-51
+
+Sending a query and reading the response (from
+``examples/scenario.hpp``):
+
+.. literalinclude:: ../../../../iroha-lib/examples/scenario.hpp
+   :language: c++
+   :lines: 182-196
+
+A complete runnable example is ``examples/TxExample.cpp`` — it creates a
+domain and asset, registers an account, transfers coins and runs
+queries against a live node:
 
 .. code:: sh
 
-    ./build-iroha-lib/examples/irohalib_tx_example /path/to/key.json
+    IROHA_HOST_ADDR=127.0.0.1 IROHA_PORT=50051 \
+        ./build-iroha-lib/examples/irohalib_tx_example
