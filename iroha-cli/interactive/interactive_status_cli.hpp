@@ -6,8 +6,10 @@
 #define IROHA_INTERACTIVE_STATUS_CLI_HPP
 
 #include <endpoint.pb.h>
+#include <optional>
 #include <string>
 
+#include "grpc_client/GrpcClient.hpp"
 #include "interactive/interactive_common_cli.hpp"
 
 namespace iroha_cli {
@@ -19,8 +21,10 @@ namespace iroha_cli {
      */
     class InteractiveStatusCli {
      public:
-      InteractiveStatusCli(const std::string &default_peer_ip,
-                           int default_port);
+      InteractiveStatusCli(
+          const std::string &default_peer_ip,
+          int default_port,
+          const std::optional<iroha_lib::TlsOptions> &tls = std::nullopt);
       void run();
 
      private:
@@ -45,6 +49,7 @@ namespace iroha_cli {
 
       std::string default_peer_ip_;
       int default_port_;
+      std::optional<iroha_lib::TlsOptions> tls_;
 
       std::unordered_map<ActionName, ResultHandler> resultHandlers_;
       ParamsMap resultParamsDescriptions_;

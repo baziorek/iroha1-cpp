@@ -39,14 +39,16 @@ namespace iroha_cli {
         logger::LoggerManagerTreePtr response_handler_log_manager,
         logger::LoggerPtr pb_qry_factory_log,
         logger::LoggerPtr json_qry_factory_log,
-        logger::LoggerManagerTreePtr log_manager)
+        logger::LoggerManagerTreePtr log_manager,
+        const std::optional<iroha_lib::TlsOptions> &tls)
         : creator_(account_name),
           tx_cli_(creator_,
                   default_peer_ip,
                   default_port,
                   keypair,
                   response_handler_log_manager,
-                  log_manager->getChild("Transaction")->getLogger()),
+                  log_manager->getChild("Transaction")->getLogger(),
+                  tls),
           query_cli_(creator_,
                      default_peer_ip,
                      default_port,
@@ -55,8 +57,9 @@ namespace iroha_cli {
                      std::move(response_handler_log_manager),
                      pb_qry_factory_log,
                      std::move(json_qry_factory_log),
-                     log_manager->getChild("Query")->getLogger()),
-          statusCli_(default_peer_ip, default_port) {
+                     log_manager->getChild("Query")->getLogger(),
+                     tls),
+          statusCli_(default_peer_ip, default_port, tls) {
       assign_main_handlers();
     }
 

@@ -8,10 +8,12 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
 #include "crypto/keypair.hpp"
+#include "grpc_client/GrpcClient.hpp"
 #include "interactive/interactive_common_cli.hpp"
 #include "logger/logger_fwd.hpp"
 #include "logger/logger_manager_fwd.hpp"
@@ -34,6 +36,7 @@ namespace iroha_cli {
        * @param keypair keypair of the creator account used for signing
        * @param response_handler_log_manager for ResponseHandler messages
        * @param log for internal messages
+       * @param tls optional TLS settings for the connection to the peer
        */
       InteractiveTransactionCli(
           const std::string &creator_account,
@@ -41,7 +44,8 @@ namespace iroha_cli {
           int default_port,
           const iroha::keypair_t &keypair,
           logger::LoggerManagerTreePtr response_handler_log_manager,
-          logger::LoggerPtr log);
+          logger::LoggerPtr log,
+          const std::optional<iroha_lib::TlsOptions> &tls = std::nullopt);
       /**
        * Run interactive query command line
        */
@@ -183,6 +187,9 @@ namespace iroha_cli {
 
       // Keypair of the creator account
       iroha::keypair_t keypair_;
+
+      // Optional TLS settings for connections to the peer
+      std::optional<iroha_lib::TlsOptions> tls_;
 
       /// Logger manager for ResponseHandler
       logger::LoggerManagerTreePtr response_handler_log_manager_;

@@ -93,13 +93,15 @@ namespace iroha_cli {
         logger::LoggerManagerTreePtr response_handler_log_manager,
         logger::LoggerPtr pb_qry_factory_log,
         logger::LoggerPtr json_qry_factory_log,
-        logger::LoggerPtr log)
+        logger::LoggerPtr log,
+        const std::optional<iroha_lib::TlsOptions> &tls)
         : current_context_(MAIN),
           creator_(account_name),
           default_peer_ip_(default_peer_ip),
           default_port_(default_port),
           counter_(query_counter),
           keypair_(keypair),
+          tls_(tls),
           response_handler_log_manager_(
               std::move(response_handler_log_manager)),
           pb_qry_factory_log_(std::move(pb_qry_factory_log)),
@@ -269,7 +271,7 @@ namespace iroha_cli {
       const auto signed_query = query_->signAndAddSignature();
 
       CliClient client(
-          address.value().first, address.value().second);
+          address.value().first, address.value().second, tls_);
       GrpcResponseHandler{response_handler_log_manager_}.handle(
           client.sendQuery(signed_query));
       printEnd();

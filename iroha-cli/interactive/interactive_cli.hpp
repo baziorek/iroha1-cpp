@@ -6,7 +6,10 @@
 #ifndef IROHA_CLI_INTERACTIVE_CLI_HPP
 #define IROHA_CLI_INTERACTIVE_CLI_HPP
 
+#include <optional>
+
 #include "crypto/keypair.hpp"
+#include "grpc_client/GrpcClient.hpp"
 #include "interactive/interactive_query_cli.hpp"
 #include "interactive/interactive_status_cli.hpp"
 #include "interactive/interactive_transaction_cli.hpp"
@@ -28,6 +31,7 @@ namespace iroha_cli {
        * @param pb_qry_factory_log for PbQueryFactory mesages
        * @param json_qry_factory_log for JsonQueryFactory mesages
        * @param log_manager log manager for interactive CLIs
+       * @param tls optional TLS settings for the connection to the peer
        */
       InteractiveCli(
           const std::string &account_name,
@@ -38,7 +42,8 @@ namespace iroha_cli {
           logger::LoggerManagerTreePtr response_handler_log_manager,
           logger::LoggerPtr pb_qry_factory_log,
           logger::LoggerPtr json_qry_factory_log,
-          logger::LoggerManagerTreePtr log_manager);
+          logger::LoggerManagerTreePtr log_manager,
+          const std::optional<iroha_lib::TlsOptions> &tls = std::nullopt);
       /**
        * Run interactive cli. Print menu and parse commands
        */
