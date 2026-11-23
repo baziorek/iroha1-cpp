@@ -1059,7 +1059,7 @@ namespace {
         EventTypes::kOnConsensusGateEvent,
         ::torii::CommandServiceTransportGrpc::ConsensusGateEvent{});
     context.log->info("~~~~~~~~~| PROPOSAL ^_^ |~~~~~~~~~ ");
-    auto event = context.synchronizer->processOutcome(std::move(object));
+    auto event = context.synchronizer->processOutcome(object);
     if (not event) {
       return;
     }

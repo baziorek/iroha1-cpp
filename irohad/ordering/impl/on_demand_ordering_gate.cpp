@@ -159,7 +159,7 @@ OnDemandOrderingGate::processProposalEvent(
   if (!proposal)
     return network::OrderingEvent{std::nullopt, round, current_ledger_state_};
 
-  auto result = removeReplaysAndDuplicates(std::move(proposal));
+  auto result = removeReplaysAndDuplicates(proposal);
   if (boost::empty(result->transactions()))
     return network::OrderingEvent{std::nullopt, round, current_ledger_state_};
 
