@@ -18,6 +18,54 @@ using iroha::operator|;
 namespace integration_framework {
   namespace fake_peer {
 
+    namespace {
+      struct LoaderBlocksIterator {
+        using iterator_category = std::input_iterator_tag;
+        using value_type = LoaderBlocksRequestResult::iterator::value_type;
+        using difference_type = std::ptrdiff_t;
+        using pointer = std::add_pointer_t<value_type>;
+        using reference =
+            std::add_lvalue_reference_t<std::add_const_t<value_type>>;
+
+        LoaderBlocksIterator() {}
+
+        LoaderBlocksIterator(std::shared_ptr<FakePeer> fake_peer,
+                             BlockStorage::HeightType current_height)
+            : fake_peer(std::move(fake_peer)),
+              current_height(current_height) {
+          ++(*this);
+        }
+
+        LoaderBlocksIterator &operator++() {
+          block = fake_peer->getBlockStorage()->getBlockByHeight(
+              current_height++);
+          return *this;
+        }
+
+        LoaderBlocksIterator operator++(int) {
+          LoaderBlocksIterator ret = *this;
+          ++(*this);
+          return ret;
+        }
+
+        reference operator*() const {
+          return block;
+        }
+
+        bool operator==(LoaderBlocksIterator const &other) const {
+          return block == other.block;
+        }
+
+        bool operator!=(LoaderBlocksIterator const &other) const {
+          return !(*this == other);
+        }
+
+        std::shared_ptr<FakePeer> fake_peer;
+        BlockStorage::HeightType current_height;
+        std::shared_ptr<const shared_model::proto::Block> block;
+      };
+    }  // namespace
+
     void HonestBehaviour::processYacMessage(
         std::shared_ptr<const YacMessage> message) {
       getFakePeer() |
@@ -53,54 +101,8 @@ namespace integration_framework {
           return {};
         }
 
-        struct iterator {
-          using iterator_category = std::input_iterator_tag;
-          using value_type = LoaderBlocksRequestResult::iterator::value_type;
-          using difference_type = std::ptrdiff_t;
-          using pointer = std::add_pointer_t<value_type>;
-          using reference =
-              std::add_lvalue_reference_t<std::add_const_t<value_type>>;
-
-          iterator() {}
-
-          iterator(std::shared_ptr<FakePeer> fake_peer,
-                   BlockStorage::HeightType current_height)
-              : fake_peer(std::move(fake_peer)),
-                current_height(current_height) {
-            ++(*this);
-          }
-
-          iterator &operator++() {
-            block = fake_peer->getBlockStorage()->getBlockByHeight(
-                current_height++);
-            return *this;
-          }
-
-          iterator operator++(int) {
-            iterator ret = *this;
-            ++(*this);
-            return ret;
-          }
-
-          reference operator*() const {
-            return block;
-          }
-
-          bool operator==(iterator const &other) const {
-            return block == other.block;
-          }
-
-          bool operator!=(iterator const &other) const {
-            return !(*this == other);
-          }
-
-          std::shared_ptr<FakePeer> fake_peer;
-          BlockStorage::HeightType current_height;
-          std::shared_ptr<const shared_model::proto::Block> block;
-        };
-
-        return boost::make_iterator_range(iterator{fake_peer, request},
-                                          iterator{});
+        return boost::make_iterator_range(
+            LoaderBlocksIterator{fake_peer, request}, LoaderBlocksIterator{});
       };
     }
 

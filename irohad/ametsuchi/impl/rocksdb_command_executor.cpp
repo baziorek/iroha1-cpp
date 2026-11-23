@@ -1151,7 +1151,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
         status, [&] { return std::format("Max description size key"); }));
 
     if (status.ok()) {
-      uint64_t max_description_size;
+      uint64_t max_description_size = 0;
       common.decode(max_description_size);
       if (description.size() > max_description_size)
         return makeError<void>(ErrorCodes::kInvalidFieldSize,

@@ -8,9 +8,11 @@ namespace iroha_lib {
 Query::Query(
         const iroha::keypair_t& keypair,
         uint64_t counter,
+        const std::string& creator_account_id,
         uint64_t created_time) noexcept
     : counter_(counter),
       created_time_(created_time),
+      creator_account_id_(creator_account_id),
       keypair_(keypair)
 {}
 
@@ -42,11 +44,13 @@ Query& Query::getAccountDetail(const std::string& account_id)
 }
 
 Query& Query::getAccountTransactions(const std::string& account_id,
-                                     const std::optional<std::string*>& first_tx_hash,
-                                     const std::optional<google::protobuf::Timestamp*>& first_tx_time,
-                                     const std::optional<google::protobuf::Timestamp*>& last_tx_time,
+                                     const std::optional<std::string>& first_tx_hash,
+                                     const std::optional<google::protobuf::Timestamp>& first_tx_time,
+                                     const std::optional<google::protobuf::Timestamp>& last_tx_time,
                                      const std::optional<uint64_t> first_tx_height,
-                                     const std::optional<uint64_t> last_tx_height)
+                                     const std::optional<uint64_t> last_tx_height,
+                                     const std::optional<uint32_t> page_size,
+                                     const std::optional<Ordering>& ordering)
 {
     protobuf_query_ = *query_generator_.generateGetAccountTransactions(
                 account_id,
@@ -56,17 +60,21 @@ Query& Query::getAccountTransactions(const std::string& account_id,
                 first_tx_time,
                 last_tx_time,
                 first_tx_height,
-                last_tx_height);
+                last_tx_height,
+                page_size,
+                ordering);
     return *this;
 }
 
 Query& Query::getAccountAssetTransactions(const std::string& account_id,
                                           const std::string& asset_id,
-                                          const std::optional<std::string*>& first_tx_hash,
-                                          const std::optional<google::protobuf::Timestamp*>& first_tx_time,
-                                          const std::optional<google::protobuf::Timestamp*>& last_tx_time,
+                                          const std::optional<std::string>& first_tx_hash,
+                                          const std::optional<google::protobuf::Timestamp>& first_tx_time,
+                                          const std::optional<google::protobuf::Timestamp>& last_tx_time,
                                           const std::optional<uint64_t> first_tx_height,
-                                          const std::optional<uint64_t> last_tx_height)
+                                          const std::optional<uint64_t> last_tx_height,
+                                          const std::optional<uint32_t> page_size,
+                                          const std::optional<Ordering>& ordering)
 {
     protobuf_query_ = *query_generator_.generateGetAccountAssetTransactions(
                 account_id,
@@ -77,7 +85,21 @@ Query& Query::getAccountAssetTransactions(const std::string& account_id,
                 first_tx_time,
                 last_tx_time,
                 first_tx_height,
-                last_tx_height);
+                last_tx_height,
+                page_size,
+                ordering);
+    return *this;
+}
+
+Query& Query::getPendingTransactions(
+        const std::string& account_id,
+        const std::optional<uint32_t> page_size)
+{
+    protobuf_query_ = *query_generator_.generateGetPendingTransactions(
+                account_id,
+                counter_,
+                created_time_,
+                page_size);
     return *this;
 }
 
@@ -147,6 +169,11 @@ Query& Query::getPeers(const std::string& account_id)
 
 const iroha::protocol::Query Query::signAndAddSignature()
 {
+    if (not creator_account_id_.empty()) {
+        protobuf_query_.mutable_payload()->mutable_meta()
+                ->set_creator_account_id(creator_account_id_);
+    }
+
     auto signature = iroha::sign(
                 iroha::hash(protobuf_query_).to_string(),
                 keypair_.pubkey,

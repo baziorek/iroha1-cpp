@@ -1,180 +1,89 @@
+// Port of iroha-python examples/query-transactions.py:
+// same command scenario as tx-example.py, plus GetAccountTransactions
+// queries - simple, filtered by tx_time range and by tx_height range.
+//
+// Node address and credentials are taken from environment variables:
+//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+
 #include <iostream>
-#include <cassert>
 
-#include "model/Query.hpp"
-#include "model/Tx.hpp"
-#include "model/utils/Utils.h"
+#include "scenario.hpp"
 
 
-iroha_lib::Query generateSampleQuery(
-        const std::string& account_name,
-        const std::string& key_path,
-        uint64_t counter=0u)
+namespace {
+
+using namespace iroha_example;
+
+void printTransactionsPage(const QueryResponse& response)
 {
-    auto log_manager = std::make_shared<logger::LoggerManagerTree>(
-                logger::LoggerConfig{logger::LogLevel::kInfo,
-                                     logger::getDefaultLogPatterns()})->getChild("CLI");
-    const auto keypair = generateKeypair(
-                account_name,
-                key_path,
-                log_manager);
-    return iroha_lib::Query(
-                keypair,
-                counter);
-}
-
-
-iroha::protocol::Query generateGetAccountAssetsQuery(
-        const std::string& account_name,
-        const std::string& key_path,
-        uint64_t counter=0u)
-{
-    return generateSampleQuery(
-                account_name,
-                key_path,
-                counter)
-            .getAccountAssets(account_name)
-            .signAndAddSignature();
-}
-
-
-iroha::protocol::Query generateGetAccountTransactionsQuery(
-        const std::string& account_name,
-        const std::string& key_path,
-        uint64_t counter=0u)
-{
-    return generateSampleQuery(account_name, key_path, counter)
-            .getAccountTransactions(account_name)
-            .signAndAddSignature();
-}
-
-
-iroha::protocol::Transaction generateTransactionWhichCreatesDomainAndAsset(
-        const std::string& account_name,
-        const std::string& key_path,
-        const std::string& domain_id,
-        const std::string& user_default_role,
-        const std::string& asset_name)
-{
-    auto log_manager = std::make_shared<logger::LoggerManagerTree>(
-                logger::LoggerConfig{logger::LogLevel::kInfo,
-                                     logger::getDefaultLogPatterns()})->getChild("CLI");
-    const auto keypair = generateKeypair(
-                account_name,
-                key_path,
-                log_manager);
-
-    return iroha_lib::Tx(
-                account_name,
-                keypair)
-            .createDomain(
-                domain_id,
-                user_default_role)
-            .createAsset(
-                asset_name,
-                domain_id,
-                0)
-            .signAndAddSignature();
-}
-
-
-void sendSampleTransaction(
-        const std::string& account_name,
-        const std::string& key_path,
-        const std::string& peer_ip,
-        uint16_t torii_port,
-        const std::string& domain_id,
-        const std::string& user_default_role,
-        const std::string& asset_name)
-{
-    const auto tx_proto = generateTransactionWhichCreatesDomainAndAsset(
-                account_name,
-                key_path,
-                domain_id,
-                user_default_role,
-                asset_name);
-
-    iroha_lib::GrpcClient(
-                peer_ip,
-                torii_port)
-            .send(tx_proto);
-    printTransactionStatus(
-                peer_ip,
-                torii_port,
-                getTransactionHash(tx_proto));
-}
-
-
-void runQueryWithSingleTransactionGenerated(const std::string& key_path)
-{
-    auto account_name = "admin@test";
-    const auto peer_ip = "127.0.0.1";
-    uint16_t torii_port = 50051;
-    const auto user_default_role = "user";
-
-    sendSampleTransaction(
-                account_name,
-                key_path,
-                peer_ip,
-                torii_port,
-                "domainsamplev4",
-                user_default_role,
-                "assetnamesamplev4");
-
-    const auto query_proto = generateGetAccountAssetsQuery(
-                account_name,
-                key_path);
-    iroha_lib::GrpcClient(
-                peer_ip,
-                torii_port)
-            .send(query_proto);
-    assert(query_proto.payload().get_account_assets().account_id() == account_name);
-}
-
-
-void runQueryWithMultiplyTransactionsGenerated(const std::string& key_path)
-{
-    auto account_name = "admin@test";
-    const auto peer_ip = "127.0.0.1";
-    uint16_t torii_port = 50051;
-    const auto user_default_role = "user";
-
-    for(uint8_t txCounter = 4u; txCounter; --txCounter)
-    {
-        sendSampleTransaction(
-                    account_name,
-                    key_path,
-                    peer_ip,
-                    torii_port,
-                    "domainsamplequeryv" + std::to_string(txCounter),
-                    user_default_role,
-                    "assetnamesamplequeryv" + std::to_string(txCounter));
+    if (response.has_error_response()) {
+        std::cerr << "GetAccountTransactions error: "
+                  << response.error_response().message() << std::endl;
+        return;
     }
-
-    const auto query_proto = generateGetAccountTransactionsQuery(
-                account_name,
-                key_path);
-    iroha_lib::GrpcClient(
-                peer_ip,
-                torii_port)
-            .send(query_proto);
-    assert(query_proto.payload().get_account_transactions().account_id() == account_name);
+    if (not response.has_transactions_page_response()) {
+        std::cerr << "Unexpected response type" << std::endl;
+        return;
+    }
+    const auto& page = response.transactions_page_response();
+    std::cout << "all_transactions_size = " << page.all_transactions_size()
+              << ", returned = " << page.transactions_size() << std::endl;
+    for (const auto& tx : page.transactions()) {
+        std::cout << "  " << txSummary(tx) << std::endl;
+    }
 }
 
+}  // namespace
 
-void run(const std::string& key_path)
+
+int main()
 {
-    runQueryWithSingleTransactionGenerated(key_path);
-    runQueryWithMultiplyTransactionsGenerated(key_path);
-}
+    try {
+        Scenario scenario;
+        scenario.init();
 
+        scenario.createDomainAndAsset("domain", "coin");
+        const auto created_time = scenario.addCoinToAdmin("coin#domain");
+        scenario.createAccount("userone", "domain");
+        scenario.transferCoin(scenario.config.admin_account_id,
+                              "userone@domain", "coin#domain");
+        scenario.userGrantsToAdminSetAccountDetailPermission("userone@domain");
+        scenario.setAccountDetail("userone@domain", "age", "18");
 
-int main(int argc, char** argv)
-{
-    if (argc > 1 && argc < 3) {
-        run(argv[1]);
-    } else {
-        std::cout << "Usage: " << argv[0] << " key_path\n";
+        std::cout << "--- query_transactions_simple (page_size=3) ---"
+                  << std::endl;
+        printTransactionsPage(
+                    scenario.getAccountTransactions(
+                        scenario.config.admin_account_id, 3));
+
+        // query for txs in measured time range (+-1ms around created_time)
+        std::cout << "--- transactions from time interval query ---"
+                  << std::endl;
+        printTransactionsPage(
+                    scenario.getAccountTransactions(
+                        scenario.config.admin_account_id,
+                        3,
+                        {},
+                        timestampFromMillis(created_time - 1),
+                        timestampFromMillis(created_time + 1)));
+
+        // query for txs in given height range
+        std::cout << "--- transactions from height range query ---"
+                  << std::endl;
+        printTransactionsPage(
+                    scenario.getAccountTransactions(
+                        scenario.config.admin_account_id,
+                        3,
+                        {},
+                        {},
+                        {},
+                        2,
+                        3));
+
+        std::cout << "done" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
     }
     return 0;
 }

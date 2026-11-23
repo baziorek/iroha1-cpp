@@ -8,7 +8,6 @@
 
 #include "common/result_fwd.hpp"
 
-#include <ciso646>
 #include <string>
 #include <type_traits>
 

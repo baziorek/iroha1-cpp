@@ -7,7 +7,6 @@
 #include "validators/validation_error_output.hpp"
 
 #include <cassert>
-#include <ciso646>
 #include <iostream>
 
 #include "utils/string_builder.hpp"

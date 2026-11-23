@@ -119,7 +119,12 @@ PostgresBlockStorage::fetch(
       return iroha::hexstringToBytestring(block_data) |
           [&, this](auto byte_block) {
             iroha::protocol::Block_v1 b1;
-            b1.ParseFromString(byte_block);
+            if (not b1.ParseFromString(byte_block)) {
+              log_->error("Failed to parse block data at height {}",
+                          height);
+              return boost::optional<
+                  std::unique_ptr<shared_model::interface::Block>>{};
+            }
             iroha::protocol::Block block;
             *block.mutable_block_v1() = b1;
             return block_factory_->createBlock(std::move(block))

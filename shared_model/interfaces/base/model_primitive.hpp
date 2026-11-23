@@ -6,7 +6,6 @@
 #ifndef IROHA_MODEL_PRIMITIVE_HPP
 #define IROHA_MODEL_PRIMITIVE_HPP
 
-#include <ciso646>
 #include <functional>
 
 #include "utils/string_builder.hpp"

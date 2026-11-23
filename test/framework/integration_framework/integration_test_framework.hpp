@@ -406,6 +406,12 @@ namespace integration_framework {
     size_t internalPort() const;
 
     /**
+     * Reports the port of the public gRPC endpoint (torii)
+     * @return occupied port number
+     */
+    size_t toriiPort() const;
+
+    /**
      * Shutdown ITF instance
      */
     void done();

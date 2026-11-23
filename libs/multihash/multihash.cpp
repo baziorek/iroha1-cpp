@@ -14,11 +14,11 @@ namespace iroha {
         ByteRange buffer) {
       Multihash result;
 
-      if (not readVarInt(
-              buffer,
-              reinterpret_cast<std::underlying_type_t<Type> &>(result.type))) {
+      std::underlying_type_t<Type> type_value = 0;
+      if (not readVarInt(buffer, type_value)) {
         return "Could not parse the Multihash data type.";
       }
+      result.type = static_cast<Type>(type_value);
 
       size_t length = 0;
       if (not readVarInt(buffer, length)) {

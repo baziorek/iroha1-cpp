@@ -2053,9 +2053,9 @@ namespace iroha {
       auto result = executeQuery(query);
       checkSuccessfulResult<shared_model::interface::PeersResponse>(
           std::move(result), [&expected_peer = peer](const auto &cast_resp) {
-            ASSERT_EQ(boost::size(cast_resp.peers()), 1);
-            auto &peer = cast_resp.peers().front();
-            ASSERT_EQ(peer, expected_peer);
+            auto peers = cast_resp.peers();
+            ASSERT_EQ(boost::size(peers), 1);
+            ASSERT_EQ(peers.front(), expected_peer);
           });
     }
 
@@ -2084,10 +2084,10 @@ namespace iroha {
       auto result = executeQuery(query);
       checkSuccessfulResult<shared_model::interface::PeersResponse>(
           std::move(result), [&expected_peer = peer](const auto &cast_resp) {
-            ASSERT_EQ(boost::size(cast_resp.peers()), 1);
-            auto &peer = cast_resp.peers().front();
-            ASSERT_EQ(peer.address(), expected_peer.address());
-            ASSERT_EQ(peer.pubkey(), expected_peer.pubkey());
+            auto peers = cast_resp.peers();
+            ASSERT_EQ(boost::size(peers), 1);
+            ASSERT_EQ(peers.front().address(), expected_peer.address());
+            ASSERT_EQ(peers.front().pubkey(), expected_peer.pubkey());
           });
     }
 

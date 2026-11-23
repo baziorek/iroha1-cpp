@@ -37,7 +37,7 @@ namespace {
         transactions);
   }
 
-  void uploadBatches(
+  [[maybe_unused]] void uploadBatches(
       iroha::ordering::BatchesCache::BatchesSetType &batches,
       shared_model::interface::types::TransactionsCollectionType const &txs) {
     auto batch_txs = parseProposal(txs);
@@ -48,7 +48,7 @@ namespace {
     }
   }
 
-  void uploadBatchesWithFilter(
+  [[maybe_unused]] void uploadBatchesWithFilter(
       iroha::ordering::BloomFilter256 const &bf,
       iroha::ordering::BatchesCache::BatchesSetType &batches,
       shared_model::interface::types::TransactionsCollectionType const &txs) {

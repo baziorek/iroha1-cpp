@@ -8,6 +8,7 @@
 
 #include "logger/logger_manager_fwd.hpp"
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -55,7 +56,7 @@ namespace logger {
     const std::string node_tag_;
     const std::string full_tag_;
     const ConstLoggerConfigPtr config_;
-    std::shared_ptr<Logger> logger_;
+    std::atomic<std::shared_ptr<Logger>> logger_;
     std::unordered_map<std::string, LoggerManagerTreePtr> children_;
     std::mutex children_mutex_;
   };

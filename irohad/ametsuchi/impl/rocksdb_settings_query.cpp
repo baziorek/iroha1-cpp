@@ -58,7 +58,7 @@ namespace iroha::ametsuchi {
       std::string>
   RocksDbSettingQuery::update(
       std::unique_ptr<shared_model::validation::Settings> base) {
-    uint64_t value;
+    uint64_t value = 0;
     if (auto res = getValueFromDb(db_context_, kMaxDescriptionSizeKey, value);
         expected::hasError(res))
       return expected::makeError(res.assumeError());

@@ -5,7 +5,6 @@
 
 #include "interactive/interactive_cli.hpp"
 
-#include <ciso646>
 #include <utility>
 
 #include "logger/logger_manager.hpp"

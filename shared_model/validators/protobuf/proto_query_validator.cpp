@@ -6,7 +6,6 @@
 #include "validators/protobuf/proto_query_validator.hpp"
 
 #include <google/protobuf/util/time_util.h>
-#include <ciso646>
 
 #include "validators/validation_error_helpers.hpp"
 #include "validators/validators_common.hpp"

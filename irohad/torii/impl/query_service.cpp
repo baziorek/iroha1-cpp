@@ -5,6 +5,8 @@
 
 #include "torii/query_service.hpp"
 
+#include <chrono>
+
 #include "backend/protobuf/block.hpp"
 #include "backend/protobuf/query_responses/proto_block_query_response.hpp"
 #include "backend/protobuf/query_responses/proto_query_response.hpp"
@@ -162,6 +164,21 @@ grpc::Status QueryService::FetchCommits(
                   return;
                 }
               });
+
+  // The subscription callback above only runs when a new block arrives.
+  // Poll the RPC context as well, so that the handler terminates after
+  // the client disconnects even if no further blocks are produced.
+  // Otherwise scheduler->process() would block forever and prevent the
+  // node from shutting down cleanly.
+  scheduler->repeat(
+      std::chrono::milliseconds(100),
+      [&] {
+        if (context->IsCancelled()) {
+          log_->debug("client unsubscribed from block stream, {}", client_id);
+          scheduler->dispose();
+        }
+      },
+      [] { return true; });
 
   scheduler->process();
 

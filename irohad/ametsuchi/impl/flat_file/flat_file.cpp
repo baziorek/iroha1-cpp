@@ -10,7 +10,6 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <boost/range/algorithm/find_if.hpp>
-#include <ciso646>
 #include <fstream>
 #include <iomanip>
 #include <iostream>

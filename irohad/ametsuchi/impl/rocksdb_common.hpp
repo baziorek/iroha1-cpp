@@ -1368,10 +1368,7 @@ namespace iroha::ametsuchi {
     if constexpr (kOp == kDbOperation::kGet) {
       assert(expected::hasValue(status));
       if (status.assumeValue().ok()) {
-        DISABLE_WARNING_PUSH
-        DISABLE_WARNING_uninitialized DISABLE_WARNING_maybe_uninitialized
-            uint64_t _;
-        DISABLE_WARNING_POP
+        uint64_t _ = 0;
         common.decode(_);
         value = _;
       }

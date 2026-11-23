@@ -310,7 +310,10 @@ IntegrationTestFramework::IntegrationTestFramework(
   config_.max_round_delay_ms = 0;
   config_.stale_stream_max_rounds = 2;
   config_.max_proposal_size = 10;
+  DISABLE_WARNING_PUSH
+  DISABLE_WARNING_deprecated_declarations
   config_.mst_support = mst_support;
+  DISABLE_WARNING_POP
   config_.syncing_mode = false;
   config_.max_past_created_hours = 24;
 
@@ -822,6 +825,10 @@ IntegrationTestFramework &IntegrationTestFramework::checkStatus(
 
 size_t IntegrationTestFramework::internalPort() const {
   return config_.internal_port;
+}
+
+size_t IntegrationTestFramework::toriiPort() const {
+  return torii_port_;
 }
 
 void IntegrationTestFramework::done() {

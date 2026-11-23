@@ -5,7 +5,6 @@
 
 #include "common/irohad_version.hpp"
 
-#include <ciso646>
 
 namespace iroha {
 

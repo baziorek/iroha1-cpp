@@ -6,7 +6,6 @@
 #ifndef IROHA_VALIDATORS_FIXTURE_HPP
 #define IROHA_VALIDATORS_FIXTURE_HPP
 
-#include <ciso646>
 #include <optional>
 #include <string_view>
 

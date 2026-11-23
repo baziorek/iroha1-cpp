@@ -10,9 +10,12 @@
 
 namespace iroha {
 
-  using sig_t = blob_t<64>;  // ed25519 sig is 64 bytes length
-  using pubkey_t = blob_t<32>;
-  using privkey_t = blob_t<32>;
+  constexpr unsigned ed25519SignatureLengthBytes = 64;
+  constexpr unsigned keyLenght = 32;
+
+  using sig_t = blob_t<ed25519SignatureLengthBytes>;
+  using pubkey_t = blob_t<keyLenght>;
+  using privkey_t = blob_t<keyLenght>;
 
   struct keypair_t {
     keypair_t() = default;

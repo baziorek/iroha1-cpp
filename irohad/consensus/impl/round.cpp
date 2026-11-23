@@ -5,7 +5,6 @@
 
 #include "consensus/round.hpp"
 
-#include <ciso646>
 #include <tuple>
 #include <utility>
 

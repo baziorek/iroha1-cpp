@@ -6,7 +6,6 @@
 #ifndef IROHA_SHARED_MODEL_TYPES_HPP
 #define IROHA_SHARED_MODEL_TYPES_HPP
 
-#include <ciso646>
 #include <cstdint>
 #include <memory>
 #include <set>

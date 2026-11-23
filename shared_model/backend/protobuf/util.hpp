@@ -7,6 +7,7 @@
 #define IROHA_SHARED_MODEL_PROTO_UTIL_HPP
 
 #include <google/protobuf/message.h>
+#include <stdexcept>
 #include <vector>
 #include "cryptography/blob.hpp"
 
@@ -17,7 +18,10 @@ namespace shared_model {
     crypto::Blob makeBlob(T &&message) {
       crypto::Blob::Bytes data;
       data.resize(message.ByteSizeLong());
-      message.SerializeToArray(data.data(), data.size());
+      if (not message.SerializeToArray(data.data(), data.size())) {
+        throw std::runtime_error(
+            "failed to serialize protobuf message to blob");
+      }
       return crypto::Blob(std::move(data));
     }
 
