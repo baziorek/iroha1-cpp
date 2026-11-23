@@ -13,8 +13,9 @@
 
 namespace iroha_cli {
 
-  CliClient::CliClient(std::string target_ip, int port)
-      : client_(std::move(target_ip), port) {}
+  CliClient::CliClient(std::string target_ip, int port,
+                       const std::optional<iroha_lib::TlsOptions> &tls)
+      : client_(std::move(target_ip), port, tls) {}
 
   CliClient::Response<iroha::protocol::ToriiResponse> CliClient::sendTx(
       const iroha::protocol::Transaction &tx) {

@@ -8,3 +8,9 @@ target_link_libraries(iroha_lib_utils_test
         iroha_lib_model
         test_logger
         )
+
+addtest(iroha_lib_model_test model_test.cpp)
+target_link_libraries(iroha_lib_model_test
+        iroha_lib_model
+        test_logger
+        )

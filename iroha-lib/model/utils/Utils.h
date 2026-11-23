@@ -43,12 +43,14 @@ const std::string getTransactionHash(const Transaction& tx);
 void printTransactionStatus(
         const std::string& peer_ip,
         uint16_t torii_port,
-        const std::string& tx_hash);
+        const std::string& tx_hash,
+        const std::optional<iroha_lib::TlsOptions>& tls = std::nullopt);
 
 void printTransactionStatuses(
         const std::string& peer_ip,
         uint16_t torii_port,
-        const std::vector<Transaction>& transactions);
+        const std::vector<Transaction>& transactions,
+        const std::optional<iroha_lib::TlsOptions>& tls = std::nullopt);
 
 std::string string_to_hex(const std::string& in);
 

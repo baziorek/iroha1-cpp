@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
+#include <sstream>
 
 #include "backend/protobuf/proto_block_json_converter.hpp"
 #include "backend/protobuf/queries/proto_query.hpp"
@@ -40,6 +42,7 @@ DEFINE_string(key_path, ".", "Path to user keys");
 // Iroha peer to connect with
 DEFINE_string(peer_ip, "127.0.0.1", "Address of the Iroha node");
 DEFINE_int32(torii_port, 50051, "Port of Iroha's Torii");
+DEFINE_string(tls_root_cert, "", "Optional path to PEM root certificate; when set, connections use TLS");
 
 // Send already signed and formed transaction to Iroha peer
 DEFINE_string(json_transaction, "", "Transaction in json format");
@@ -159,7 +162,26 @@ int main(int argc, char *argv[]) {
   }
   // Send to Iroha Peer json transaction/query
   else if (not FLAGS_json_transaction.empty() or not FLAGS_json_query.empty()) {
-    iroha_cli::CliClient client(FLAGS_peer_ip, FLAGS_torii_port);
+    const auto tls = [&]() -> std::optional<iroha_lib::TlsOptions> {
+      if (FLAGS_tls_root_cert.empty()) {
+        return std::nullopt;
+      }
+      std::ifstream cert_file(FLAGS_tls_root_cert);
+      if (not cert_file.is_open()) {
+        logger->error("Cannot open TLS root certificate: {}",
+                      FLAGS_tls_root_cert);
+        return std::nullopt;
+      }
+      std::ostringstream pem;
+      pem << cert_file.rdbuf();
+      iroha_lib::TlsOptions options;
+      options.pem_root_certs = pem.str();
+      return options;
+    }();
+    if (FLAGS_tls_root_cert.size() and not tls) {
+      return 1;
+    }
+    iroha_cli::CliClient client(FLAGS_peer_ip, FLAGS_torii_port, tls);
     iroha_cli::GrpcResponseHandler response_handler(
         response_handler_log_manager);
     if (not FLAGS_json_transaction.empty()) {

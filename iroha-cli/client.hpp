@@ -6,6 +6,7 @@
 #ifndef IROHA_CLI_CLIENT_HPP
 #define IROHA_CLI_CLIENT_HPP
 
+#include <optional>
 #include <string>
 
 #include "endpoint.grpc.pb.h"
@@ -26,7 +27,8 @@ namespace iroha_cli {
       T answer;
     };
 
-    CliClient(std::string target_ip, int port);
+    CliClient(std::string target_ip, int port,
+              const std::optional<iroha_lib::TlsOptions>& tls = std::nullopt);
 
     /**
      * Send Transaction to Iroha Peer, i.e. target_ip:port, then fetch
