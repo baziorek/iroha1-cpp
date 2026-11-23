@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "queries.pb.h"
 #include "common.hpp"
 
 
@@ -239,5 +240,4 @@ inline void printErrorIfAny(const QueryResponse& response, const char* what)
                   << response.error_response().message() << std::endl;
     }
 }
-
 }  // namespace iroha_example

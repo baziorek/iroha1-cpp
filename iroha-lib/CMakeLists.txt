@@ -39,6 +39,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(TESTING OFF)
+# export compile flags for IDEs (Qt Creator, clangd, vscode)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---- external dependencies ----
 find_package(Threads REQUIRED)
