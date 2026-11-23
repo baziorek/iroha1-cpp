@@ -428,6 +428,22 @@ jobs:
           -DBENCHMARKING=$( test "$skip_testing" = skip_testing && echo OFF || echo ON )
           -DPACKAGE_DEB=ON
           #-DCMAKE_VERBOSE_MAKEFILE=ON  ## Note: use for debug
+      - &step_add_swap
+        name: Add swap space
+        ## Debug build of the whole project with tests can OOM-kill the
+        ## runner agent on ubuntu-24.04 (hosted runners have ~16GB RAM
+        ## and no swap). Add a swapfile as a safety net.
+        run: |
+          ## container jobs may lack privileges for swapon - treat as
+          ## best-effort and never fail the build because of it
+          if ! swapon --show 2>/dev/null | grep -q .; then
+            fallocate -l 8G /swapfile 2>/dev/null \
+              || dd if=/dev/zero of=/swapfile bs=1M count=8192 status=none
+            chmod 600 /swapfile
+            mkswap /swapfile && swapon /swapfile \
+              || echo "::warning::swap setup failed (container likely unprivileged)"
+          fi
+          free -h || true
       - &step_cmake_build
         name: CMake build
         run: |
