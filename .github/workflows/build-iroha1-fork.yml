@@ -461,56 +461,6 @@ jobs:
         ## Debug   takes 18m44s on regular GitHub runner
         ## Debug   takes 7m41s on self-hosted AWS EC2 c5.x4large
         ## Release takes 2m58s on self-hosted AWS EC2 c5.x4large
-      - name: Free disk space before CPack
-        run: |
-          ## vcpkg buildtrees/packages/downloads are only needed to build
-          ## dependencies - they are dead weight afterwards. CPack staging
-          ## needs several GB and GitHub runners run out of disk
-          ## (archive_write_data: unknown error).
-          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
-          rm -rf build/_CPack_Packages
-          find build -name '*.o' -delete
-          df -h
-      - name: CPack (linux only)
-        run: cd build; cpack; ## cmake --build build --target package
-      - run: ccache --show-stats | diff --side-by-side /tmp/ccache-stats - ||true
-      - name: Show free space and disk usage
-        if: ${{ always() }}
-        run: |
-          df -h || true
-      - name: Generate artifact suffix depending on matrix to env.ARTIFACT_SUFFIX
-        run: |
-          set -x
-          cc=$(echo $CC_NAME | sed -Ee's,[-/],,g' )
-          build_type=$(echo $BuildType | tr A-Z a-z | sed -E -es,debug,dbg, -es,release,rel, )
-          test $build_type = dbg -o $build_type = rel
-          uses=$(echo "$features" | tr ' ' - | tr A-Z a-z)
-          _os=${OS:+-$OS}  _cc=${cc:+-$cc}  _build_type=${build_type:+-$build_type}  _uses=${uses:+-$uses}
-          echo >>$GITHUB_ENV  ARTIFACT_SUFFIX=$_os$_cc$_build_type$_uses
-          echo >>$GITHUB_ENV  _uses_suffix=$_uses
-          echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
-          echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
-      - name: Upload artifact irohad
-        uses: actions/upload-artifact@v6
-        with:
-          name: irohad${{env.ARTIFACT_SUFFIX}}
-          path: |
-            build/bin/irohad
-            build/bin/iroha-cli
-      - name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v6
-        with:
-          name: iroha-deb${{env.ARTIFACT_SUFFIX}}
-          path: |
-            build/*.deb
-      - if: ${{ false }} ## Maybe test in another job
-        name: Upload artifact tests
-        uses: actions/upload-artifact@v6
-        with:
-          name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
-          path: |
-            build/test_bin/**
-            build/test_data/**
       - timeout-minutes: 40
         if: env.skip_testing == ''
         name: CTest
@@ -614,6 +564,58 @@ jobs:
             fi
           done
           $tests_passed
+      - name: Free disk space before CPack
+        run: |
+          ## vcpkg buildtrees/packages/downloads, test binaries and ccache
+          ## are only needed to build and test - they are dead weight
+          ## afterwards. CPack staging needs several GB and GitHub runners
+          ## run out of disk (archive_write_data: unknown error).
+          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
+          rm -rf build/_CPack_Packages build/test_bin build/Testing build/test_data
+          rm -rf postgres_database
+          rm -rf "${_CCACHE_DIR:-$HOME/.cache/ccache}"
+          find build -name '*.o' -delete
+          df -h
+      - name: CPack (linux only)
+        run: cd build; cpack; ## cmake --build build --target package
+      - run: ccache --show-stats | diff --side-by-side /tmp/ccache-stats - ||true
+      - name: Show free space and disk usage
+        if: ${{ always() }}
+        run: |
+          df -h || true
+      - name: Generate artifact suffix depending on matrix to env.ARTIFACT_SUFFIX
+        run: |
+          set -x
+          cc=$(echo $CC_NAME | sed -Ee's,[-/],,g' )
+          build_type=$(echo $BuildType | tr A-Z a-z | sed -E -es,debug,dbg, -es,release,rel, )
+          test $build_type = dbg -o $build_type = rel
+          uses=$(echo "$features" | tr ' ' - | tr A-Z a-z)
+          _os=${OS:+-$OS}  _cc=${cc:+-$cc}  _build_type=${build_type:+-$build_type}  _uses=${uses:+-$uses}
+          echo >>$GITHUB_ENV  ARTIFACT_SUFFIX=$_os$_cc$_build_type$_uses
+          echo >>$GITHUB_ENV  _uses_suffix=$_uses
+          echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
+          echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
+      - name: Upload artifact irohad
+        uses: actions/upload-artifact@v6
+        with:
+          name: irohad${{env.ARTIFACT_SUFFIX}}
+          path: |
+            build/bin/irohad
+            build/bin/iroha-cli
+      - name: Upload artifact iroha-deb
+        uses: actions/upload-artifact@v6
+        with:
+          name: iroha-deb${{env.ARTIFACT_SUFFIX}}
+          path: |
+            build/*.deb
+      - if: ${{ false }} ## Maybe test in another job
+        name: Upload artifact tests
+        uses: actions/upload-artifact@v6
+        with:
+          name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
+          path: |
+            build/test_bin/**
+            build/test_data/**
   ## Just because release is built 2..3 times faster make it a different job
   build-UR:
     needs:
@@ -755,56 +757,6 @@ jobs:
         ## Debug   takes 18m44s on regular GitHub runner
         ## Debug   takes 7m41s on self-hosted AWS EC2 c5.x4large
         ## Release takes 2m58s on self-hosted AWS EC2 c5.x4large
-      - name: Free disk space before CPack
-        run: |
-          ## vcpkg buildtrees/packages/downloads are only needed to build
-          ## dependencies - they are dead weight afterwards. CPack staging
-          ## needs several GB and GitHub runners run out of disk
-          ## (archive_write_data: unknown error).
-          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
-          rm -rf build/_CPack_Packages
-          find build -name '*.o' -delete
-          df -h
-      - name: CPack (linux only)
-        run: cd build; cpack; ## cmake --build build --target package
-      - run: ccache --show-stats | diff --side-by-side /tmp/ccache-stats - ||true
-      - name: Show free space and disk usage
-        if: ${{ always() }}
-        run: |
-          df -h || true
-      - name: Generate artifact suffix depending on matrix to env.ARTIFACT_SUFFIX
-        run: |
-          set -x
-          cc=$(echo $CC_NAME | sed -Ee's,[-/],,g' )
-          build_type=$(echo $BuildType | tr A-Z a-z | sed -E -es,debug,dbg, -es,release,rel, )
-          test $build_type = dbg -o $build_type = rel
-          uses=$(echo "$features" | tr ' ' - | tr A-Z a-z)
-          _os=${OS:+-$OS}  _cc=${cc:+-$cc}  _build_type=${build_type:+-$build_type}  _uses=${uses:+-$uses}
-          echo >>$GITHUB_ENV  ARTIFACT_SUFFIX=$_os$_cc$_build_type$_uses
-          echo >>$GITHUB_ENV  _uses_suffix=$_uses
-          echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
-          echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
-      - name: Upload artifact irohad
-        uses: actions/upload-artifact@v6
-        with:
-          name: irohad${{env.ARTIFACT_SUFFIX}}
-          path: |
-            build/bin/irohad
-            build/bin/iroha-cli
-      - name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v6
-        with:
-          name: iroha-deb${{env.ARTIFACT_SUFFIX}}
-          path: |
-            build/*.deb
-      - if: ${{ false }} ## Maybe test in another job
-        name: Upload artifact tests
-        uses: actions/upload-artifact@v6
-        with:
-          name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
-          path: |
-            build/test_bin/**
-            build/test_data/**
       - timeout-minutes: 40
         if: env.skip_testing == ''
         name: CTest
@@ -908,6 +860,58 @@ jobs:
             fi
           done
           $tests_passed
+      - name: Free disk space before CPack
+        run: |
+          ## vcpkg buildtrees/packages/downloads, test binaries and ccache
+          ## are only needed to build and test - they are dead weight
+          ## afterwards. CPack staging needs several GB and GitHub runners
+          ## run out of disk (archive_write_data: unknown error).
+          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
+          rm -rf build/_CPack_Packages build/test_bin build/Testing build/test_data
+          rm -rf postgres_database
+          rm -rf "${_CCACHE_DIR:-$HOME/.cache/ccache}"
+          find build -name '*.o' -delete
+          df -h
+      - name: CPack (linux only)
+        run: cd build; cpack; ## cmake --build build --target package
+      - run: ccache --show-stats | diff --side-by-side /tmp/ccache-stats - ||true
+      - name: Show free space and disk usage
+        if: ${{ always() }}
+        run: |
+          df -h || true
+      - name: Generate artifact suffix depending on matrix to env.ARTIFACT_SUFFIX
+        run: |
+          set -x
+          cc=$(echo $CC_NAME | sed -Ee's,[-/],,g' )
+          build_type=$(echo $BuildType | tr A-Z a-z | sed -E -es,debug,dbg, -es,release,rel, )
+          test $build_type = dbg -o $build_type = rel
+          uses=$(echo "$features" | tr ' ' - | tr A-Z a-z)
+          _os=${OS:+-$OS}  _cc=${cc:+-$cc}  _build_type=${build_type:+-$build_type}  _uses=${uses:+-$uses}
+          echo >>$GITHUB_ENV  ARTIFACT_SUFFIX=$_os$_cc$_build_type$_uses
+          echo >>$GITHUB_ENV  _uses_suffix=$_uses
+          echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
+          echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
+      - name: Upload artifact irohad
+        uses: actions/upload-artifact@v6
+        with:
+          name: irohad${{env.ARTIFACT_SUFFIX}}
+          path: |
+            build/bin/irohad
+            build/bin/iroha-cli
+      - name: Upload artifact iroha-deb
+        uses: actions/upload-artifact@v6
+        with:
+          name: iroha-deb${{env.ARTIFACT_SUFFIX}}
+          path: |
+            build/*.deb
+      - if: ${{ false }} ## Maybe test in another job
+        name: Upload artifact tests
+        uses: actions/upload-artifact@v6
+        with:
+          name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
+          path: |
+            build/test_bin/**
+            build/test_data/**
     name: Build Ubuntu (Release)
     strategy:
       fail-fast: false
