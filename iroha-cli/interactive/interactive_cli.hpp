@@ -6,6 +6,7 @@
 #ifndef IROHA_CLI_INTERACTIVE_CLI_HPP
 #define IROHA_CLI_INTERACTIVE_CLI_HPP
 
+#include "crypto/keypair.hpp"
 #include "interactive/interactive_query_cli.hpp"
 #include "interactive/interactive_status_cli.hpp"
 #include "interactive/interactive_transaction_cli.hpp"
@@ -22,7 +23,7 @@ namespace iroha_cli {
        * @param default_peer_ip default peer ip to send transactions/query
        * @param default_port default port of peer's Iroha Torii
        * @param qry_counter synchronized nonce for sending queries
-       * @param provider crypto provider to make signatures
+       * @param keypair keypair of the account used for signing
        * @param response_handler_log_manager for ResponseHandler messages
        * @param pb_qry_factory_log for PbQueryFactory mesages
        * @param json_qry_factory_log for JsonQueryFactory mesages
@@ -33,7 +34,7 @@ namespace iroha_cli {
           const std::string &default_peer_ip,
           int default_port,
           uint64_t qry_counter,
-          const std::shared_ptr<iroha::model::ModelCryptoProvider> &provider,
+          const iroha::keypair_t &keypair,
           logger::LoggerManagerTreePtr response_handler_log_manager,
           logger::LoggerPtr pb_qry_factory_log,
           logger::LoggerPtr json_qry_factory_log,

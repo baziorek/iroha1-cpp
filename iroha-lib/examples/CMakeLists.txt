@@ -13,6 +13,7 @@ else()
             BlocksQueryExample
             InfiniteBlocksStreamExample
             DomainAssetCreation
+            TlsExample
     )
         add_executable(irohalib_${example}_example
             ${example}.cpp

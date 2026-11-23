@@ -6,6 +6,7 @@
 #ifndef IROHA_CLI_GRPC_RESPONSE_HANDLER_HPP
 #define IROHA_CLI_GRPC_RESPONSE_HANDLER_HPP
 
+#include "client.hpp"
 #include "logger/logger_fwd.hpp"
 #include "logger/logger_manager_fwd.hpp"
 #include "query_response_handler.hpp"
@@ -20,10 +21,11 @@ namespace iroha_cli {
    public:
     explicit GrpcResponseHandler(logger::LoggerManagerTreePtr log_manager);
     /**
-     * Handle iroha GRPC TxResponse
+     * Handle iroha GRPC transaction submission response
+     * (submission status plus the fetched transaction status)
      * @param response
      */
-    void handle(CliClient::Response<CliClient::TxStatus> response);
+    void handle(CliClient::Response<iroha::protocol::ToriiResponse> response);
     /**
      * Handle Iroha GRPC QueryResponse
      * @param response

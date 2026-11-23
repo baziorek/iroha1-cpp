@@ -55,6 +55,7 @@ The `examples` directory contains ready-to-run programs that demonstrate the mai
 | `BlocksQueryExample` | Signed `BlocksQuery` over the `FetchCommits` server stream: observe blocks as transactions are committed | `blocks-query.py` |
 | `InfiniteBlocksStreamExample` | Long-running block stream; prints every new block until interrupted (Ctrl+C) | `infinite-blocks-stream.py` |
 | `DomainAssetCreation` | Older standalone example (uses gflags) | — |
+| `TlsExample` | TLS-encrypted transport: signed query + tx status over a TLS gRPC channel | — |
 
 ### Configuration
 
@@ -66,8 +67,13 @@ All ported examples read connection settings from environment variables, with de
 | `IROHA_PORT` | `50051` | Torii (gRPC) port |
 | `ADMIN_ACCOUNT_ID` | `admin@test` | Account used to sign transactions/queries |
 | `ADMIN_PRIVATE_KEY` | `f101537e…cab70` | Admin private key as hex (no key file needed) |
+| `IROHA_TLS_ROOT_CERT` | *(empty)* | Path to a PEM root certificate — when set, examples connect over TLS (see `examples/TlsExample.cpp`) |
 
 Private keys are accepted directly as hex strings via `Utils::generateKeypairFromPrivateKey`, so no key files are required.
+
+### TLS
+
+`GrpcClient` uses an insecure channel by default. Pass `iroha_lib::TlsOptions` (PEM root certificate, optional client cert/key for mutual TLS) to its constructor to enable TLS — Iroha's Torii TLS endpoint uses one-way TLS, so only `pem_root_certs` is needed in practice. `TlsExample` demonstrates this; the `iroha_lib_tls_test` integration test covers it against a TLS-enabled node.
 
 ### Transaction status stream
 
@@ -100,6 +106,25 @@ stream->Cancel();  // stop the stream
 `Query::getPendingTransactions(account_id)` fetches transactions waiting for more signatures (requires `mst_support` in the node config). To countersign, fetch the pending transaction, clear its signatures (`tx.mutable_signatures()->Clear()`), sign it with another signatory's key via `Utils::addSignature`, and send it again — see `BatchExample.cpp` and `MstExample.cpp`.
 
 `TxBatch::batch(transactions, atomic)` attaches shared `BatchMeta` (type + SHA3-256 reduced hashes of every transaction's reduced payload) to each transaction; call it **before** signing, because the meta is part of the signed payload.
+
+### Key files
+
+`model/utils/key_files.hpp` wraps `KeysManagerImpl` so applications don't need the legacy key manager directly:
+
+- `createKeyFiles(name, pass_phrase, keys_directory, log)` — generate a keypair and store it as `<keys_directory>/<name>.pub` / `<name>.priv` (existing files are overwritten, like `createKeys`)
+- `loadKeyFiles(name, pass_phrase, keys_directory, log)` — load an existing keypair from those files
+
+An empty `pass_phrase` means unencrypted keys; an empty `keys_directory` means the current directory.
+
+### Genesis block generation
+
+`model/utils/genesis.hpp` replicates `iroha-cli --genesis_block` / `--peers_address`:
+
+- `readPeersAddresses(path)` — read whitespace-separated `ip:port` peer addresses from a file
+- `generateGenesisBlock(config, log)` — build a signed genesis block (height 1) registering each peer, creating `admin`/`user`/`money_creator` roles, the `test` domain, the `coin` asset and the `admin@test`/`test@test` accounts. Fresh key files for peers (`node0..nodeN`) and accounts are generated in `config.keys_directory`
+- `generateGenesisBlockFromTransactions(transactions)` — wrap already-signed transactions into a genesis block (the `--genesis_transaction` equivalent)
+
+`iroha-cli` uses both helpers for its `--genesis_block`, `--peers_address`, `--new_account` and `--key_path` modes.
 
 ### Integration tests
 

@@ -6,32 +6,65 @@
 #include "interactive/interactive_transaction_cli.hpp"
 
 #include <fstream>
+#include <unordered_set>
 #include <utility>
 
-#include "backend/protobuf/transaction.hpp"
 #include "client.hpp"
+#include "datetime/time.hpp"
 #include "grpc_response_handler.hpp"
 #include "logger/logger.hpp"
-#include "model/commands/append_role.hpp"
-#include "model/commands/create_role.hpp"
-#include "model/commands/detach_role.hpp"
-#include "model/commands/grant_permission.hpp"
-#include "model/commands/revoke_permission.hpp"
-#include "model/commands/set_account_detail.hpp"
 #include "model/converters/json_common.hpp"
 #include "model/converters/json_transaction_factory.hpp"
 #include "model/converters/pb_common.hpp"
 #include "model/converters/pb_transaction_factory.hpp"
-#include "model/model_crypto_provider.hpp"  // for ModelCryptoProvider
-#include "model/permissions.hpp"
-#include "model/sha3_hash.hpp"
 #include "parser/parser.hpp"  // for parser::ParseValue
-
-using namespace iroha::model;
-using namespace shared_model::permissions;
 
 namespace iroha_cli {
   namespace interactive {
+    namespace {
+      using iroha::protocol::GrantablePermission;
+      using iroha::protocol::RolePermission;
+
+      std::shared_ptr<TxCommandApplier> makeApplier(
+          TxCommandApplier applier) {
+        return std::make_shared<TxCommandApplier>(std::move(applier));
+      }
+
+      /**
+       * Map of permission names accepted by grant_perm/revoke_perm
+       * commands to protobuf GrantablePermission values.
+       */
+      const std::unordered_map<std::string, GrantablePermission> &
+      grantablePermissions() {
+        static const std::unordered_map<std::string, GrantablePermission>
+            permissions = {
+                {"can_add_my_signatory",
+                 GrantablePermission::can_add_my_signatory},
+                {"can_remove_my_signatory",
+                 GrantablePermission::can_remove_my_signatory},
+                {"can_set_my_quorum",
+                 GrantablePermission::can_set_my_quorum},
+                {"can_set_my_account_detail",
+                 GrantablePermission::can_set_my_account_detail},
+                {"can_set_detail",
+                 GrantablePermission::can_set_my_account_detail},
+                {"can_transfer_my_assets",
+                 GrantablePermission::can_transfer_my_assets},
+                {"can_transfer",
+                 GrantablePermission::can_transfer_my_assets},
+            };
+        return permissions;
+      }
+
+      boost::optional<GrantablePermission> parseGrantablePermission(
+          const std::string &name) {
+        auto it = grantablePermissions().find(name);
+        if (it == grantablePermissions().end()) {
+          return boost::none;
+        }
+        return it->second;
+      }
+    }  // namespace
 
     void InteractiveTransactionCli::createCommandMenu() {
       commands_description_map_ = {
@@ -75,6 +108,8 @@ namespace iroha_cli {
       const auto can_transfer_receive = "Can receive/transfer assets";
       const auto can_asset_creator = "Can create/add new assets";
       const auto can_roles = "Can create/append roles";
+      const auto can_create_domain = "Can create domain";
+      const auto can_create_account = "Can create account";
 
       command_params_map_ = {
           {ADD_ASSET_QTY, makeParamsDescription({ast_id, add_amount_str})},
@@ -127,7 +162,7 @@ namespace iroha_cli {
           {APPEND_ROLE, &InteractiveTransactionCli::parseAppendRole},
           {DETACH_ROLE, &InteractiveTransactionCli::parseDetachRole},
           {GRANT_PERM, &InteractiveTransactionCli::parseGrantPermission},
-          {REVOKE_PERM, &InteractiveTransactionCli::parseGrantPermission},
+          {REVOKE_PERM, &InteractiveTransactionCli::parseRevokePermission},
           {SET_ACC_KV, &InteractiveTransactionCli::parseSetAccountDetail}
           // Command parsers
       };
@@ -170,18 +205,16 @@ namespace iroha_cli {
         const std::string &creator_account,
         const std::string &default_peer_ip,
         int default_port,
-        const std::shared_ptr<iroha::model::ModelCryptoProvider> &provider,
+        const iroha::keypair_t &keypair,
         logger::LoggerManagerTreePtr response_handler_log_manager,
-        logger::LoggerPtr pb_qry_factory_log,
         logger::LoggerPtr log)
         : current_context_(MAIN),
           creator_(creator_account),
           default_peer_ip_(default_peer_ip),
           default_port_(default_port),
-          provider_(provider),
+          keypair_(keypair),
           response_handler_log_manager_(
               std::move(response_handler_log_manager)),
-          pb_qry_factory_log_(std::move(pb_qry_factory_log)),
           log_(std::move(log)) {
       createCommandMenu();
       createResultMenu();
@@ -221,7 +254,7 @@ namespace iroha_cli {
         return false;
       }
 
-      auto res = handleParse<std::shared_ptr<iroha::model::Command>>(
+      auto res = handleParse<std::shared_ptr<TxCommandApplier>>(
           this, line, command_handlers_, command_params_map_);
 
       if (not res) {
@@ -235,7 +268,7 @@ namespace iroha_cli {
       return true;
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseCreateRole(
         std::vector<std::string> params) {
       auto role = params[0];
@@ -255,119 +288,171 @@ namespace iroha_cli {
         return nullptr;
       }
 
-      std::set<std::string> perms;
+      std::unordered_set<RolePermission> perms;
+      const auto add = [&perms](std::initializer_list<RolePermission> list) {
+        perms.insert(list.begin(), list.end());
+      };
+
       if (read_self.value()) {
-        perms.insert(read_self_group.begin(), read_self_group.end());
+        add({RolePermission::can_get_my_account,
+             RolePermission::can_get_my_signatories,
+             RolePermission::can_get_my_acc_ast,
+             RolePermission::can_get_my_acc_detail,
+             RolePermission::can_get_my_acc_txs,
+             RolePermission::can_get_my_acc_ast_txs,
+             RolePermission::can_get_my_txs,
+             RolePermission::can_get_my_engine_receipts});
       }
       if (edit_self.value()) {
-        perms.insert(edit_self_group.begin(), edit_self_group.end());
-        perms.insert(grant_group.begin(), grant_group.end());
+        add({RolePermission::can_set_quorum,
+             RolePermission::can_add_signatory,
+             RolePermission::can_remove_signatory,
+             RolePermission::can_grant_can_set_my_quorum,
+             RolePermission::can_grant_can_add_my_signatory,
+             RolePermission::can_grant_can_remove_my_signatory,
+             RolePermission::can_grant_can_transfer_my_assets,
+             RolePermission::can_grant_can_set_my_account_detail});
       }
-
       if (read_all.value()) {
-        perms.insert(read_all_group.begin(), read_all_group.end());
+        add({RolePermission::can_get_all_accounts,
+             RolePermission::can_get_all_signatories,
+             RolePermission::can_get_all_acc_ast,
+             RolePermission::can_get_all_acc_detail,
+             RolePermission::can_get_all_acc_txs,
+             RolePermission::can_get_all_acc_ast_txs,
+             RolePermission::can_get_all_txs,
+             RolePermission::can_get_roles,
+             RolePermission::can_read_assets,
+             RolePermission::can_get_blocks,
+             RolePermission::can_get_all_engine_receipts});
       }
       if (transfer_receive.value()) {
-        perms.insert(can_transfer);
-        perms.insert(can_receive);
+        add({RolePermission::can_transfer, RolePermission::can_receive});
       }
       if (asset_create.value()) {
-        perms.insert(asset_creator_group.begin(), asset_creator_group.end());
+        add({RolePermission::can_create_asset,
+             RolePermission::can_add_asset_qty});
       }
       if (create_domain.value()) {
-        perms.insert(can_create_domain);
+        add({RolePermission::can_create_domain});
       }
       if (roles.value()) {
-        perms.insert(can_create_role);
-        perms.insert(can_append_role);
+        add({RolePermission::can_create_role,
+             RolePermission::can_append_role});
       }
       if (create_account.value()) {
-        perms.insert(can_create_account);
+        add({RolePermission::can_create_account});
       }
 
-      return std::make_shared<CreateRole>(role, perms);
+      return makeApplier([role, perms](iroha_lib::Tx &tx) {
+        tx.createRole(role, perms);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseAppendRole(
         std::vector<std::string> params) {
-      auto acc_id = params[0];
+      auto account_id = params[0];
       auto role = params[1];
-      return std::make_shared<AppendRole>(acc_id, role);
+      return makeApplier([account_id, role](iroha_lib::Tx &tx) {
+        tx.appendRole(account_id, role);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseDetachRole(
         std::vector<std::string> params) {
-      auto acc_id = params[0];
+      auto account_id = params[0];
       auto role = params[1];
-      return std::make_shared<DetachRole>(acc_id, role);
+      return makeApplier([account_id, role](iroha_lib::Tx &tx) {
+        tx.detachRole(account_id, role);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseGrantPermission(
         std::vector<std::string> params) {
-      auto acc_id = params[0];
+      auto account_id = params[0];
       auto permission = params[1];
-      return std::make_shared<GrantPermission>(acc_id, permission);
+      auto grantable = parseGrantablePermission(permission);
+      if (not grantable) {
+        std::cout << "Unknown permission '" << permission << "'" << std::endl;
+        return nullptr;
+      }
+      return makeApplier([account_id, permission = *grantable](
+                             iroha_lib::Tx &tx) {
+        tx.grantPermission(account_id, permission);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseRevokePermission(
         std::vector<std::string> params) {
-      auto acc_id = params[0];
+      auto account_id = params[0];
       auto permission = params[1];
-      return std::make_shared<RevokePermission>(acc_id, permission);
+      auto grantable = parseGrantablePermission(permission);
+      if (not grantable) {
+        std::cout << "Unknown permission '" << permission << "'" << std::endl;
+        return nullptr;
+      }
+      return makeApplier([account_id, permission = *grantable](
+                             iroha_lib::Tx &tx) {
+        tx.revokePermission(account_id, permission);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseAddAssetQuantity(
         std::vector<std::string> params) {
       auto asset_id = params[0];
       auto amount = params[1];
       auto description = params[2];
-      return generator_.generateAddAssetQuantity(asset_id, amount, description);
+      return makeApplier([asset_id, amount, description](iroha_lib::Tx &tx) {
+        tx.addAssetQuantity(asset_id, amount, description);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseAddPeer(std::vector<std::string> params) {
       auto address = params[0];
       auto key = params[1];
-      iroha::pubkey_t pubkey;
-      pubkey = iroha::hexstringToArray<iroha::pubkey_t::size()>(key).value();
-      return generator_.generateAddPeer(Peer(address, pubkey));
+      return makeApplier([address, key](iroha_lib::Tx &tx) {
+        tx.addPeer(address, key);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseAddSignatory(
         std::vector<std::string> params) {
       auto account_id = params[0];
       auto key = params[1];
-      iroha::pubkey_t pubkey;
-      pubkey = iroha::hexstringToArray<iroha::pubkey_t::size()>(key).value();
-      return generator_.generateAddSignatory(account_id, pubkey);
+      return makeApplier([account_id, key](iroha_lib::Tx &tx) {
+        tx.addSignatory(account_id, key);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseCreateAccount(
         std::vector<std::string> params) {
       auto account_id = params[0];
       auto domain_id = params[1];
       auto key = params[2];
-      iroha::pubkey_t pubkey;
-      pubkey = iroha::hexstringToArray<iroha::pubkey_t::size()>(key).value();
-      return generator_.generateCreateAccount(account_id, domain_id, pubkey);
+      return makeApplier([account_id, domain_id, key](iroha_lib::Tx &tx) {
+        tx.createAccount(account_id, domain_id, key);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseCreateDomain(
         std::vector<std::string> params) {
       auto domain_id = params[0];
       auto user_default_role = params[1];
-      return generator_.generateCreateDomain(domain_id, user_default_role);
+      return makeApplier([domain_id, user_default_role](iroha_lib::Tx &tx) {
+        tx.createDomain(domain_id, user_default_role);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseCreateAsset(
         std::vector<std::string> params) {
       auto asset_name = params[0];
@@ -377,57 +462,72 @@ namespace iroha_cli {
         std::cout << "Wrong format for precision" << std::endl;
         return nullptr;
       }
-      return generator_.generateCreateAsset(asset_name, domain_id, val.value());
+      return makeApplier([asset_name, domain_id, precision = val.value()](
+                             iroha_lib::Tx &tx) {
+        tx.createAsset(asset_name, domain_id, precision);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseRemoveSignatory(
         std::vector<std::string> params) {
       auto account_id = params[0];
       auto key = params[1];
-      iroha::pubkey_t pubkey;
-      pubkey = iroha::hexstringToArray<iroha::pubkey_t::size()>(key).value();
-      return generator_.generateRemoveSignatory(account_id, pubkey);
+      return makeApplier([account_id, key](iroha_lib::Tx &tx) {
+        tx.removeSignatory(account_id, key);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
-    InteractiveTransactionCli::parseSetQuorum(std::vector<std::string> params) {
+    std::shared_ptr<TxCommandApplier>
+    InteractiveTransactionCli::parseSetQuorum(
+        std::vector<std::string> params) {
       auto account_id = params[0];
       auto quorum = parser::parseValue<uint64_t>(params[1]);
       if (not quorum) {
         std::cout << "Wrong format for quorum" << std::endl;
         return nullptr;
       }
-      return generator_.generateSetQuorum(account_id, quorum.value());
+      return makeApplier([account_id, quorum = quorum.value()](
+                             iroha_lib::Tx &tx) {
+        tx.setAccountQuorum(account_id,
+                            static_cast<uint32_t>(quorum));
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseSubtractAssetQuantity(
         std::vector<std::string> params) {
       auto asset_id = params[0];
       auto amount = params[1];
       auto description = params[2];
-      return generator_.generateSubtractAssetQuantity(asset_id, amount, description);
+      return makeApplier([asset_id, amount, description](iroha_lib::Tx &tx) {
+        tx.subtractAssetQuantity(asset_id, amount, description);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseTransferAsset(
         std::vector<std::string> params) {
       auto src_account_id = params[0];
       auto dest_account_id = params[1];
       auto asset_id = params[2];
       auto amount = params[3];
-      return generator_.generateTransferAsset(
-          src_account_id, dest_account_id, asset_id, amount);
+      return makeApplier([src_account_id, dest_account_id, asset_id, amount](
+                             iroha_lib::Tx &tx) {
+        tx.transferAsset(
+            src_account_id, dest_account_id, asset_id, "", amount);
+      });
     }
 
-    std::shared_ptr<iroha::model::Command>
+    std::shared_ptr<TxCommandApplier>
     InteractiveTransactionCli::parseSetAccountDetail(
         std::vector<std::string> params) {
       auto account_id = params[0];
       auto key = params[1];
       auto value = params[2];
-      return std::make_shared<SetAccountDetail>(account_id, key, value);
+      return makeApplier([account_id, key, value](iroha_lib::Tx &tx) {
+        tx.setAccountDetail(account_id, key, value);
+      });
     }
 
     // --------- Result parsers -------------
@@ -439,6 +539,15 @@ namespace iroha_cli {
       return res.get_value_or(true);
     }
 
+    iroha::protocol::Transaction
+    InteractiveTransactionCli::buildTransaction() {
+      iroha_lib::Tx tx(creator_, keypair_, iroha::time::now(), 1);
+      for (const auto &applier : commands_) {
+        (*applier)(tx);
+      }
+      return tx.signAndAddSignature();
+    }
+
     bool InteractiveTransactionCli::parseSendToIroha(
         std::vector<std::string> params) {
       auto address = parseIrohaPeerParams(
@@ -448,20 +557,14 @@ namespace iroha_cli {
       }
 
       // Forming a transaction
-
-      auto tx = tx_generator_.generateTransaction(creator_, commands_);
+      auto tx = buildTransaction();
       // clear commands so that we can start creating new tx
       commands_.clear();
 
-      provider_->sign(tx);
-
       GrpcResponseHandler response_handler(response_handler_log_manager_);
-      auto shared_tx = shared_model::proto::Transaction(
-          iroha::model::converters::PbTransactionFactory().serialize(tx));
       response_handler.handle(CliClient(address.value().first,
-                                        address.value().second,
-                                        pb_qry_factory_log_)
-                                  .sendTx(shared_tx));
+                                        address.value().second)
+                                  .sendTx(tx));
 
       printTxHash(tx);
       printEnd();
@@ -480,16 +583,23 @@ namespace iroha_cli {
       }
 
       // Forming a transaction
-      auto tx = tx_generator_.generateTransaction(creator_, commands_);
+      auto tx = buildTransaction();
 
       // clear commands so that we can start creating new tx
       commands_.clear();
 
-      provider_->sign(tx);
+      // Convert proto transaction back to the model one for JSON output
+      auto model_tx =
+          iroha::model::converters::PbTransactionFactory::deserialize(tx);
+      if (not model_tx) {
+        std::cout << "Cannot serialize transaction" << std::endl;
+        return true;
+      }
 
       iroha::model::converters::JsonTransactionFactory json_factory;
-      auto json_doc = json_factory.serialize(tx);
-      auto json_string = iroha::model::converters::jsonToString(json_doc);
+      auto json_doc = json_factory.serialize(*model_tx);
+      auto json_string =
+          iroha::model::converters::jsonToString(json_doc);
       output_file << json_string;
       std::cout << "Successfully saved!" << std::endl;
       printEnd();
@@ -518,7 +628,8 @@ namespace iroha_cli {
       return true;
     }
 
-    void InteractiveTransactionCli::printTxHash(iroha::model::Transaction &tx) {
+    void InteractiveTransactionCli::printTxHash(
+        const iroha::protocol::Transaction &tx) {
       std::cout
           << "Congratulation, your transaction was accepted for processing."
           << std::endl;

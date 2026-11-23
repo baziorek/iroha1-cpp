@@ -2,7 +2,6 @@
  * Copyright Soramitsu Co., Ltd. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-
 #ifndef IROHA_INTERACTIVE_STATUS_CLI_HPP
 #define IROHA_INTERACTIVE_STATUS_CLI_HPP
 
@@ -10,7 +9,6 @@
 #include <string>
 
 #include "interactive/interactive_common_cli.hpp"
-#include "logger/logger_fwd.hpp"
 
 namespace iroha_cli {
   namespace interactive {
@@ -22,8 +20,7 @@ namespace iroha_cli {
     class InteractiveStatusCli {
      public:
       InteractiveStatusCli(const std::string &default_peer_ip,
-                           int default_port,
-                           logger::LoggerPtr pb_qry_factory_log);
+                           int default_port);
       void run();
 
      private:
@@ -59,8 +56,6 @@ namespace iroha_cli {
 
       MenuContext currentContext_;
       std::string txHash_;
-
-      logger::LoggerPtr pb_qry_factory_log_;
     };
   }  // namespace interactive
 }  // namespace iroha_cli

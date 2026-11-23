@@ -50,6 +50,7 @@
 #include "network/impl/channel_factory.hpp"
 #include "network/peer_communication_service.hpp"
 #include "ordering/impl/on_demand_os_client_grpc.hpp"
+#include "torii/tls_params.hpp"
 #include "simulator/verified_proposal_creator_common.hpp"
 #include "torii/command_client.hpp"
 #include "torii/query_client.hpp"
@@ -229,7 +230,8 @@ IntegrationTestFramework::IntegrationTestFramework(
     milliseconds tx_response_waiting_ms,
     logger::LoggerManagerTreePtr log_manager,
     std::string db_wsv_path,
-    std::string db_store_path)
+    std::string db_store_path,
+    const boost::optional<std::string> &torii_tls_key_path)
     : subscription{iroha::getSubscription()},
       log_(log_manager->getLogger()),
       log_manager_(std::move(log_manager)),
@@ -335,6 +337,11 @@ IntegrationTestFramework::IntegrationTestFramework(
   }
   config_.torii_port = torii_port_;
   config_.internal_port = port_guard_->getPort(kDefaultInternalPort);
+  if (torii_tls_key_path) {
+    torii_tls_port_ = port_guard_->getPort(kDefaultToriiPort);
+    config_.torii_tls_params = iroha::torii::TlsParams{
+        torii_tls_port_, *torii_tls_key_path};
+  }
   iroha_instance_ =
       std::make_shared<IrohaInstance>(config_,
                                       kLocalHost,
@@ -593,6 +600,9 @@ void IntegrationTestFramework::subscribeQueuesAndRun() {
   log_->info("starting main iroha instance");
   port_guard_->unbind(config_.torii_port);
   port_guard_->unbind(config_.internal_port);
+  if (torii_tls_port_ != 0) {
+    port_guard_->unbind(torii_tls_port_);
+  }
   iroha_instance_->run();
 }
 
@@ -829,6 +839,10 @@ size_t IntegrationTestFramework::internalPort() const {
 
 size_t IntegrationTestFramework::toriiPort() const {
   return torii_port_;
+}
+
+size_t IntegrationTestFramework::toriiTlsPort() const {
+  return torii_tls_port_;
 }
 
 void IntegrationTestFramework::done() {

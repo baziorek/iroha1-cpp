@@ -4,21 +4,13 @@
  */
 #include "transaction_response_handler.hpp"
 #include "logger/logger.hpp"
+#include "tx_status_utils.hpp"
 
 namespace iroha_cli {
 
   void TransactionResponseHandler::handle(
-      const CliClient::TxStatus status) const {
-    switch (status) {
-      case iroha_cli::CliClient::OK:
-        log_->info("Transaction successfully sent");
-        break;
-        /*
-      case iroha_cli::CliClient::NOT_VALID:
-        log_->error("Transaction is not valid");
-        break;
-         */
-    }
+      const iroha::protocol::ToriiResponse &response) const {
+    log_->info("{}", getTxStatusMessage(response));
   }
   TransactionResponseHandler::TransactionResponseHandler(logger::LoggerPtr log)
       : log_(std::move(log)) {}

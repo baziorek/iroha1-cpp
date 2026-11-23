@@ -213,7 +213,6 @@ void expectBalance(
                     + "', expected '" + expected_balance + "'");
     }
 }
-
 }  // namespace
 
 
@@ -228,7 +227,8 @@ int main()
         const auto alice_keypair = generateKeypairFromPrivateKey(kAlicePrivateKey);
         const auto bob_keypair = generateKeypairFromPrivateKey(kBobPrivateKey);
 
-        GrpcClient grpc_client(config.host, config.torii_port());
+        auto grpc_client_holder = makeClient(config);
+        GrpcClient& grpc_client = *grpc_client_holder;
         client = &grpc_client;
 
         std::cout << "1. creating accounts" << std::endl;
@@ -265,5 +265,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

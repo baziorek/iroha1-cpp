@@ -9,17 +9,11 @@
 #include <memory>
 #include <unordered_map>
 
+#include "crypto/keypair.hpp"
 #include "interactive/interactive_common_cli.hpp"
 #include "logger/logger_fwd.hpp"
 #include "logger/logger_manager_fwd.hpp"
-#include "model/generators/query_generator.hpp"
-
-namespace iroha {
-  namespace model {
-    class ModelCryptoProvider;
-    struct Query;
-  }  // namespace model
-}  // namespace iroha
+#include "model/Query.hpp"
 
 namespace iroha_cli {
   namespace interactive {
@@ -27,11 +21,11 @@ namespace iroha_cli {
      public:
       /**
        * Class to form and send Iroha queries  in interactive mode
-       * @param creator_account creator's account identification
+       * @param account_id creator's account identification
        * @param default_peer_ip of Iroha peer
        * @param default_port of Iroha peer
        * @param query_counter counter associated with creator's account
-       * @param provider for signing queries
+       * @param keypair keypair of the creator account used for signing
        * @param response_handler_log_manager for ResponseHandler mesages
        * @param pb_qry_factory_log for PbQueryFactory mesages
        * @param json_qry_factory_log for JsonQueryFactory mesages
@@ -42,7 +36,7 @@ namespace iroha_cli {
           const std::string &default_peer_ip,
           int default_port,
           uint64_t query_counter,
-          const std::shared_ptr<iroha::model::ModelCryptoProvider> &provider,
+          const iroha::keypair_t &keypair,
           logger::LoggerManagerTreePtr response_handler_log_manager,
           logger::LoggerPtr pb_qry_factory_log,
           logger::LoggerPtr json_qry_factory_log,
@@ -84,7 +78,7 @@ namespace iroha_cli {
       const std::string GET_ROLE_PERM = "get_role_perm";
 
       // ------  Query parsers ---------
-      using QueryHandler = std::shared_ptr<iroha::model::Query> (
+      using QueryHandler = std::shared_ptr<iroha_lib::Query>(
           InteractiveQueryCli::*)(QueryParams);
       std::unordered_map<QueryName, QueryHandler> query_handlers_;
       // Descriptions of queries
@@ -101,21 +95,21 @@ namespace iroha_cli {
        */
       bool parseQuery(std::string line);
       //  --- Specific Query parsers ---
-      std::shared_ptr<iroha::model::Query> parseGetAccount(QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetAccountAssets(
+      std::shared_ptr<iroha_lib::Query> parseGetAccount(QueryParams params);
+      std::shared_ptr<iroha_lib::Query> parseGetAccountAssets(
           QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetAccountAssetTransactions(
+      std::shared_ptr<iroha_lib::Query> parseGetAccountAssetTransactions(
           QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetAccountTransactions(
+      std::shared_ptr<iroha_lib::Query> parseGetAccountTransactions(
           QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetTransactions(
+      std::shared_ptr<iroha_lib::Query> parseGetTransactions(
           QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetSignatories(
+      std::shared_ptr<iroha_lib::Query> parseGetSignatories(
           QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetRoles(QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetRolePermissions(
+      std::shared_ptr<iroha_lib::Query> parseGetRoles(QueryParams params);
+      std::shared_ptr<iroha_lib::Query> parseGetRolePermissions(
           QueryParams params);
-      std::shared_ptr<iroha::model::Query> parseGetAssetInfo(
+      std::shared_ptr<iroha_lib::Query> parseGetAssetInfo(
           QueryParams params);
 
       // ------ Result parsers -------
@@ -136,6 +130,11 @@ namespace iroha_cli {
       bool parseSendToIroha(QueryParams line);
       bool parseSaveFile(QueryParams line);
 
+      /**
+       * Create a new query object with the current creator/counter/time
+       */
+      std::shared_ptr<iroha_lib::Query> makeQuery();
+
       // Current context for query forming
       MenuContext current_context_;
 
@@ -153,13 +152,10 @@ namespace iroha_cli {
       uint64_t local_time_;
 
       // Processed query
-      std::shared_ptr<iroha::model::Query> query_;
+      std::shared_ptr<iroha_lib::Query> query_;
 
-      // Query generator for new queries
-      iroha::model::generators::QueryGenerator generator_;
-
-      // Crypto provider
-      std::shared_ptr<iroha::model::ModelCryptoProvider> provider_;
+      // Keypair of the creator account
+      iroha::keypair_t keypair_;
 
       /// Logger manager for GrpcResponseHandler
       logger::LoggerManagerTreePtr response_handler_log_manager_;

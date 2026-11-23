@@ -23,6 +23,8 @@ add_library(client
     )
 target_link_libraries(client
     ed25519_crypto
+    grpc_client
+    endpoint
     grpc_channel_factory
     logger
     RapidJSON::rapidjson
@@ -46,6 +48,7 @@ add_executable(iroha-cli
     )
 target_link_libraries(iroha-cli
     interactive_cli
+    iroha_lib_model
     model_crypto_provider
     client
     cli-flags_validators

@@ -18,7 +18,28 @@ modern toolchains. The first stage of modernization is done:
   (`fmt` → `std::format`, `boost::format`, `boost::variant`,
   `boost::filesystem`, and several unused Boost libraries removed)
 - GitHub CI repaired and moved to a modern builder image (Ubuntu 24.04,
-  GCC 13)
+  GCC 14)
+
+### Fork components
+
+In addition to the node itself, this repository contains:
+
+- **`iroha-lib/`** — a standalone C++ client library for Iroha 1
+  (transactions, queries, streaming, TLS transport) with examples
+  ported from `iroha-python`. See `iroha-lib/README.md` and
+  `docs/source/develop/libraries/cpp.rst`.
+- **`iroha-cli/`** — the classic interactive/non-interactive CLI,
+  ported to use `iroha-lib` for transport and model building.
+- **`iroha-python`** — the Python client library lives in a separate
+  repository: [baziorek/iroha1-python](https://github.com/baziorek/iroha1-python)
+  (original sources, updated dependencies).
+
+> **Disclaimer:** these community forks are maintained by a single
+> person with AI assistance. They contain maintenance, build-system and
+> dependency updates — not changes to Iroha's functionality — but they
+> provide **no production or commercial-use guarantee**. Iroha 1 itself
+> is a mature project with real-world deployments (e.g. the Bakong
+> payment system operated by the National Bank of Cambodia).
 
 The documentation in `docs/` is built with Sphinx on every change and
 published to **GitHub Pages**:

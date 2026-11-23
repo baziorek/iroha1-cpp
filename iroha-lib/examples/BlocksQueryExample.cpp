@@ -14,7 +14,6 @@
 
 
 namespace {
-
 using namespace iroha_example;
 using namespace iroha_lib;
 
@@ -52,7 +51,6 @@ void printBlock(const BlockQueryResponse& response)
         std::cout << "\nNext block: " << block.DebugString() << std::endl;
     }
 }
-
 }  // namespace
 
 
@@ -91,5 +89,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

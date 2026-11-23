@@ -1,5 +1,8 @@
 #include <format>
+#include <fstream>
 #include <iostream>
+#include <optional>
+#include <sstream>
 #include <string>
 #include <cassert>
 #include <gflags/gflags.h>
@@ -15,6 +18,7 @@ DEFINE_string(peer_ip, "127.0.0.1", "set the peer IP address. It is address of I
 DEFINE_uint32(torii_port, 50051u, "set the torii port. Port of iroha node to send commands and queries.");
 DEFINE_string(user_default_role, "user", "set the user default role for newly created domain");
 DEFINE_string(asset_full_name, "assetnamesamplev4#domainsamplev4", "set the asset full name (format asset_name#domain)");
+DEFINE_string(tls_root_cert, "", "optional path to PEM root certificate; when set, connections use TLS");
 
 
 iroha_lib::Query generateQueryBase(const std::string& account_name, const std::string& key_path);
@@ -23,7 +27,9 @@ iroha::protocol::Query generateGetAccountTransactionsQuery(const std::string& ac
 iroha::protocol::Query generateGetAccountQuery(const std::string& account_name, const std::string& key_path);
 
 template<typename Tx>
-void sendTransaction(Tx& tx, const std::string& peer_ip, const uint16_t torii_port);
+void sendTransaction(Tx& tx, const std::string& peer_ip, const uint16_t torii_port,
+                     const std::optional<iroha_lib::TlsOptions>& tls);
+std::optional<iroha_lib::TlsOptions> makeTlsOptions(const std::string& cert_path);
 
 iroha::protocol::Transaction generateTransactionWhichCreatesDomainAndAsset(
         const std::string& account_name,
@@ -37,15 +43,18 @@ iroha::protocol::Transaction generateTransactionWhichAddsAssetQuantiti(
         const std::string& assetIdWithDomain,
         const std::string& assetAmount);
 
-void printAccountAssets(const std::string& account_name, const std::string& key_path, const std::string& peer_ip, const uint16_t torii_port);
-void printAccount(const std::string& account_name, const std::string& key_path, const std::string& peer_ip, const uint16_t torii_port);
+void printAccountAssets(const std::string& account_name, const std::string& key_path, const std::string& peer_ip, const uint16_t torii_port,
+                        const std::optional<iroha_lib::TlsOptions>& tls);
+void printAccount(const std::string& account_name, const std::string& key_path, const std::string& peer_ip, const uint16_t torii_port,
+                  const std::optional<iroha_lib::TlsOptions>& tls);
 
 void printErrorResponse(const QueryResponse& response);
 
 void run(const std::string& adminAccountName, const std::string& key_path,
          const std::string& peer_ip, uint16_t torii_port,
          const std::string& user_default_role,
-         const std::string& assetFullName);
+         const std::string& assetFullName,
+         const std::optional<iroha_lib::TlsOptions>& tls);
 
 
 int main(int argc, char* argv[]) try {
@@ -57,7 +66,8 @@ int main(int argc, char* argv[]) try {
         FLAGS_peer_ip,
         FLAGS_torii_port,
         FLAGS_user_default_role,
-        FLAGS_asset_full_name);
+        FLAGS_asset_full_name,
+        makeTlsOptions(FLAGS_tls_root_cert));
 
     gflags::ShutDownCommandLineFlags();
 } catch (const std::exception& e) {
@@ -67,7 +77,8 @@ int main(int argc, char* argv[]) try {
 void run(const std::string& adminAccountName, const std::string& key_path,
          const std::string& peer_ip, uint16_t torii_port,
          const std::string& user_default_role,
-         const std::string& assetFullName)
+         const std::string& assetFullName,
+         const std::optional<iroha_lib::TlsOptions>& tls)
 {
     const auto [assetName, assetDomain] = splitAssetFullName(assetFullName);
 
@@ -84,12 +95,12 @@ void run(const std::string& adminAccountName, const std::string& key_path,
                 assetFullName,
                 "100");
 
-    sendTransaction(tx2CreateDomainAndAsset, peer_ip, torii_port);
-    sendTransaction(tx2AddAssetQuantity, peer_ip, torii_port);
+    sendTransaction(tx2CreateDomainAndAsset, peer_ip, torii_port, tls);
+    sendTransaction(tx2AddAssetQuantity, peer_ip, torii_port, tls);
 
     /// querying:
-    printAccountAssets(adminAccountName, key_path, peer_ip, torii_port);
-    printAccount(adminAccountName, key_path, peer_ip, torii_port);
+    printAccountAssets(adminAccountName, key_path, peer_ip, torii_port, tls);
+    printAccount(adminAccountName, key_path, peer_ip, torii_port, tls);
 }
 
 iroha::protocol::Transaction generateTransactionWhichCreatesDomainAndAsset(
@@ -141,27 +152,47 @@ iroha::protocol::Transaction generateTransactionWhichAddsAssetQuantiti(
             .signAndAddSignature();
 }
 
+std::optional<iroha_lib::TlsOptions> makeTlsOptions(const std::string& cert_path)
+{
+    if (cert_path.empty()) {
+        return std::nullopt;
+    }
+    std::ifstream file(cert_path);
+    if (not file.is_open()) {
+        throw std::runtime_error("Cannot open TLS root certificate: " + cert_path);
+    }
+    std::ostringstream pem;
+    pem << file.rdbuf();
+    iroha_lib::TlsOptions tls;
+    tls.pem_root_certs = pem.str();
+    return tls;
+}
+
 template<typename Tx>
 void sendTransaction(
         Tx& tx,
         const std::string& peer_ip,
-        const uint16_t torii_port)
+        const uint16_t torii_port,
+        const std::optional<iroha_lib::TlsOptions>& tls)
 {
     iroha_lib::GrpcClient(
                 peer_ip,
-                torii_port)
+                torii_port,
+                tls)
             .send(tx);
 
     printTransactionStatus(
                 peer_ip,
                 torii_port,
-                getTransactionHash(tx));
+                getTransactionHash(tx),
+                tls);
 }
 
 void printAccountAssets(const std::string& account_name,
                         const std::string& key_path,
                         const std::string& peer_ip,
-                        const uint16_t torii_port)
+                        const uint16_t torii_port,
+                        const std::optional<iroha_lib::TlsOptions>& tls)
 {
     std::cout << std::format("----------->{}-----------\n", __FUNCTION__);
 
@@ -170,7 +201,8 @@ void printAccountAssets(const std::string& account_name,
                 key_path);
     const QueryResponse response = iroha_lib::GrpcClient(
                 peer_ip,
-                torii_port)
+                torii_port,
+                tls)
             .send(query_proto);
     const auto payload = query_proto.payload();
     assert(payload.get_account_assets().account_id() == account_name);
@@ -242,7 +274,8 @@ void printErrorResponse(const QueryResponse& response)
 void printAccount(const std::string& account_name,
                   const std::string& key_path,
                   const std::string& peer_ip,
-                  const uint16_t torii_port)
+                  const uint16_t torii_port,
+                  const std::optional<iroha_lib::TlsOptions>& tls)
 {
     std::cout << std::format("----------->{}-----------\n", __FUNCTION__);
 
@@ -251,7 +284,8 @@ void printAccount(const std::string& account_name,
                 key_path);
     const QueryResponse response = iroha_lib::GrpcClient(
                 peer_ip,
-                torii_port)
+                torii_port,
+                tls)
             .send(query_proto);
     const auto payload = query_proto.payload();
     assert(payload.get_account().account_id() == account_name);

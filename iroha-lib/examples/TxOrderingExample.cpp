@@ -118,7 +118,6 @@ void printParagraph(const std::string& text)
 {
     std::cout << "---------- " << text << " ----------" << std::endl;
 }
-
 }  // namespace
 
 
@@ -152,5 +151,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

@@ -12,6 +12,7 @@ add_library(interactive_cli
     impl/interactive_status_cli.cpp
     )
 target_link_libraries(interactive_cli
+    iroha_lib_model
     model
     parser
     client

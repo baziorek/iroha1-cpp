@@ -2,7 +2,10 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -35,9 +38,12 @@ struct Config {
     std::string port;
     std::string admin_account_id;
     std::string admin_private_key;
+    /// optional path to PEM root certificate for TLS connections
+    std::string tls_root_cert_path;
 
     std::string address() const { return host + ":" + port; }
     uint16_t torii_port() const { return static_cast<uint16_t>(std::stoul(port)); }
+    bool tlsEnabled() const { return not tls_root_cert_path.empty(); }
 };
 
 inline Config loadConfig()
@@ -47,7 +53,35 @@ inline Config loadConfig()
         envOr("IROHA_PORT", "50051"),
         envOr("ADMIN_ACCOUNT_ID", "admin@test"),
         envOr("ADMIN_PRIVATE_KEY",
-              "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70")};
+              "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506cab70"),
+        envOr("IROHA_TLS_ROOT_CERT", "")};
+}
+
+inline std::string readFile(const std::string& path)
+{
+    std::ifstream file(path);
+    if (not file.is_open()) {
+        throw std::runtime_error("Cannot open file: " + path);
+    }
+    std::ostringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+/**
+ * Creates a GrpcClient honouring Config::tls_root_cert_path:
+ * when the path is set, TLS credentials with the given PEM root
+ * certificate are used; otherwise an insecure channel is created.
+ */
+inline std::unique_ptr<GrpcClient> makeClient(const Config& config)
+{
+    if (config.tlsEnabled()) {
+        TlsOptions tls;
+        tls.pem_root_certs = readFile(config.tls_root_cert_path);
+        return std::make_unique<GrpcClient>(
+                    config.host, config.torii_port(), tls);
+    }
+    return std::make_unique<GrpcClient>(config.host, config.torii_port());
 }
 
 inline std::string commandCaseName(Command::CommandCase command_case)

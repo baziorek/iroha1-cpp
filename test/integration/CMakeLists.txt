@@ -5,6 +5,8 @@ add_subdirectory(acceptance)
 add_subdirectory(consensus)
 add_subdirectory(executor)
 add_subdirectory(iroha_lib_examples)
+add_subdirectory(iroha_cli)
+add_subdirectory(iroha_lib_tls)
 add_subdirectory(pipeline)
 add_subdirectory(validation)
 

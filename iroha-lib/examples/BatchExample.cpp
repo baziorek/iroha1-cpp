@@ -171,7 +171,6 @@ void checkNoPendingTxs(
     }
     std::cout << " ~~~" << std::endl;
 }
-
 }  // namespace
 
 
@@ -195,7 +194,8 @@ int main()
             generateKeypairFromPrivateKey(
                 "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4")};
 
-        GrpcClient grpc_client(config.host, config.torii_port());
+        auto grpc_client_holder = makeClient(config);
+        GrpcClient& grpc_client = *grpc_client_holder;
         client = &grpc_client;
 
         prepareUsers();
@@ -215,5 +215,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

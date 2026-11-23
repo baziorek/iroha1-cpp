@@ -268,7 +268,8 @@ int main(int argc, char *argv[]) {
       initUtilityService(config.utility_service.value(),
                          [] {
                            exit_requested.set_value();
-                           std::lock_guard<std::mutex>{shutdown_wait_mutex};
+                           std::lock_guard<std::mutex> lock{
+                               shutdown_wait_mutex};
                          },
                          log_manager);
     }

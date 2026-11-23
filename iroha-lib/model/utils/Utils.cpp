@@ -127,11 +127,13 @@ const std::string getTransactionHash(const Transaction& tx)
 void printTransactionStatus(
         const std::string& peer_ip,
         uint16_t torii_port,
-        const std::string& tx_hash)
+        const std::string& tx_hash,
+        const std::optional<iroha_lib::TlsOptions>& tls)
 {
     const auto status = iroha_lib::GrpcClient(
                 peer_ip,
-                torii_port)
+                torii_port,
+                tls)
             .getTxStatus(tx_hash);
     std::cout << "Tx hash=" << tx_hash
               << "  Status name=" << TxStatus_Name(status.tx_status())
@@ -144,13 +146,15 @@ void printTransactionStatus(
 void printTransactionStatuses(
         const std::string& peer_ip,
         uint16_t torii_port,
-        const std::vector<Transaction>& transactions)
+        const std::vector<Transaction>& transactions,
+        const std::optional<iroha_lib::TlsOptions>& tls)
 {
     for (const auto& tx: transactions) {
         printTransactionStatus(
                     peer_ip,
                     torii_port,
-                    getTransactionHash(tx));
+                    getTransactionHash(tx),
+                    tls);
     }
 }
 

@@ -3,41 +3,60 @@
 
 namespace iroha_lib {
 
-template <class Service>
-std::shared_ptr<grpc::Channel> createUnauthenticatedChanel(const std::string& address)
+namespace {
+
+std::shared_ptr<grpc::Channel> createChannel(
+        const std::string& address,
+        const std::optional<iroha_lib::TlsOptions>& tls)
 {
-    return grpc::CreateChannel(
-                address,
-                grpc::InsecureChannelCredentials());
+    if (not tls) {
+        return grpc::CreateChannel(
+                    address,
+                    grpc::InsecureChannelCredentials());
+    }
+
+    grpc::SslCredentialsOptions options;
+    options.pem_root_certs = tls->pem_root_certs;
+    options.pem_cert_chain = tls->pem_cert_chain;
+    options.pem_private_key = tls->pem_private_key;
+    return grpc::CreateChannel(address, grpc::SslCredentials(options));
 }
 
+}  // namespace
+
 
 template <class Service>
-std::unique_ptr<typename Service::StubInterface> createClient(const std::string& address)
+std::unique_ptr<typename Service::StubInterface> createClient(
+        const std::string& address,
+        const std::optional<iroha_lib::TlsOptions>& tls)
 {
-    return Service::NewStub(createUnauthenticatedChanel<Service>(address));
+    return Service::NewStub(createChannel(address, tls));
 }
 
 
 template <class Service>
 std::unique_ptr<typename Service::StubInterface> createClient(
         const std::string& ip,
-        const size_t port)
+        const size_t port,
+        const std::optional<iroha_lib::TlsOptions>& tls)
 {
     const auto peer_ip = ip + ":" + std::to_string(port);
-    return createClient<Service>(peer_ip);
+    return createClient<Service>(peer_ip, tls);
 }
 
 
 GrpcClient::GrpcClient(
         const std::string& target_ip,
-        const uint16_t port)
+        const uint16_t port,
+        const std::optional<TlsOptions>& tls)
     : command_stub_(createClient<CommandService_v1>(
                                   target_ip,
-                                  port)),
+                                  port,
+                                  tls)),
       query_stub_(createClient<QueryService_v1>(
                                 target_ip,
-                                port))
+                                port,
+                                tls))
 {}
 
 grpc::Status GrpcClient::send(const Transaction& tx)
@@ -60,27 +79,41 @@ grpc::Status GrpcClient::send(const TxList& tx_list)
                 &empty);
 }
 
+grpc::Status GrpcClient::sendQuery(
+        const iroha::protocol::Query& query,
+        QueryResponse* response)
+{
+    grpc::ClientContext context;
+    return query_stub_->Find(
+                &context,
+                query,
+                response);
+}
+
 QueryResponse GrpcClient::send(const iroha::protocol::Query& query)
 {
     QueryResponse queryResponse;
-    grpc::ClientContext context;
-    query_stub_->Find(
-                &context,
-                query,
-                &queryResponse);
+    sendQuery(query, &queryResponse);
     return queryResponse;
+}
+
+grpc::Status GrpcClient::getTxStatus(
+        const std::string& tx_hash,
+        ToriiResponse* response)
+{
+    TxStatusRequest statusRequest;
+    statusRequest.set_tx_hash(tx_hash);
+    grpc::ClientContext context;
+    return command_stub_->Status(
+                &context,
+                statusRequest,
+                response);
 }
 
 ToriiResponse GrpcClient::getTxStatus(const std::string& tx_hash)
 {
-    TxStatusRequest statusRequest;
-    statusRequest.set_tx_hash(tx_hash);
     ToriiResponse toriiResponse;
-    grpc::ClientContext context;
-    command_stub_->Status(
-                &context,
-                statusRequest,
-                &toriiResponse);
+    getTxStatus(tx_hash, &toriiResponse);
     return toriiResponse;
 }
 

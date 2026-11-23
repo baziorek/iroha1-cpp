@@ -153,7 +153,8 @@ namespace integration_framework {
                                       .string(),
         std::string db_store_path = (std::filesystem::temp_directory_path()
                                      / iroha::unique_path())
-                                        .string());
+                                        .string(),
+        const boost::optional<std::string>& torii_tls_key_path = boost::none);
 
     ~IntegrationTestFramework();
 
@@ -412,6 +413,12 @@ namespace integration_framework {
     size_t toriiPort() const;
 
     /**
+     * Port of the TLS-enabled Torii endpoint. Valid only when the
+     * framework was created with torii_tls_key_path.
+     */
+    size_t toriiTlsPort() const;
+
+    /**
      * Shutdown ITF instance
      */
     void done();
@@ -493,6 +500,7 @@ namespace integration_framework {
 
     std::unique_ptr<PortGuard> port_guard_;
     size_t torii_port_;
+    size_t torii_tls_port_{0};
     IrohadConfig config_;
     std::shared_ptr<IrohaInstance> iroha_instance_;
     std::unique_ptr<torii::CommandSyncClient> command_client_;
