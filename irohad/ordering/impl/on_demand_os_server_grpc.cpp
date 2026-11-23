@@ -53,11 +53,18 @@ grpc::Status OnDemandOsServerGrpc::SendBatches(
     return ::grpc::Status::OK;
   }
 
+  auto const &parsed_batches = batches.assumeValue();
+  if (parsed_batches.empty()) {
+    log_->warn("Received SendBatches with empty batches from {}",
+               context->peer());
+    return ::grpc::Status::OK;
+  }
+
   log_->info("Received SendBatches with {} from {}",
-             *batches.assumeValue().front(),
+             *parsed_batches.front(),
              context->peer());
 
-  ordering_service_->onBatches(std::move(batches).assumeValue());
+  ordering_service_->onBatches(parsed_batches);
 
   return ::grpc::Status::OK;
 }

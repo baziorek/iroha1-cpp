@@ -34,6 +34,7 @@ struct RequestProposalFixture : public fuzzing::OrderingServiceFixture {
   void init_with(size_t transaction_limit) {
     ordering_service_ = std::make_shared<OnDemandOrderingServiceImpl>(
         transaction_limit,
+        10,  // max_proposal_pack, same default as in iroha config
         std::move(proposal_factory_),
         std::move(persistent_cache_),
         logger::getDummyLoggerPtr());
