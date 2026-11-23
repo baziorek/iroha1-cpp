@@ -48,7 +48,6 @@ void printAccount(const QueryResponse& response,
                     + account.account_id());
     }
 }
-
 }  // namespace
 
 

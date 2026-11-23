@@ -16,7 +16,6 @@
 
 
 namespace {
-
 using namespace iroha_example;
 
 volatile std::sig_atomic_t g_stop = 0;
@@ -25,7 +24,6 @@ void onSignal(int)
 {
     g_stop = 1;
 }
-
 }  // namespace
 
 
@@ -86,5 +84,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

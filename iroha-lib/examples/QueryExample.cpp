@@ -11,7 +11,6 @@
 
 
 namespace {
-
 using namespace iroha_example;
 
 void printTransactionsPage(const QueryResponse& response)
@@ -32,7 +31,6 @@ void printTransactionsPage(const QueryResponse& response)
         std::cout << "  " << txSummary(tx) << std::endl;
     }
 }
-
 }  // namespace
 
 
@@ -85,5 +83,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

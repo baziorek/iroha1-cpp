@@ -171,7 +171,6 @@ void checkNoPendingTxs(
     }
     std::cout << " ~~~" << std::endl;
 }
-
 }  // namespace
 
 
@@ -216,5 +215,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }

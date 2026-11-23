@@ -213,7 +213,6 @@ void expectBalance(
                     + "', expected '" + expected_balance + "'");
     }
 }
-
 }  // namespace
 
 
@@ -266,5 +265,4 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
-    return 0;
 }
