@@ -49,7 +49,13 @@ public:
     grpc::Status send(const Transaction& tx);
     grpc::Status send(const TxList& tx_list);
     QueryResponse send(const iroha::protocol::Query& query);
+    grpc::Status sendQuery(
+            const iroha::protocol::Query& query,
+            QueryResponse* response);
     ToriiResponse getTxStatus(const std::string& tx_hash);
+    grpc::Status getTxStatus(
+            const std::string& tx_hash,
+            ToriiResponse* response);
 
     std::unique_ptr<TxStatusStream> sendStatusStream(
             const std::string& tx_hash);

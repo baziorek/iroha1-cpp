@@ -34,7 +34,7 @@ namespace iroha_cli {
   }
 
   void GrpcResponseHandler::handle(
-      CliClient::Response<CliClient::TxStatus> response) {
+      CliClient::Response<iroha::protocol::ToriiResponse> response) {
     if (response.status.ok()) {
       tx_handler_.handle(response.answer);
     } else {

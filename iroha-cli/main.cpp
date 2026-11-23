@@ -16,18 +16,16 @@
 #include "client.hpp"
 #include "common/result.hpp"
 #include "converters/protobuf/json_proto_converter.hpp"
-#include "crypto/keys_manager_impl.hpp"
 #include "grpc_response_handler.hpp"
 #include "interactive/interactive_cli.hpp"
 #include "logger/logger.hpp"
 #include "logger/logger_manager.hpp"
 #include "model/converters/json_block_factory.hpp"
 #include "model/converters/json_query_factory.hpp"
-#include "model/converters/pb_block_factory.hpp"
 #include "model/converters/pb_query_factory.hpp"
 #include "model/converters/pb_transaction_factory.hpp"
-#include "model/generators/block_generator.hpp"
-#include "model/model_crypto_provider_impl.hpp"
+#include "model/utils/genesis.hpp"
+#include "model/utils/key_files.hpp"
 
 // Account information
 DEFINE_bool(new_account,
@@ -63,7 +61,6 @@ DEFINE_string(peers_address,
 DEFINE_bool(interactive, true, "Run iroha-cli in interactive mode");
 
 using namespace iroha::protocol;
-using namespace iroha::model::generators;
 using namespace iroha::model::converters;
 using namespace iroha_cli::interactive;
 namespace fs = std::filesystem;
@@ -93,53 +90,56 @@ int main(int argc, char *argv[]) {
       log_manager->getChild("KeysManager")->getLogger();
   // Generate new genesis block now Iroha network
   if (FLAGS_genesis_block) {
-    BlockGenerator generator;
-    iroha::model::Transaction transaction;
+    auto writeGenesisBlock = [&logger](const shared_model::proto::Block &block) {
+      // Convert to json
+      std::ofstream output_file("genesis.block");
+      shared_model::proto::ProtoBlockJsonConverter().serialize(block).match(
+          [&logger, &output_file](auto &&json) {
+            output_file << std::move(json.value);
+            logger->info("File saved to genesis.block");
+          },
+          [&logger](const auto &error) {
+            // should not get here
+            logger->error("error while serializing genesis block");
+            std::exit(EXIT_FAILURE);
+          });
+    };
+
     if (FLAGS_genesis_transaction.empty()) {
       if (FLAGS_peers_address.empty()) {
         logger->error("--peers_address is empty");
         return EXIT_FAILURE;
       }
-      std::ifstream file(FLAGS_peers_address);
-      std::vector<std::string> peers_address;
-      std::copy(std::istream_iterator<std::string>(file),
-                std::istream_iterator<std::string>(),
-                std::back_inserter(peers_address));
-      // Generate genesis block
-      transaction = TransactionGenerator().generateGenesisTransaction(
-          0, std::move(peers_address), keys_manager_log);
+      iroha_lib::GenesisConfig config;
+      config.peer_addresses =
+          iroha_lib::readPeersAddresses(FLAGS_peers_address);
+      config.keys_directory = FLAGS_key_path;
+      auto block = iroha_lib::generateGenesisBlock(config, keys_manager_log);
+      if (auto e = iroha::expected::resultToOptionalError(block)) {
+        logger->error("Cannot generate genesis block: {}", e.value());
+        return EXIT_FAILURE;
+      }
+      writeGenesisBlock(block.assumeValue());
     } else {
       rapidjson::Document doc;
       std::ifstream file(FLAGS_genesis_transaction);
       rapidjson::IStreamWrapper isw(file);
       doc.ParseStream(isw);
       auto some_tx = JsonTransactionFactory{}.deserialize(doc);
-      if (some_tx) {
-        transaction = *some_tx;
-      } else {
+      if (not some_tx) {
         logger->error(
             "Cannot deserialize genesis transaction (problem with file reading "
             "or illformed json?)");
         return EXIT_FAILURE;
       }
+      auto tx = PbTransactionFactory().serialize(*some_tx);
+      auto block = iroha_lib::generateGenesisBlockFromTransactions({tx});
+      if (auto e = iroha::expected::resultToOptionalError(block)) {
+        logger->error("Cannot generate genesis block: {}", e.value());
+        return EXIT_FAILURE;
+      }
+      writeGenesisBlock(block.assumeValue());
     }
-
-    auto block = generator.generateGenesisBlock(0, {transaction});
-    // Convert to json
-    std::ofstream output_file("genesis.block");
-    auto bl = shared_model::proto::Block(
-        iroha::model::converters::PbBlockFactory().serialize(block).block_v1());
-
-    shared_model::proto::ProtoBlockJsonConverter().serialize(bl).match(
-        [&logger, &output_file](auto &&json) {
-          output_file << std::move(json.value);
-          logger->info("File saved to genesis.block");
-        },
-        [&logger](const auto &error) {
-          // should not get here
-          logger->error("error while serializing genesis block");
-          std::exit(EXIT_FAILURE);
-        });
   }
   // Create new pub/priv key, register in Iroha Network
   else if (FLAGS_new_account) {
@@ -147,12 +147,10 @@ int main(int argc, char *argv[]) {
       logger->error("No account name specified");
       return EXIT_FAILURE;
     }
-    auto keysManager =
-        iroha::KeysManagerImpl(FLAGS_account_name, keys_manager_log);
-    if (not(FLAGS_pass_phrase.size() == 0
-                ? keysManager.createKeys(boost::none)
-                : keysManager.createKeys(FLAGS_pass_phrase))) {
-      logger->error("Keys already exist");
+    auto keypair = iroha_lib::createKeyFiles(
+        FLAGS_account_name, FLAGS_pass_phrase, "", keys_manager_log);
+    if (auto e = iroha::expected::resultToOptionalError(keypair)) {
+      logger->error("{}", e.value());
       return EXIT_FAILURE;
     }
     logger->info(
@@ -161,8 +159,7 @@ int main(int argc, char *argv[]) {
   }
   // Send to Iroha Peer json transaction/query
   else if (not FLAGS_json_transaction.empty() or not FLAGS_json_query.empty()) {
-    iroha_cli::CliClient client(
-        FLAGS_peer_ip, FLAGS_torii_port, pb_qry_factory_log);
+    iroha_cli::CliClient client(FLAGS_peer_ip, FLAGS_torii_port);
     iroha_cli::GrpcResponseHandler response_handler(
         response_handler_log_manager);
     if (not FLAGS_json_transaction.empty()) {
@@ -183,10 +180,8 @@ int main(int argc, char *argv[]) {
         logger->error("Json transaction has wrong format.");
         return EXIT_FAILURE;
       } else {
-        auto tx = shared_model::proto::Transaction(
-            iroha::model::converters::PbTransactionFactory().serialize(
-                *tx_opt));
-        response_handler.handle(client.sendTx(tx));
+        response_handler.handle(
+            client.sendTx(PbTransactionFactory().serialize(*tx_opt)));
       }
     }
     if (not FLAGS_json_query.empty()) {
@@ -201,11 +196,14 @@ int main(int argc, char *argv[]) {
         logger->error("Json has wrong format.");
         return EXIT_FAILURE;
       } else {
-        auto query = shared_model::proto::Query(
-            *iroha::model::converters::PbQueryFactory(pb_qry_factory_log)
-                 .serialize(*query_opt));
-        auto response = client.sendQuery(query);
-        response_handler.handle(response);
+        auto serialized =
+            PbQueryFactory(pb_qry_factory_log).serialize(*query_opt);
+        if (serialized) {
+          auto response = client.sendQuery(*serialized);
+          response_handler.handle(response);
+        } else {
+          logger->error("Cannot serialize query to protobuf format.");
+        }
       }
     }
   }
@@ -220,11 +218,10 @@ int main(int argc, char *argv[]) {
       logger->error("Path {} not found.", path.string());
       return EXIT_FAILURE;
     }
-    iroha::KeysManagerImpl manager((path / FLAGS_account_name).string(),
-                                   keys_manager_log);
-    auto keypair = FLAGS_pass_phrase.size() != 0
-        ? manager.loadKeys(FLAGS_pass_phrase)
-        : manager.loadKeys(boost::none);
+    auto keypair = iroha_lib::loadKeyFiles(FLAGS_account_name,
+                                            FLAGS_pass_phrase,
+                                            path.string(),
+                                            keys_manager_log);
     if (auto e = iroha::expected::resultToOptionalError(keypair)) {
       logger->error(
           "Keypair error: {}.\n"
@@ -244,9 +241,8 @@ int main(int argc, char *argv[]) {
         FLAGS_peer_ip,
         FLAGS_torii_port,
         0,
-        std::make_shared<iroha::model::ModelCryptoProviderImpl>(
-            *std::unique_ptr<iroha::keypair_t>(
-                makeOldModel(keypair.assumeValue()))),
+        *std::unique_ptr<iroha::keypair_t>(
+            makeOldModel(keypair.assumeValue())),
         response_handler_log_manager,
         pb_qry_factory_log,
         json_qry_factory_log,

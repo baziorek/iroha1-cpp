@@ -5,70 +5,59 @@
 
 #include "client.hpp"
 
-#include "backend/protobuf/queries/proto_query.hpp"
-#include "backend/protobuf/transaction.hpp"
-#include "model/converters/json_query_factory.hpp"
-#include "model/converters/json_transaction_factory.hpp"
-#include "model/converters/pb_query_factory.hpp"
-#include "model/converters/pb_transaction_factory.hpp"
-#include "network/impl/channel_factory.hpp"
+#include <chrono>
+#include <thread>
+#include <unordered_set>
 
-template <typename Service>
-std::unique_ptr<typename Service::StubInterface> makeStub(std::string target_ip,
-                                                          int port) {
-  using namespace iroha::network;
-  return createInsecureClient<Service>(target_ip, port, std::nullopt);
-}
+#include "model/converters/pb_common.hpp"
 
 namespace iroha_cli {
 
-  CliClient::CliClient(std::string target_ip,
-                       int port,
-                       logger::LoggerPtr pb_qry_factory_log)
-      : command_client_(
-            makeStub<torii::CommandSyncClient::Service>(target_ip, port),
-            pb_qry_factory_log),
-        query_client_(
-            makeStub<torii_utils::QuerySyncClient::Service>(target_ip, port)),
-        pb_qry_factory_log_(std::move(pb_qry_factory_log)) {}
+  CliClient::CliClient(std::string target_ip, int port)
+      : client_(std::move(target_ip), port) {}
 
-  CliClient::Response<CliClient::TxStatus> CliClient::sendTx(
-      const shared_model::interface::Transaction &tx) {
-    const auto proto_tx =
-        static_cast<const shared_model::proto::Transaction &>(tx);
-    CliClient::Response<CliClient::TxStatus> response;
-    // Send to iroha:
-    response.status = command_client_.Torii(proto_tx.getTransport());
-
-    // TODO 12/10/2017 neewy implement return of real transaction status IR-494
-    response.answer = TxStatus::OK;
-
-    return response;
-  }
-
-  CliClient::Response<iroha::protocol::ToriiResponse> CliClient::getTxStatus(
-      std::string tx_hash) {
+  CliClient::Response<iroha::protocol::ToriiResponse> CliClient::sendTx(
+      const iroha::protocol::Transaction &tx) {
     CliClient::Response<iroha::protocol::ToriiResponse> response;
-    // Send to iroha:
-    iroha::protocol::TxStatusRequest statusRequest;
-    statusRequest.set_tx_hash(tx_hash);
-    iroha::protocol::ToriiResponse toriiResponse;
-    response.status = command_client_.Status(statusRequest, toriiResponse);
-    response.answer = toriiResponse;
+    response.status = client_.send(tx);
+    if (not response.status.ok()) {
+      return response;
+    }
 
+    // Fetch the real transaction status. The status endpoint reports
+    // intermediate states too (stateless/stateful validation success,
+    // MST pending, ...), so poll until a final status is reached or
+    // the timeout expires.
+    static const std::unordered_set<iroha::protocol::TxStatus> final_statuses = {
+        iroha::protocol::TxStatus::COMMITTED,
+        iroha::protocol::TxStatus::REJECTED,
+        iroha::protocol::TxStatus::MST_EXPIRED,
+        iroha::protocol::TxStatus::STATELESS_VALIDATION_FAILED,
+        iroha::protocol::TxStatus::STATEFUL_VALIDATION_FAILED};
+
+    const auto tx_hash = iroha::hash(tx).to_hexstring();
+    for (int attempt = 0; attempt < 25; ++attempt) {
+      const auto status = client_.getTxStatus(tx_hash, &response.answer);
+      if (status.ok()
+          && final_statuses.count(response.answer.tx_status()) != 0) {
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
     return response;
   }
 
   CliClient::Response<iroha::protocol::QueryResponse> CliClient::sendQuery(
-      const shared_model::interface::Query &query) {
+      const iroha::protocol::Query &query) {
     CliClient::Response<iroha::protocol::QueryResponse> response;
-    // Convert to proto and send to Iroha
-    iroha::model::converters::PbQueryFactory pb_factory(pb_qry_factory_log_);
-    auto proto_query = static_cast<const shared_model::proto::Query &>(query);
-    iroha::protocol::QueryResponse query_response;
-    response.status =
-        query_client_.Find(proto_query.getTransport(), query_response);
-    response.answer = query_response;
+    response.status = client_.sendQuery(query, &response.answer);
+    return response;
+  }
+
+  CliClient::Response<iroha::protocol::ToriiResponse> CliClient::getTxStatus(
+      const std::string &tx_hash) {
+    CliClient::Response<iroha::protocol::ToriiResponse> response;
+    response.status = client_.getTxStatus(tx_hash, &response.answer);
     return response;
   }
 

@@ -60,27 +60,41 @@ grpc::Status GrpcClient::send(const TxList& tx_list)
                 &empty);
 }
 
+grpc::Status GrpcClient::sendQuery(
+        const iroha::protocol::Query& query,
+        QueryResponse* response)
+{
+    grpc::ClientContext context;
+    return query_stub_->Find(
+                &context,
+                query,
+                response);
+}
+
 QueryResponse GrpcClient::send(const iroha::protocol::Query& query)
 {
     QueryResponse queryResponse;
-    grpc::ClientContext context;
-    query_stub_->Find(
-                &context,
-                query,
-                &queryResponse);
+    sendQuery(query, &queryResponse);
     return queryResponse;
+}
+
+grpc::Status GrpcClient::getTxStatus(
+        const std::string& tx_hash,
+        ToriiResponse* response)
+{
+    TxStatusRequest statusRequest;
+    statusRequest.set_tx_hash(tx_hash);
+    grpc::ClientContext context;
+    return command_stub_->Status(
+                &context,
+                statusRequest,
+                response);
 }
 
 ToriiResponse GrpcClient::getTxStatus(const std::string& tx_hash)
 {
-    TxStatusRequest statusRequest;
-    statusRequest.set_tx_hash(tx_hash);
     ToriiResponse toriiResponse;
-    grpc::ClientContext context;
-    command_stub_->Status(
-                &context,
-                statusRequest,
-                &toriiResponse);
+    getTxStatus(tx_hash, &toriiResponse);
     return toriiResponse;
 }
 

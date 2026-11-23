@@ -10,19 +10,14 @@
 
 #include "client.hpp"
 #include "common/byteutils.hpp"
-#include "crypto/keys_manager_impl.hpp"
-#include "cryptography/ed25519_sha3_impl/internal/ed25519_impl.hpp"
 #include "datetime/time.hpp"
 #include "grpc_response_handler.hpp"
 #include "interactive/interactive_query_cli.hpp"
 #include "logger/logger.hpp"
 #include "model/converters/json_query_factory.hpp"
 #include "model/converters/pb_query_factory.hpp"
-#include "model/model_crypto_provider.hpp"  // for ModelCryptoProvider
 #include "model/queries/get_asset_info.hpp"
 #include "model/queries/get_roles.hpp"
-
-using namespace iroha::model;
 
 namespace iroha_cli {
   namespace interactive {
@@ -94,7 +89,7 @@ namespace iroha_cli {
         const std::string &default_peer_ip,
         int default_port,
         uint64_t query_counter,
-        const std::shared_ptr<iroha::model::ModelCryptoProvider> &provider,
+        const iroha::keypair_t &keypair,
         logger::LoggerManagerTreePtr response_handler_log_manager,
         logger::LoggerPtr pb_qry_factory_log,
         logger::LoggerPtr json_qry_factory_log,
@@ -104,7 +99,7 @@ namespace iroha_cli {
           default_peer_ip_(default_peer_ip),
           default_port_(default_port),
           counter_(query_counter),
-          provider_(provider),
+          keypair_(keypair),
           response_handler_log_manager_(
               std::move(response_handler_log_manager)),
           pb_qry_factory_log_(std::move(pb_qry_factory_log)),
@@ -116,6 +111,11 @@ namespace iroha_cli {
 
     static void printMenu(const MenuPoints &menu) {
       printMenu("Choose query: ", menu);
+    }
+
+    std::shared_ptr<iroha_lib::Query> InteractiveQueryCli::makeQuery() {
+      return std::make_shared<iroha_lib::Query>(
+          keypair_, counter_, creator_, local_time_);
     }
 
     void InteractiveQueryCli::run() {
@@ -153,7 +153,7 @@ namespace iroha_cli {
         return false;
       }
 
-      auto res = handleParse<std::shared_ptr<iroha::model::Query>>(
+      auto res = handleParse<std::shared_ptr<iroha_lib::Query>>(
           this, line, query_handlers_, query_params_map_);
       if (not res) {
         // Continue parsing
@@ -167,80 +167,79 @@ namespace iroha_cli {
       return true;
     }
 
-    std::shared_ptr<iroha::model::Query> InteractiveQueryCli::parseGetAccount(
+    std::shared_ptr<iroha_lib::Query> InteractiveQueryCli::parseGetAccount(
         QueryParams params) {
-      auto account_id = params[0];
-      return generator_.generateGetAccount(
-          local_time_, creator_, counter_, account_id);
+      auto query = makeQuery();
+      query->getAccount(params[0]);
+      return query;
     }
 
-    std::shared_ptr<iroha::model::Query>
+    std::shared_ptr<iroha_lib::Query>
     InteractiveQueryCli::parseGetAccountAssets(QueryParams params) {
-      auto account_id = params[0];
-      auto asset_id = params[1];
-      return generator_.generateGetAccountAssets(
-          local_time_, creator_, counter_, account_id, asset_id);
+      // NOTE: the second parameter (asset id) is kept for menu
+      // compatibility; GetAccountAssets query does not use it, same as
+      // the previous implementation.
+      auto query = makeQuery();
+      query->getAccountAssets(params[0]);
+      return query;
     }
 
-    std::shared_ptr<iroha::model::Query>
+    std::shared_ptr<iroha_lib::Query>
     InteractiveQueryCli::parseGetAccountAssetTransactions(QueryParams params) {
-      auto account_id = params[0];
-      auto asset_id = params[1];
-      return generator_.generateGetAccountAssetTransactions(
-          local_time_, creator_, counter_, account_id, asset_id);
+      auto query = makeQuery();
+      query->getAccountAssetTransactions(params[0], params[1]);
+      return query;
     }
 
-    std::shared_ptr<iroha::model::Query>
+    std::shared_ptr<iroha_lib::Query>
     InteractiveQueryCli::parseGetAccountTransactions(QueryParams params) {
-      auto account_id = params[0];
-      return generator_.generateGetAccountTransactions(
-          local_time_, creator_, counter_, account_id);
+      auto query = makeQuery();
+      query->getAccountTransactions(params[0]);
+      return query;
     }
 
-    std::shared_ptr<iroha::model::Query>
+    std::shared_ptr<iroha_lib::Query>
     InteractiveQueryCli::parseGetTransactions(QueryParams params) {
       // Parser definition: hash1 hash2 ...
-      GetTransactions::TxHashCollectionType tx_hashes;
+      // NOTE: lib QueryGenerator expects raw (non-hex) hash strings and
+      // hex-encodes them itself.
+      std::vector<std::string> tx_hashes;
       std::for_each(
           params.begin(), params.end(), [&tx_hashes](auto const &hex_hash) {
-            if (auto opt = iroha::hexstringToArray<
-                    GetTransactions::TxHashType::size()>(hex_hash)) {
-              tx_hashes.push_back(*opt);
+            if (auto raw = iroha::hexstringToBytestring(hex_hash)) {
+              tx_hashes.push_back(*raw);
             }
           });
-      return generator_.generateGetTransactions(
-          local_time_, creator_, counter_, tx_hashes);
+      auto query = makeQuery();
+      query->getTransactions(creator_, tx_hashes);
+      return query;
     }
 
-    std::shared_ptr<iroha::model::Query>
+    std::shared_ptr<iroha_lib::Query>
     InteractiveQueryCli::parseGetSignatories(QueryParams params) {
-      auto account_id = params[0];
-      return generator_.generateGetSignatories(
-          local_time_, creator_, counter_, account_id);
-    }
-
-    std::shared_ptr<iroha::model::Query> InteractiveQueryCli::parseGetAssetInfo(
-        QueryParams params) {
-      auto asset_id = params[0];
-      auto query = std::make_shared<GetAssetInfo>(asset_id);
-      // TODO 26/09/17 grimadas: remove duplicated code and move
-      // setQueryMetaData calls to private method IR-508 #goodfirstissue
-      generator_.setQueryMetaData(query, local_time_, creator_, counter_);
+      auto query = makeQuery();
+      query->getSignatories(params[0]);
       return query;
     }
 
-    std::shared_ptr<iroha::model::Query> InteractiveQueryCli::parseGetRoles(
+    std::shared_ptr<iroha_lib::Query> InteractiveQueryCli::parseGetAssetInfo(
         QueryParams params) {
-      auto query = std::make_shared<GetRoles>();
-      generator_.setQueryMetaData(query, local_time_, creator_, counter_);
+      auto query = makeQuery();
+      query->getAssetInfo(creator_, params[0]);
       return query;
     }
 
-    std::shared_ptr<iroha::model::Query>
+    std::shared_ptr<iroha_lib::Query> InteractiveQueryCli::parseGetRoles(
+        QueryParams params) {
+      auto query = makeQuery();
+      query->getRoles(creator_);
+      return query;
+    }
+
+    std::shared_ptr<iroha_lib::Query>
     InteractiveQueryCli::parseGetRolePermissions(QueryParams params) {
-      auto role_name = params[0];
-      auto query = std::make_shared<GetRolePermissions>(role_name);
-      generator_.setQueryMetaData(query, local_time_, creator_, counter_);
+      auto query = makeQuery();
+      query->getRolePermissions(creator_, params[0]);
       return query;
     }
 
@@ -254,8 +253,8 @@ namespace iroha_cli {
         return true;
       }
 
-      auto res =
-          handleParse<bool>(this, line, result_handlers_, result_params_map_);
+      auto res = handleParse<bool>(
+          this, line, result_handlers_, result_params_map_);
 
       return res.get_value_or(true);
     }
@@ -267,33 +266,40 @@ namespace iroha_cli {
         return true;
       }
 
-      provider_->sign(*query_);
+      const auto signed_query = query_->signAndAddSignature();
 
       CliClient client(
-          address.value().first, address.value().second, pb_qry_factory_log_);
-      auto query = shared_model::proto::Query(
-          *iroha::model::converters::PbQueryFactory(pb_qry_factory_log_)
-               .serialize(query_));
+          address.value().first, address.value().second);
       GrpcResponseHandler{response_handler_log_manager_}.handle(
-          client.sendQuery(query));
+          client.sendQuery(signed_query));
       printEnd();
       // Stop parsing
       return false;
     }
 
     bool InteractiveQueryCli::parseSaveFile(QueryParams params) {
-      provider_->sign(*query_);
+      const auto signed_query = query_->signAndAddSignature();
 
       auto path = params[0];
-      iroha::model::converters::JsonQueryFactory json_factory(
-          json_qry_factory_log_);
-      auto json_string = json_factory.serialize(query_);
       std::ofstream output_file(path);
       if (not output_file) {
         std::cout << "Cannot create file" << std::endl;
         // Continue parsing
         return true;
       }
+
+      // Convert proto query back to the model one for JSON output
+      auto model_query =
+          iroha::model::converters::PbQueryFactory(pb_qry_factory_log_)
+              .deserialize(signed_query);
+      if (not model_query) {
+        std::cout << "Cannot serialize query" << std::endl;
+        return true;
+      }
+
+      iroha::model::converters::JsonQueryFactory json_factory(
+          json_qry_factory_log_);
+      auto json_string = json_factory.serialize(*model_query);
       output_file << json_string;
       std::cout << "Successfully saved!" << std::endl;
       printEnd();

@@ -6,22 +6,24 @@
 #ifndef IROHA_CLI_INTERACTIVE_TRANSACTION_CLI_HPP
 #define IROHA_CLI_INTERACTIVE_TRANSACTION_CLI_HPP
 
+#include <functional>
+#include <memory>
 #include <unordered_map>
+#include <vector>
 
+#include "crypto/keypair.hpp"
 #include "interactive/interactive_common_cli.hpp"
 #include "logger/logger_fwd.hpp"
 #include "logger/logger_manager_fwd.hpp"
-#include "model/generators/transaction_generator.hpp"
-
-namespace iroha {
-  namespace model {
-    struct Command;
-    class ModelCryptoProvider;
-  }  // namespace model
-}  // namespace iroha
+#include "model/Tx.hpp"
 
 namespace iroha_cli {
   namespace interactive {
+    /**
+     * Applies one parsed command to an iroha_lib::Tx under construction.
+     */
+    using TxCommandApplier = std::function<void(iroha_lib::Tx &)>;
+
     class InteractiveTransactionCli {
      public:
       /**
@@ -29,18 +31,16 @@ namespace iroha_cli {
        * @param creator_account user Iroha account
        * @param default_peer_ip of Iroha peer
        * @param default_port of Iroha peer
-       * @param provider for signing transactions
+       * @param keypair keypair of the creator account used for signing
        * @param response_handler_log_manager for ResponseHandler messages
-       * @param pb_qry_factory_log for PbQueryFactory mesages
        * @param log for internal messages
        */
       InteractiveTransactionCli(
           const std::string &creator_account,
           const std::string &default_peer_ip,
           int default_port,
-          const std::shared_ptr<iroha::model::ModelCryptoProvider> &provider,
+          const iroha::keypair_t &keypair,
           logger::LoggerManagerTreePtr response_handler_log_manager,
-          logger::LoggerPtr pb_qry_factory_log,
           logger::LoggerPtr log);
       /**
        * Run interactive query command line
@@ -87,7 +87,7 @@ namespace iroha_cli {
       const std::string REVOKE_PERM = "revoke_perm";
 
       // ---- Command parsers ----
-      using CommandHandler = std::shared_ptr<iroha::model::Command> (
+      using CommandHandler = std::shared_ptr<TxCommandApplier>(
           InteractiveTransactionCli::*)(std::vector<std::string>);
 
       // Specific parsers for each Iroha command
@@ -106,38 +106,38 @@ namespace iroha_cli {
        * continue
        */
       bool parseCommand(std::string line);
-      // --- Specific model Command parsers -----
-      std::shared_ptr<iroha::model::Command> parseAddAssetQuantity(
+      // --- Specific command parsers -----
+      std::shared_ptr<TxCommandApplier> parseAddAssetQuantity(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseAddPeer(
+      std::shared_ptr<TxCommandApplier> parseAddPeer(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseAddSignatory(
+      std::shared_ptr<TxCommandApplier> parseAddSignatory(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseCreateAccount(
+      std::shared_ptr<TxCommandApplier> parseCreateAccount(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseCreateAsset(
+      std::shared_ptr<TxCommandApplier> parseCreateAsset(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseCreateDomain(
+      std::shared_ptr<TxCommandApplier> parseCreateDomain(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseRemoveSignatory(
+      std::shared_ptr<TxCommandApplier> parseRemoveSignatory(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseSetQuorum(
+      std::shared_ptr<TxCommandApplier> parseSetQuorum(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseSetAccountDetail(
+      std::shared_ptr<TxCommandApplier> parseSetAccountDetail(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseSubtractAssetQuantity(
+      std::shared_ptr<TxCommandApplier> parseSubtractAssetQuantity(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseTransferAsset(
+      std::shared_ptr<TxCommandApplier> parseTransferAsset(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseAppendRole(
+      std::shared_ptr<TxCommandApplier> parseAppendRole(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseDetachRole(
+      std::shared_ptr<TxCommandApplier> parseDetachRole(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseCreateRole(
+      std::shared_ptr<TxCommandApplier> parseCreateRole(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseGrantPermission(
+      std::shared_ptr<TxCommandApplier> parseGrantPermission(
           std::vector<std::string> line);
-      std::shared_ptr<iroha::model::Command> parseRevokePermission(
+      std::shared_ptr<TxCommandApplier> parseRevokePermission(
           std::vector<std::string> line);
 
       // ---- Result parsers ------
@@ -162,9 +162,14 @@ namespace iroha_cli {
       bool parseAddCommand(std::vector<std::string> params);
 
       /**
+       * Build and sign the transaction from the collected command appliers
+       */
+      iroha::protocol::Transaction buildTransaction();
+
+      /**
        * Prints hash of a transaction for user in a readable form
        */
-      void printTxHash(iroha::model::Transaction &tx);
+      void printTxHash(const iroha::protocol::Transaction &tx);
 
       // ---- Tx data ----
 
@@ -173,23 +178,14 @@ namespace iroha_cli {
       std::string default_peer_ip_;
       int default_port_;
 
-      // Builder for new commands
-      iroha::model::generators::CommandGenerator generator_;
-
       // Commands to be formed
-      std::vector<std::shared_ptr<iroha::model::Command>> commands_;
+      std::vector<std::shared_ptr<TxCommandApplier>> commands_;
 
-      // Crypto provider
-      std::shared_ptr<iroha::model::ModelCryptoProvider> provider_;
-
-      // Transaction generator
-      iroha::model::generators::TransactionGenerator tx_generator_;
+      // Keypair of the creator account
+      iroha::keypair_t keypair_;
 
       /// Logger manager for ResponseHandler
       logger::LoggerManagerTreePtr response_handler_log_manager_;
-
-      /// Logger for PbQueryFactory
-      logger::LoggerPtr pb_qry_factory_log_;
 
       /// Internal logger
       logger::LoggerPtr log_;

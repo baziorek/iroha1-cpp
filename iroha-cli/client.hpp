@@ -3,24 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef IROHACLI_CLIENT_HPP
-#define IROHACLI_CLIENT_HPP
+#ifndef IROHA_CLI_CLIENT_HPP
+#define IROHA_CLI_CLIENT_HPP
 
 #include <string>
 
-#include "logger/logger_fwd.hpp"
-#include "torii/command_client.hpp"
-#include "torii/query_client.hpp"
-
-namespace shared_model {
-  namespace interface {
-    class Transaction;
-    class Query;
-  }  // namespace interface
-}  // namespace shared_model
+#include "endpoint.grpc.pb.h"
+#include "grpc++/grpc++.h"
+#include "grpc_client/GrpcClient.hpp"
 
 namespace iroha_cli {
 
+  /**
+   * Thin wrapper over iroha_lib::GrpcClient used by iroha-cli.
+   * Responses carry the gRPC status plus the torii/query answer.
+   */
   class CliClient {
    public:
     template <typename T>
@@ -29,38 +26,31 @@ namespace iroha_cli {
       T answer;
     };
 
-    // TODO 13/09/17 luckychess: check if we need more status codes IR-494
-    enum TxStatus { OK };
-
-    CliClient(std::string target_ip,
-              int port,
-              logger::LoggerPtr pb_qry_factory_log);
+    CliClient(std::string target_ip, int port);
 
     /**
-     * Send Transaction to Iroha Peer, i.e. target_ip:port
-     * @param tx
-     * @return
+     * Send Transaction to Iroha Peer, i.e. target_ip:port, then fetch
+     * its status from the torii endpoint.
+     * @param tx signed transaction in protobuf transport format
+     * @return gRPC status of the submission and the transaction status
      */
-    CliClient::Response<CliClient::TxStatus> sendTx(
-        const shared_model::interface::Transaction &tx);
+    CliClient::Response<iroha::protocol::ToriiResponse> sendTx(
+        const iroha::protocol::Transaction &tx);
 
     /**
      * Send Query to Iroha Peer, i.e. target_ip:port
-     * @param query
-     * @return
+     * @param query signed query in protobuf transport format
+     * @return gRPC status and the query response
      */
     CliClient::Response<iroha::protocol::QueryResponse> sendQuery(
-        const shared_model::interface::Query &query);
+        const iroha::protocol::Query &query);
 
     CliClient::Response<iroha::protocol::ToriiResponse> getTxStatus(
-        std::string tx_hash);
+        const std::string &tx_hash);
 
    private:
-    torii::CommandSyncClient command_client_;
-    torii_utils::QuerySyncClient query_client_;
-
-    logger::LoggerPtr pb_qry_factory_log_;
+    iroha_lib::GrpcClient client_;
   };
 }  // namespace iroha_cli
 
-#endif  // IROHACLI_CLIENT_CPP_HPP
+#endif  // IROHA_CLI_CLIENT_HPP

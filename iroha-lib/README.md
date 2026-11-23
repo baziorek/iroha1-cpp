@@ -101,6 +101,25 @@ stream->Cancel();  // stop the stream
 
 `TxBatch::batch(transactions, atomic)` attaches shared `BatchMeta` (type + SHA3-256 reduced hashes of every transaction's reduced payload) to each transaction; call it **before** signing, because the meta is part of the signed payload.
 
+### Key files
+
+`model/utils/key_files.hpp` wraps `KeysManagerImpl` so applications don't need the legacy key manager directly:
+
+- `createKeyFiles(name, pass_phrase, keys_directory, log)` — generate a keypair and store it as `<keys_directory>/<name>.pub` / `<name>.priv` (existing files are overwritten, like `createKeys`)
+- `loadKeyFiles(name, pass_phrase, keys_directory, log)` — load an existing keypair from those files
+
+An empty `pass_phrase` means unencrypted keys; an empty `keys_directory` means the current directory.
+
+### Genesis block generation
+
+`model/utils/genesis.hpp` replicates `iroha-cli --genesis_block` / `--peers_address`:
+
+- `readPeersAddresses(path)` — read whitespace-separated `ip:port` peer addresses from a file
+- `generateGenesisBlock(config, log)` — build a signed genesis block (height 1) registering each peer, creating `admin`/`user`/`money_creator` roles, the `test` domain, the `coin` asset and the `admin@test`/`test@test` accounts. Fresh key files for peers (`node0..nodeN`) and accounts are generated in `config.keys_directory`
+- `generateGenesisBlockFromTransactions(transactions)` — wrap already-signed transactions into a genesis block (the `--genesis_transaction` equivalent)
+
+`iroha-cli` uses both helpers for its `--genesis_block`, `--peers_address`, `--new_account` and `--key_path` modes.
+
 ### Integration tests
 
 The examples are covered by `test/integration/iroha_lib_examples` (`iroha_lib_examples_test`), which spins up a real single-node Iroha instance via `IntegrationTestFramework` (PostgreSQL backend, `mst_support` enabled, genesis replicating the `admin@test` / `test` domain environment) and runs each example binary against it. Run it with:

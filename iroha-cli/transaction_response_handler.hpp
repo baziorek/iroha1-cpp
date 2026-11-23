@@ -6,7 +6,7 @@
 #ifndef IROHA_CLI_TRANSACTION_RESPONSE_HANDLER_HPP
 #define IROHA_CLI_TRANSACTION_RESPONSE_HANDLER_HPP
 
-#include "client.hpp"  // for CliClient::TxStatus (yuck!)
+#include <endpoint.pb.h>
 
 #include "logger/logger_fwd.hpp"
 
@@ -20,10 +20,10 @@ namespace iroha_cli {
    public:
     explicit TransactionResponseHandler(logger::LoggerPtr log);
     /**
-     * Handle response from Iroha
-     * @param status of transaction
+     * Handle transaction status response from Iroha
+     * @param response torii response with the transaction status
      */
-    void handle(const CliClient::TxStatus status) const;
+    void handle(const iroha::protocol::ToriiResponse &response) const;
 
    private:
     logger::LoggerPtr log_;
