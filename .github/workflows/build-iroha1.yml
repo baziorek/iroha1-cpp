@@ -412,6 +412,7 @@ jobs:
     needs:
       - Docker-iroha-builder
       - generate_matrixes
+      - vcpkg-deps
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -531,8 +532,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: vcpkg-build
-          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
-          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.
+          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.
       - name: Build iroha vcpkg dependancies
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
         ## Takes 48m16s on default GitHub runner with 2 cores
@@ -735,6 +736,7 @@ jobs:
     needs:
       - Docker-iroha-builder
       - generate_matrixes
+      - vcpkg-deps
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -850,8 +852,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: vcpkg-build
-          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
-          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.
+          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.
       - name: Build iroha vcpkg dependancies
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
         ## Takes 48m16s on default GitHub runner with 2 cores
@@ -1054,6 +1056,51 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ) }}
     if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu_release ).include[0] }}
+  ## Build vcpkg dependencies once up-front; the Debug/Release build jobs
+  ## then restore the shared cache instead of compiling ~100 ports twice.
+  ## Cache key matches the gcc-14 legs (vcpkg deps are built inside the
+  ## same container toolchain regardless of CMAKE_BUILD_TYPE).
+  vcpkg-deps:
+    needs:
+      - Docker-iroha-builder
+      - generate_matrixes
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{needs.Docker-iroha-builder.outputs.container}}
+      options: --user root
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    if: ${{ fromJSON( needs.generate_matrixes.outputs.matrix_ubuntu ).include[0] }}
+    steps:
+      - name: Show context
+        run: |
+          echo "::group::GitHub context"
+          cat <<'END'
+          ${{ toJson(github) }}
+          END
+          echo "::endgroup::"
+          echo "::group::GitHub needs"
+          cat <<'END'
+          ${{ toJson(needs) }}
+          END
+          echo "::endgroup::"
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
+          repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
+      - name: Cache vcpkg-build
+        uses: actions/cache@v5
+        with:
+          path: vcpkg-build
+          key: ${{runner.os}}-vcpkg-gcc-14.${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-gcc-14.
+      - name: Build iroha vcpkg dependancies
+        run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
   ## Package release binaries (irohad, iroha-cli) as AppImages.
   ## Reuses the 'irohad-<suffix>' artifact uploaded by build-UR legs;
   ## matrix_appimage contains at most the single
