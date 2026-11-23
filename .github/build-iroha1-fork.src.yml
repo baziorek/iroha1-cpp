@@ -138,13 +138,13 @@ jobs:
         run: |
           set -x
           cat /tmp/comment_body | .github/chatops-gen-matrix.sh
-          echo "::set-output name=matrix_ubuntu::$(cat matrix_ubuntu)"
-          echo "::set-output name=matrix_ubuntu_release::$(cat matrix_ubuntu_release)"
-          echo "::set-output name=matrix_ubuntu_debug::$(cat matrix_ubuntu_debug)"
-          echo "::set-output name=matrix_macos::$(cat matrix_macos)"
-          echo "::set-output name=matrix_dockerimage_release::$(cat matrix_dockerimage_release)"
-          echo "::set-output name=matrix_dockerimage_debug::$(cat matrix_dockerimage_debug)"
-          echo "::set-output name=matrix_appimage::$(cat matrix_appimage)"
+          echo "matrix_ubuntu=$(cat matrix_ubuntu)" >> "$GITHUB_OUTPUT"
+          echo "matrix_ubuntu_release=$(cat matrix_ubuntu_release)" >> "$GITHUB_OUTPUT"
+          echo "matrix_ubuntu_debug=$(cat matrix_ubuntu_debug)" >> "$GITHUB_OUTPUT"
+          echo "matrix_macos=$(cat matrix_macos)" >> "$GITHUB_OUTPUT"
+          echo "matrix_dockerimage_release=$(cat matrix_dockerimage_release)" >> "$GITHUB_OUTPUT"
+          echo "matrix_dockerimage_debug=$(cat matrix_dockerimage_debug)" >> "$GITHUB_OUTPUT"
+          echo "matrix_appimage=$(cat matrix_appimage)" >> "$GITHUB_OUTPUT"
     outputs:
       matrix_ubuntu:              ${{steps.matrixes.outputs.matrix_ubuntu}}
       matrix_ubuntu_release:      ${{steps.matrixes.outputs.matrix_ubuntu_release}}
@@ -198,7 +198,7 @@ jobs:
         env:
           dockertag: ${{ hashFiles('docker/iroha-builder/**') }}
         run: |
-          echo "::set-output name=dockertag::$dockertag"
+          echo "dockertag=$dockertag" >> "$GITHUB_OUTPUT"
           echo >>$GITHUB_ENV  dockertag=$dockertag
           test -n "$DOCKERHUB_ORG" || {
             echo ::error::"DOCKERHUB_ORG must contain value"
@@ -295,7 +295,7 @@ jobs:
         id: dockertag_already
         run: |
           image="ghcr.io/${{ github.repository }}:$dockertag"
-          echo "::set-output name=container::$image"
+          echo "container=$image" >> "$GITHUB_OUTPUT"
           docker pull "$image"
     outputs:
       ## WARN secret dropped from output!, output may not contain secret,
