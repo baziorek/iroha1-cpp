@@ -97,16 +97,18 @@ TEST_F(MSTNotificationsTest, SimpleAdd) {
   auto batch = addSignaturesFromKeyPairs(
       makeTestBatch(txBuilder(1, iroha::time::now(), 1)), 0, makeKey());
   batches_cache_->insert(batch);
-  checkEvents(1, 0, 0);
+  ASSERT_EQ(event_prepared_.size(), 1u);
   ASSERT_EQ(batch, event_prepared_[0]);
+  checkEvents(1, 0, 0);
 }
 
 TEST_F(MSTNotificationsTest, SimpleUnsubscribedAdd) {
   auto batch = addSignaturesFromKeyPairs(
       makeTestBatch(txBuilder(1, iroha::time::now(), 2)), 0, makeKey());
   batches_cache_->insert(batch);
-  checkEvents(0, 1, 0);
+  ASSERT_EQ(event_updated_.size(), 1u);
   ASSERT_EQ(batch, event_updated_[0]);
+  checkEvents(0, 1, 0);
 }
 
 TEST_F(MSTNotificationsTest, SubscribedAdd) {

@@ -15,6 +15,7 @@
 #include "datetime/time.hpp"
 #include "framework/crypto_literals.hpp"
 #include "framework/test_logger.hpp"
+#include "module/irohad/ametsuchi/ametsuchi_mocks.hpp"
 #include "module/irohad/ametsuchi/mock_command_executor.hpp"
 #include "module/irohad/ametsuchi/mock_temporary_factory.hpp"
 #include "module/irohad/validation/mock_stateful_validator.hpp"
@@ -129,7 +130,10 @@ TEST_F(SimulatorTest, ValidWhenPreviousBlock) {
               .build());
   const auto &proposal = validation_result->verified_proposal;
 
-  EXPECT_CALL(*factory, createTemporaryWsv(_)).Times(1);
+  EXPECT_CALL(*factory, createTemporaryWsv(_))
+      .Times(1)
+      .WillOnce(Return(ByMove(std::unique_ptr<TemporaryWsv>(
+          new MockTemporaryWsv()))));
 
   EXPECT_CALL(*validator, validate(_, _))
       .WillOnce(Invoke([&validation_result](const auto &p, auto &v) {
@@ -209,7 +213,10 @@ TEST_F(SimulatorTest, SomeFailingTxs) {
             validation::CommandError{"SomeCommand", 1, "", true}});
   }
 
-  EXPECT_CALL(*factory, createTemporaryWsv(_)).Times(1);
+  EXPECT_CALL(*factory, createTemporaryWsv(_))
+      .Times(1)
+      .WillOnce(Return(ByMove(std::unique_ptr<TemporaryWsv>(
+          new MockTemporaryWsv()))));
 
   EXPECT_CALL(*validator, validate(_, _))
       .WillOnce(Invoke([&verified_proposal_and_errors](const auto &p, auto &v) {
