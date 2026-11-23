@@ -6,7 +6,6 @@
 #ifndef IROHA_YAC_HASH_PROVIDER_HPP
 #define IROHA_YAC_HASH_PROVIDER_HPP
 
-#include <ciso646>
 #include <memory>
 #include <string>
 

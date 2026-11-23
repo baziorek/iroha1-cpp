@@ -157,15 +157,15 @@ FakePeer &FakePeer::initialize() {
 
 FakePeer &FakePeer::setBehaviour(const std::shared_ptr<Behaviour> &behaviour) {
   ensureInitialized();
-  std::atomic_store(&behaviour_, behaviour);
-  behaviour_->setup(shared_from_this(),
+  behaviour_.store(behaviour);
+  behaviour_.load()->setup(shared_from_this(),
                     log_manager_->getChild("Behaviour")->getLogger());
   return *this;
 }
 
 std::shared_ptr<integration_framework::fake_peer::Behaviour>
 FakePeer::getBehaviour() const {
-  return std::atomic_load(&behaviour_);
+  return behaviour_.load();
 }
 
 FakePeer &FakePeer::setBlockStorage(

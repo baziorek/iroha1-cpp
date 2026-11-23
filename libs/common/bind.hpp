@@ -6,7 +6,6 @@
 #ifndef IROHA_COMMON_BIND_HPP
 #define IROHA_COMMON_BIND_HPP
 
-#include <ciso646>
 #include <type_traits>
 #include <utility>
 

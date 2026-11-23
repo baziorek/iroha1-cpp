@@ -5,7 +5,6 @@
 
 #include "framework/config_helper.hpp"
 
-#include <ciso646>
 #include <cstdio>
 #include <random>
 #include <sstream>

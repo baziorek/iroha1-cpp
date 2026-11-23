@@ -21,7 +21,7 @@
 #include "torii/tls_params.hpp"
 
 namespace {
-  std::string randomHexSuffix() {
+  [[maybe_unused]] std::string randomHexSuffix() {
     std::random_device rd;
     char buf[16];
     std::snprintf(buf, sizeof(buf), "%08x", rd());

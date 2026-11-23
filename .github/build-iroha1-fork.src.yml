@@ -41,12 +41,12 @@ jobs:
       
       - &step_checkout_head
         name: Checkout head
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with: &step_checkout_with_head
           ref: ${{ github.event.pull_request.head.sha }}     
 
       - name: Filter files
-        uses: dorny/paths-filter@v2
+        uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -189,7 +189,7 @@ jobs:
       - *step_detect_commented_pr
       - &step_checkout_base
         name: Checkout base
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with: &step_checkout_with_base
           ref: ${{ github.event.pull_request.base.sha }}
       - &step_docker_tag
@@ -208,13 +208,13 @@ jobs:
         name: Login to DockerHub
         if: ${{ env.DOCKERHUB_TOKEN != '' && env.DOCKERHUB_USERNAME != '' }}
         id: docker_login
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - &step_docker_login_ghcr
         name: Log in to the Container registry GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -226,7 +226,7 @@ jobs:
       - &step_docker_meta
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v6
         with: &step_docker_meta_with
           images: ${{ env.DOCKERHUB_ORG }}/iroha-builder
           tags: |
@@ -250,10 +250,10 @@ jobs:
           images: ghcr.io/${{ github.repository }}
       - &step_docker_buildx
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v4
       - &step_docker_cache
         name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache
           key:           ${{ runner.os }}-buildx-${{env.dockertag}}
@@ -261,7 +261,7 @@ jobs:
       - &step_docker_build_and_push
         id: build_and_push
         name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with: &step_docker_build_and_push_with
           context: docker/iroha-builder/
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -385,7 +385,7 @@ jobs:
           echo >>$GITHUB_ENV HOME=$HOME
       - &step_restore_ccache
         name: Restore cache CCache
-        uses: actions/cache@v2
+        uses: actions/cache@v5
         with:
           path: ${{ env._CCACHE_DIR }}
           key:          ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
@@ -397,7 +397,7 @@ jobs:
         ## installed ports and binarycache. build_iroha_deps.sh cleans only
         ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
         name: Cache vcpkg-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vcpkg-build
           key:          ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
@@ -438,6 +438,17 @@ jobs:
         ## Debug   takes 18m44s on regular GitHub runner
         ## Debug   takes 7m41s on self-hosted AWS EC2 c5.x4large
         ## Release takes 2m58s on self-hosted AWS EC2 c5.x4large
+      - &step_free_disk_space_before_cpack
+        name: Free disk space before CPack
+        run: |
+          ## vcpkg buildtrees/packages/downloads are only needed to build
+          ## dependencies - they are dead weight afterwards. CPack staging
+          ## needs several GB and GitHub runners run out of disk
+          ## (archive_write_data: unknown error).
+          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
+          rm -rf build/_CPack_Packages
+          find build -name '*.o' -delete
+          df -h
       - &step_cpack
         name: CPack (linux only)
         run: cd build; cpack;  ## cmake --build build --target package
@@ -463,7 +474,7 @@ jobs:
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - &step_artifact_irohad
         name: Upload artifact irohad
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: &step_artifact_irohad_path |
@@ -471,7 +482,7 @@ jobs:
             build/bin/iroha-cli
       - &step_artifact_iroha_deb
         name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: &step_artifact_iroha_deb_path |
@@ -479,7 +490,7 @@ jobs:
       - &step_artifact_tests
         if: ${{ false }}  ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -627,7 +638,7 @@ jobs:
       - *step_checkout_base
       - *step_artifact_suffix
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs

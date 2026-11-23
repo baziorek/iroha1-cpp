@@ -4,6 +4,10 @@
 #
 
 addtest(iroha_lib_examples_test iroha_lib_examples_test.cpp)
+# Each TEST_F boots a dedicated Iroha node via IntegrationTestFramework;
+# 7 nodes + example runs need well over the 120s default integration timeout.
+set_tests_properties(integration_iroha_lib_examples_test PROPERTIES
+    TIMEOUT 900)
 target_link_libraries(iroha_lib_examples_test
     integration_framework
     )

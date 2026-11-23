@@ -6,7 +6,6 @@
 #include "logger/logger_manager.hpp"
 
 #include <atomic>
-#include <ciso646>
 
 static const std::string kTagHierarchySeparator = "/";
 
@@ -50,14 +49,12 @@ namespace logger {
   }
 
   LoggerPtr LoggerManagerTree::getLogger() {
-    LoggerPtr logger =
-        std::atomic_load_explicit(&logger_, std::memory_order_acquire);
+    LoggerPtr logger = logger_.load(std::memory_order_acquire);
     if (not logger) {
       LoggerPtr new_logger = std::make_shared<LoggerSpdlog>(full_tag_, config_);
       while (not logger) {
-        if (std::atomic_compare_exchange_weak_explicit(
-                &logger_,
-                &logger,
+        if (logger_.compare_exchange_weak(
+                logger,
                 new_logger,
                 std::memory_order_release,
                 std::memory_order_acquire)) {

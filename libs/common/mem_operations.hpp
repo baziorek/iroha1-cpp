@@ -9,18 +9,21 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <type_traits>
 
 namespace iroha {
 
   template <typename T>
   void memzero(T &t) {
-    static_assert(std::is_pod<T>::value, "T must be POD.");
+    static_assert(std::is_standard_layout_v<T> && std::is_trivial_v<T>,
+                  "T must be POD.");
     std::memset(&t, 0, sizeof(t));
   }
 
   template <typename T>
   void memcpy(T &dst, T const &src) {
-    static_assert(std::is_pod<T>::value, "T must be POD.");
+    static_assert(std::is_standard_layout_v<T> && std::is_trivial_v<T>,
+                  "T must be POD.");
     std::memcpy(&dst, &src, sizeof(src));
   }
 

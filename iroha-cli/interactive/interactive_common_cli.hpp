@@ -7,7 +7,6 @@
 #define IROHA_CLI_INTERACTIVE_COMMON_CLI_HPP
 
 #include <algorithm>
-#include <ciso646>
 #include <iostream>
 #include <memory>
 #include <string>

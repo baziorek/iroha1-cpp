@@ -6,6 +6,7 @@
 #ifndef INTEGRATION_FRAMEWORK_FAKE_PEER_HPP_
 #define INTEGRATION_FRAMEWORK_FAKE_PEER_HPP_
 
+#include <atomic>
 #include <boost/core/noncopyable.hpp>
 #include <memory>
 #include <rxcpp/rx-observable-fwd.hpp>
@@ -252,7 +253,7 @@ namespace integration_framework::fake_peer {
 
     std::shared_ptr<iroha::consensus::yac::YacCryptoProvider> yac_crypto_;
 
-    std::shared_ptr<Behaviour> behaviour_;
+    std::atomic<std::shared_ptr<Behaviour>> behaviour_;
     std::shared_ptr<BlockStorage> block_storage_;
     ProposalStorage proposal_storage_;
   };

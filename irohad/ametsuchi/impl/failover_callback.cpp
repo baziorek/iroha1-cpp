@@ -5,7 +5,6 @@
 
 #include "ametsuchi/impl/failover_callback.hpp"
 
-#include <ciso646>
 
 #include <libpq-fe.h>
 

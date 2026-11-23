@@ -6,7 +6,6 @@
 #include "parser/parser.hpp"
 
 #include <cctype>
-#include <ciso646>
 
 namespace parser {
 

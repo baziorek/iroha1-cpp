@@ -119,7 +119,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -163,7 +163,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -281,7 +281,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -299,12 +299,12 @@ jobs:
       - name: Login to DockerHub
         if: ${{ env.DOCKERHUB_TOKEN != '' && env.DOCKERHUB_USERNAME != '' }}
         id: docker_login
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Log in to the Container registry GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -314,7 +314,7 @@ jobs:
         run: echo "::warning::DOCKERHUB_TOKEN and DOCKERHUB_USERNAME are empty. DockerHub push skipped - image will be pushed to GHCR instead."
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.DOCKERHUB_ORG }}/iroha-builder
           tags: |
@@ -330,7 +330,7 @@ jobs:
           ##  - pr-NUMBER, when pushed to PR
           ##  - git tag when tag is pushed
           ##  - schedule, see the docs
-      - uses: docker/metadata-action@v3
+      - uses: docker/metadata-action@v6
         name: Docker meta GHCR
         id: meta_ghcr
         with:
@@ -350,17 +350,17 @@ jobs:
 
           images: ghcr.io/${{ github.repository }}
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v4
       - # - &step_docker_cache
         #   name: Cache Docker layers
-        #   uses: actions/cache@v2
+        #   uses: actions/cache@v5
         #   with:
         #     path: /tmp/.buildx-cache
         #     key:           ${{ runner.os }}-buildx-${{env.dockertag}}
         #     restore-keys:  ${{ runner.os }}-buildx-
         id: build_and_push
         name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with:
           context: docker/iroha-builder/
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -368,7 +368,7 @@ jobs:
           push: ${{ steps.docker_login.outcome == 'success' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - uses: docker/build-push-action@v2
+      - uses: docker/build-push-action@v7
         id: build_and_push_ghcr
         name: Build and push to GHCR
         ## GITHUB_TOKEN can push to ghcr.io/<owner>/<repo> (image name must
@@ -493,7 +493,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -517,7 +517,7 @@ jobs:
           echo >>$GITHUB_ENV HOME=$HOME
       - # - &step_restore_ccache
         #   name: Restore cache CCache
-        #   uses: actions/cache@v2
+        #   uses: actions/cache@v5
         #   with:
         #     path: ${{ env._CCACHE_DIR }}
         #     key:          ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
@@ -528,7 +528,7 @@ jobs:
         ## installed ports and binarycache. build_iroha_deps.sh cleans only
         ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
         name: Cache vcpkg-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vcpkg-build
           key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
@@ -560,6 +560,16 @@ jobs:
         ## Debug   takes 18m44s on regular GitHub runner
         ## Debug   takes 7m41s on self-hosted AWS EC2 c5.x4large
         ## Release takes 2m58s on self-hosted AWS EC2 c5.x4large
+      - name: Free disk space before CPack
+        run: |
+          ## vcpkg buildtrees/packages/downloads are only needed to build
+          ## dependencies - they are dead weight afterwards. CPack staging
+          ## needs several GB and GitHub runners run out of disk
+          ## (archive_write_data: unknown error).
+          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
+          rm -rf build/_CPack_Packages
+          find build -name '*.o' -delete
+          df -h
       - name: CPack (linux only)
         run: cd build; cpack; ## cmake --build build --target package
       - # - &step_compare_ccache_stats
@@ -581,21 +591,21 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Upload artifact irohad
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: |
             build/bin/irohad
             build/bin/iroha-cli
       - name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: |
             build/*.deb
       - if: ${{ false }} ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -786,7 +796,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -810,7 +820,7 @@ jobs:
           echo >>$GITHUB_ENV HOME=$HOME
       - # - &step_restore_ccache
         #   name: Restore cache CCache
-        #   uses: actions/cache@v2
+        #   uses: actions/cache@v5
         #   with:
         #     path: ${{ env._CCACHE_DIR }}
         #     key:          ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
@@ -821,7 +831,7 @@ jobs:
         ## installed ports and binarycache. build_iroha_deps.sh cleans only
         ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
         name: Cache vcpkg-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vcpkg-build
           key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}-${{env.BuildType}}.${{ hashFiles('vcpkg/**') }}
@@ -853,6 +863,16 @@ jobs:
         ## Debug   takes 18m44s on regular GitHub runner
         ## Debug   takes 7m41s on self-hosted AWS EC2 c5.x4large
         ## Release takes 2m58s on self-hosted AWS EC2 c5.x4large
+      - name: Free disk space before CPack
+        run: |
+          ## vcpkg buildtrees/packages/downloads are only needed to build
+          ## dependencies - they are dead weight afterwards. CPack staging
+          ## needs several GB and GitHub runners run out of disk
+          ## (archive_write_data: unknown error).
+          rm -rf vcpkg-build/buildtrees vcpkg-build/packages vcpkg-build/downloads
+          rm -rf build/_CPack_Packages
+          find build -name '*.o' -delete
+          df -h
       - name: CPack (linux only)
         run: cd build; cpack; ## cmake --build build --target package
       - # - &step_compare_ccache_stats
@@ -874,21 +894,21 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Upload artifact irohad
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: |
             build/bin/irohad
             build/bin/iroha-cli
       - name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: |
             build/*.deb
       - if: ${{ false }} ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -1049,12 +1069,12 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
       - name: Download release binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: irohad-ubuntu-gcc14-rel
           merge-multiple: true
@@ -1069,7 +1089,7 @@ jobs:
           ./packaging/appimage/make-appimage.sh "$cli_bin"   iroha-cli dist/iroha-cli-x86_64.AppImage
           ls -lh dist/
       - name: Upload AppImage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: iroha-appimage
           path: dist/*.AppImage
@@ -1154,7 +1174,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -1171,7 +1191,7 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs
@@ -1191,7 +1211,7 @@ jobs:
           dockertag: ${{ hashFiles('docker/release/**') }}
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.DOCKERHUB_ORG }}/${{ env.IMAGE_NAME }}${{ env._uses_suffix }}
@@ -1204,7 +1224,7 @@ jobs:
           flavor: |
             suffix=${{env._compiler_suffix}}${{env._debug_suffix}},onlatest=true
           #maybetodo flavor: prefix=${{ env.USES_PREFIX }}  ## In case creating repository hyperledger/iroha-burrow denied, Use tag prefix hyperledger/iroha:burrow-xxxx
-      - uses: docker/metadata-action@v3
+      - uses: docker/metadata-action@v6
         name: Docker meta GHCR
         id: meta_ghcr
         with:
@@ -1222,12 +1242,12 @@ jobs:
       - name: Login to DockerHub
         if: ${{ env.DOCKERHUB_TOKEN != '' && env.DOCKERHUB_USERNAME != '' }}
         id: docker_login
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Log in to the Container registry GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -1236,7 +1256,7 @@ jobs:
         if: ${{ steps.docker_login.outcome == 'skipped' }}
         run: echo "::warning::DOCKERHUB_TOKEN and DOCKERHUB_USERNAME are empty. DockerHub push skipped - image will be pushed to GHCR instead."
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v4
       # - <<: *step_docker_cache
       #   with:
       #     path: /tmp/.buildx-cache
@@ -1244,14 +1264,14 @@ jobs:
       #     restore-keys:  ${{ runner.os }}-buildx-release
       - # - &step_docker_cache
         #   name: Cache Docker layers
-        #   uses: actions/cache@v2
+        #   uses: actions/cache@v5
         #   with:
         #     path: /tmp/.buildx-cache
         #     key:           ${{ runner.os }}-buildx-${{env.dockertag}}
         #     restore-keys:  ${{ runner.os }}-buildx-
         id: build_and_push
         name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -1259,7 +1279,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           context: docker/release/
           push: ${{ steps.docker_login.outcome == 'success' }}
-      - uses: docker/build-push-action@v2
+      - uses: docker/build-push-action@v7
         id: build_and_push_ghcr
         name: Build and push to GHCR
         ## GITHUB_TOKEN can push to ghcr.io/<owner>/<repo> (image name must
@@ -1340,7 +1360,7 @@ jobs:
             "PR_NUM="+(.number|tostring),
             "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           ref: ${{env.PR_REF}} ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -1357,7 +1377,7 @@ jobs:
           echo >>$GITHUB_ENV  _compiler_suffix=$(test $cc != gcc14 && echo $_cc)
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs
@@ -1377,7 +1397,7 @@ jobs:
           dockertag: ${{ hashFiles('docker/release/**') }}
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.DOCKERHUB_ORG }}/${{ env.IMAGE_NAME }}${{ env._uses_suffix }}
@@ -1390,7 +1410,7 @@ jobs:
           flavor: |
             suffix=${{env._compiler_suffix}}${{env._debug_suffix}},onlatest=true
           #maybetodo flavor: prefix=${{ env.USES_PREFIX }}  ## In case creating repository hyperledger/iroha-burrow denied, Use tag prefix hyperledger/iroha:burrow-xxxx
-      - uses: docker/metadata-action@v3
+      - uses: docker/metadata-action@v6
         name: Docker meta GHCR
         id: meta_ghcr
         with:
@@ -1408,12 +1428,12 @@ jobs:
       - name: Login to DockerHub
         if: ${{ env.DOCKERHUB_TOKEN != '' && env.DOCKERHUB_USERNAME != '' }}
         id: docker_login
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Log in to the Container registry GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -1422,7 +1442,7 @@ jobs:
         if: ${{ steps.docker_login.outcome == 'skipped' }}
         run: echo "::warning::DOCKERHUB_TOKEN and DOCKERHUB_USERNAME are empty. DockerHub push skipped - image will be pushed to GHCR instead."
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v4
       # - <<: *step_docker_cache
       #   with:
       #     path: /tmp/.buildx-cache
@@ -1430,14 +1450,14 @@ jobs:
       #     restore-keys:  ${{ runner.os }}-buildx-release
       - # - &step_docker_cache
         #   name: Cache Docker layers
-        #   uses: actions/cache@v2
+        #   uses: actions/cache@v5
         #   with:
         #     path: /tmp/.buildx-cache
         #     key:           ${{ runner.os }}-buildx-${{env.dockertag}}
         #     restore-keys:  ${{ runner.os }}-buildx-
         id: build_and_push
         name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
@@ -1445,7 +1465,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           context: docker/release/
           push: ${{ steps.docker_login.outcome == 'success' }}
-      - uses: docker/build-push-action@v2
+      - uses: docker/build-push-action@v7
         id: build_and_push_ghcr
         name: Build and push to GHCR
         ## GITHUB_TOKEN can push to ghcr.io/<owner>/<repo> (image name must

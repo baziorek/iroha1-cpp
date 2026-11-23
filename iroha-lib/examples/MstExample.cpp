@@ -225,7 +225,6 @@ int main()
         config = loadConfig();
         admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
 
-        const auto group_keypair = generateKeypairFromPrivateKey(kGroupPrivateKey);
         const auto alice_keypair = generateKeypairFromPrivateKey(kAlicePrivateKey);
         const auto bob_keypair = generateKeypairFromPrivateKey(kBobPrivateKey);
 

@@ -5,6 +5,10 @@
 
 #include "backend/protobuf/query_responses/proto_engine_receipt.hpp"
 
+#include "common/disable_warnings.h"
+
+#include <cstddef>
+
 #include <boost/optional.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 
@@ -33,9 +37,12 @@ EngineReceipt::EngineReceipt(const TransportType &proto)
                     shared_model::interface::types::EvmAddressHexString>(
                     proto.contract_address())
               : std::nullopt) {
+  DISABLE_WARNING_PUSH
+  DISABLE_WARNING_invalid_offsetof
   static_assert(offsetof(EngineReceipt, response_data_)
                     < offsetof(EngineReceipt, call_result_),
                 "Check ctor");
+  DISABLE_WARNING_POP
 
   engine_logs_.reserve(proto_.logs().size());
   for (auto const &log : proto_.logs()) {

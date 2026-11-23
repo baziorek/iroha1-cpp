@@ -5,7 +5,6 @@
 
 #include "validators/validation_error_helpers.hpp"
 
-#include <ciso646>
 
 #include <boost/range/numeric.hpp>
 #include "utils/string_builder.hpp"

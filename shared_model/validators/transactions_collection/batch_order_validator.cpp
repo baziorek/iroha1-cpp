@@ -5,7 +5,6 @@
 
 #include "validators/transactions_collection/batch_order_validator.hpp"
 
-#include <ciso646>
 #include <unordered_map>
 
 #include <boost/range/adaptor/indexed.hpp>

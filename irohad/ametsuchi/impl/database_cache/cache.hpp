@@ -44,7 +44,7 @@ namespace iroha::ametsuchi {
     void checkStates() {
       assert(db_representation_cache_);
       assert(!intermediate_cache_.empty());
-      for (auto const &ic : intermediate_cache_) {
+      for ([[maybe_unused]] auto const &ic : intermediate_cache_) {
         assert(ic);
       }
     }
@@ -143,7 +143,7 @@ namespace iroha::ametsuchi {
       /// Check state correctness.
       checkStates();
       assert(isCacheable(key));
-      for (auto &c : intermediate_cache_) {
+      for ([[maybe_unused]] auto &c : intermediate_cache_) {
         assert(c->find(key.data(), key.size()) == nullptr);
       }
 

@@ -6,7 +6,6 @@
 #include "logger/logger_spdlog.hpp"
 
 #include <atomic>
-#include <ciso646>
 #include <mutex>
 
 #include <spdlog/sinks/stdout_color_sinks.h>

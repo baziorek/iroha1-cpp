@@ -5,7 +5,6 @@
 
 #include "validators/protobuf/proto_command_validator.hpp"
 
-#include <ciso646>
 
 #include <boost/range/adaptor/indexed.hpp>
 #include "commands.pb.h"

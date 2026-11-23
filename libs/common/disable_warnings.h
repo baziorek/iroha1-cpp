@@ -16,6 +16,8 @@
 # define DISABLE_WARNING_uninitialized               // TODO
 # define DISABLE_WARNING_maybe_uninitialized         // TODO
 # define DISABLE_WARNING_missing_field_initializers  // TODO
+# define DISABLE_WARNING_deprecated_declarations DISABLE_WARNING(4996)
+# define DISABLE_WARNING_invalid_offsetof
 
 #elif defined(__GNUC__) || defined(__clang__)  // Apple Clang defines both
 
@@ -31,6 +33,8 @@
 # define DISABLE_WARNING_unused_function DISABLE_WARNING(-Wunused-function)
 # define DISABLE_WARNING_uninitialized DISABLE_WARNING(-Wuninitialized)
 # define DISABLE_WARNING_missing_field_initializers DISABLE_WARNING(-Wmissing-field-initializers)
+# define DISABLE_WARNING_deprecated_declarations DISABLE_WARNING(-Wdeprecated-declarations)
+# define DISABLE_WARNING_invalid_offsetof DISABLE_WARNING(-Winvalid-offsetof)
 // clang-format on
 
 # if defined(__clang__)
@@ -48,5 +52,7 @@
 # define DISABLE_WARNING_uninitialized
 # define DISABLE_WARNING_maybe_uninitialized
 # define DISABLE_WARNING_missing_field_initializers
+# define DISABLE_WARNING_deprecated_declarations
+# define DISABLE_WARNING_invalid_offsetof
 
 #endif

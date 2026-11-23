@@ -6,7 +6,9 @@
 #ifndef INTEGRATION_FRAMEWORK_FAKE_PEER_PROPOSAL_STORAGE_HPP_
 #define INTEGRATION_FRAMEWORK_FAKE_PEER_PROPOSAL_STORAGE_HPP_
 
+#include <atomic>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <unordered_set>
@@ -77,7 +79,7 @@ namespace integration_framework {
       std::unique_ptr<shared_model::interface::UnsafeProposalFactory>
           proposal_factory_;
 
-      std::shared_ptr<DefaultProvider> default_provider_;
+      std::atomic<std::shared_ptr<DefaultProvider>> default_provider_;
       std::map<Round, std::shared_ptr<const Proposal>> proposals_map_;
       mutable std::shared_timed_mutex proposals_map_mutex_;
 

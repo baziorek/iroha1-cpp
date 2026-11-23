@@ -5,7 +5,6 @@
 
 #include "common/files.hpp"
 
-#include <ciso646>
 #include <fstream>
 
 #include <filesystem>

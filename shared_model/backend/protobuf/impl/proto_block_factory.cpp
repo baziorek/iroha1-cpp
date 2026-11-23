@@ -52,7 +52,8 @@ ProtoBlockFactory::unsafeCreateBlock(
   iroha::protocol::Block proto_block_container;
   proto_block_container.set_allocated_block_v1(&block);
   assert(not proto_validator_->validate(proto_block_container));
-  proto_block_container.release_block_v1();
+  [[maybe_unused]] auto *const released_block_v1 =
+      proto_block_container.release_block_v1();
 
   auto model_proto_block =
       std::make_unique<shared_model::proto::Block>(std::move(block));
