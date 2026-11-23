@@ -38,7 +38,8 @@ automatically by the toolchain file.
 
 To also build the bundled examples (``TxExample``, ``BatchExample``,
 ``QueryExample``, ``TxOrderingExample``, ``BlocksQueryExample``,
-``MstExample``, ``InfiniteBlocksStreamExample``, ``DomainAssetCreation``):
+``MstExample``, ``InfiniteBlocksStreamExample``, ``DomainAssetCreation``,
+``TlsExample``):
 
 .. code:: sh
 
@@ -68,6 +69,7 @@ The main entry points are:
 * ``iroha_lib::GrpcClient`` — low-level gRPC client for the Torii
   ``CommandService`` and ``QueryService`` endpoints, including
   server-streaming ``sendStatusStream`` / ``sendBlocksStreamQuery``
+  and optional TLS transport via ``iroha_lib::TlsOptions``
   (see ``grpc_client/GrpcClient.hpp``).
 * ``iroha_lib::createKeyFiles`` / ``iroha_lib::loadKeyFiles``
   (``model/utils/key_files.hpp``) — generate and load key files in the
@@ -85,7 +87,9 @@ ed25519/SHA3 implementation from ``shared_model``.
 All examples read connection settings from environment variables, with
 defaults matching the ``iroha-python`` development setup
 (``IROHA_HOST_ADDR``, ``IROHA_PORT``, ``ADMIN_ACCOUNT_ID``,
-``ADMIN_PRIVATE_KEY`` — see ``examples/common.hpp``).
+``ADMIN_PRIVATE_KEY`` — see ``examples/common.hpp``). Examples that go
+through ``Scenario`` or ``makeClient`` additionally honour
+``IROHA_TLS_ROOT_CERT`` — when set, the client connects over TLS.
 
 Quick start — building, signing and sending a transaction that creates
 a domain and an asset (from ``examples/scenario.hpp``):
@@ -109,3 +113,48 @@ queries against a live node:
 
     IROHA_HOST_ADDR=127.0.0.1 IROHA_PORT=50051 \
         ./build-iroha-lib/examples/irohalib_tx_example
+
+TLS (Encrypted Transport)
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default ``GrpcClient`` uses an insecure gRPC channel. To encrypt the
+connection, pass ``iroha_lib::TlsOptions`` to the constructor:
+
+.. code:: c++
+
+    #include <fstream>
+    #include <sstream>
+
+    std::ifstream cert_file("/path/to/node.crt");
+    std::ostringstream pem;
+    pem << cert_file.rdbuf();
+
+    iroha_lib::TlsOptions tls;
+    tls.pem_root_certs = pem.str();   // PEM root certificate(s)
+    // tls.pem_cert_chain / tls.pem_private_key - optional, for mutual TLS
+
+    iroha_lib::GrpcClient client("127.0.0.1", 50051, tls);
+
+Iroha's Torii TLS endpoint uses **one-way TLS** (server authentication
+only), so in practice only ``pem_root_certs`` is required. The same
+credentials apply to all client operations — transactions, queries and
+both streaming APIs.
+
+To enable TLS on the node side, configure ``torii_tls_params`` in the
+node configuration (``port`` and ``key_path`` — the server reads
+``<key_path>.crt`` and ``<key_path>.key``).
+
+The bundled ``TlsExample`` demonstrates a TLS connection: it performs a
+signed ``GetAccount`` query and a ``GetTxStatus`` call over the
+encrypted channel. It requires ``IROHA_TLS_ROOT_CERT`` pointing to a PEM
+file with the certificate used to verify the node:
+
+.. code:: sh
+
+    IROHA_HOST_ADDR=127.0.0.1 IROHA_PORT=<torii_tls_port> \
+    IROHA_TLS_ROOT_CERT=/path/to/node.crt \
+        ./build-iroha-lib/examples/irohalib_tls_example
+
+There is an integration test covering this path:
+``test/integration/iroha_lib_tls`` boots a node with the TLS endpoint
+enabled and runs the example against it.

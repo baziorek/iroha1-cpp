@@ -228,7 +228,8 @@ int main()
         const auto alice_keypair = generateKeypairFromPrivateKey(kAlicePrivateKey);
         const auto bob_keypair = generateKeypairFromPrivateKey(kBobPrivateKey);
 
-        GrpcClient grpc_client(config.host, config.torii_port());
+        auto grpc_client_holder = makeClient(config);
+        GrpcClient& grpc_client = *grpc_client_holder;
         client = &grpc_client;
 
         std::cout << "1. creating accounts" << std::endl;

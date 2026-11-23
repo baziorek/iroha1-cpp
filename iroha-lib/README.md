@@ -55,6 +55,7 @@ The `examples` directory contains ready-to-run programs that demonstrate the mai
 | `BlocksQueryExample` | Signed `BlocksQuery` over the `FetchCommits` server stream: observe blocks as transactions are committed | `blocks-query.py` |
 | `InfiniteBlocksStreamExample` | Long-running block stream; prints every new block until interrupted (Ctrl+C) | `infinite-blocks-stream.py` |
 | `DomainAssetCreation` | Older standalone example (uses gflags) | — |
+| `TlsExample` | TLS-encrypted transport: signed query + tx status over a TLS gRPC channel | — |
 
 ### Configuration
 
@@ -66,8 +67,13 @@ All ported examples read connection settings from environment variables, with de
 | `IROHA_PORT` | `50051` | Torii (gRPC) port |
 | `ADMIN_ACCOUNT_ID` | `admin@test` | Account used to sign transactions/queries |
 | `ADMIN_PRIVATE_KEY` | `f101537e…cab70` | Admin private key as hex (no key file needed) |
+| `IROHA_TLS_ROOT_CERT` | *(empty)* | Path to a PEM root certificate — when set, examples connect over TLS (see `examples/TlsExample.cpp`) |
 
 Private keys are accepted directly as hex strings via `Utils::generateKeypairFromPrivateKey`, so no key files are required.
+
+### TLS
+
+`GrpcClient` uses an insecure channel by default. Pass `iroha_lib::TlsOptions` (PEM root certificate, optional client cert/key for mutual TLS) to its constructor to enable TLS — Iroha's Torii TLS endpoint uses one-way TLS, so only `pem_root_certs` is needed in practice. `TlsExample` demonstrates this; the `iroha_lib_tls_test` integration test covers it against a TLS-enabled node.
 
 ### Transaction status stream
 

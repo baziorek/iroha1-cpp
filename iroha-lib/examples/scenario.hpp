@@ -34,7 +34,7 @@ struct Scenario {
         config = loadConfig();
         admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
         user_keypair = generateRandomKeypair();
-        client = std::make_unique<GrpcClient>(config.host, config.torii_port());
+        client = makeClient(config);
     }
 
     void createDomainAndAsset(
