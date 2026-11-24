@@ -39,28 +39,37 @@ jobs:
           fi
           free -h || true
 
-      - name: Cache vcpkg-build
-        ## Caches the whole vcpkg-build dir: vcpkg clone, vcpkg-tool build,
-        ## installed ports and binarycache. build_iroha_deps.sh cleans only
-        ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
-        uses: actions/cache@v4
-        with:
-          path: vcpkg-build
-          key: ${{runner.os}}-vcpkg-fuzzing-${{ hashFiles('vcpkg/**') }}
-          restore-keys: ${{runner.os}}-vcpkg-fuzzing-
-
       - name: Install toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
           ## Match the gcc-14 toolchain used by the main build workflow;
           ## fall back to the default compiler if g++-14 is unavailable.
+          ## CC_NAME feeds the vcpkg cache key below, so cached ports are
+          ## only reused when they were built by the same compiler.
           if sudo apt-get install -y gcc-14 g++-14; then
             echo "CC=gcc-14" >> "$GITHUB_ENV"
             echo "CXX=g++-14" >> "$GITHUB_ENV"
+            echo "CC_NAME=gcc-14" >> "$GITHUB_ENV"
           else
+            echo "CC_NAME=gcc-$(cc -dumpversion | cut -d. -f1)" >> "$GITHUB_ENV"
             echo "::warning::g++-14 not available, using default compiler"
           fi
+
+      - name: Cache vcpkg-build
+        ## Shares the dependency cache with the main build workflow
+        ## (vcpkg-deps / build-UD / build-UR jobs): the installed ports are
+        ## identical for FUZZING=ON builds (libprotobuf-mutator is fetched
+        ## via ExternalProject at configure time, not via vcpkg), and this
+        ## job uses the same gcc-14 toolchain, so the cache key must match
+        ## theirs. Falls back to this workflow's own older caches.
+        uses: actions/cache@v4
+        with:
+          path: vcpkg-build
+          key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
+          restore-keys: |
+            ${{runner.os}}-vcpkg-${{env.CC_NAME}}.
+            ${{runner.os}}-vcpkg-fuzzing-
 
       - name: Build iroha vcpkg dependancies
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
