@@ -1,19 +1,18 @@
-// Port of iroha-python examples/batch-example.py:
-// atomic exchange batch (MST) between two accounts, each with quorum 2.
-// NOTE: this is NOT a multisig example - it demonstrates atomic batches
-// (MST must be enabled in the Iroha config, same as for the Python example).
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+/// @file BatchExample.cpp
+/// @brief Atomic exchange batch (MST batches): alice and bob, each with
+/// quorum 2, swap assets atomically — alice proposes the batch, bob
+/// accepts it (and a second exchange is declined on purpose to show
+/// batch failure). MST must be enabled in the Iroha config.
+/// Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
 
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 
 #include "common.hpp"
-
-
-namespace {
 
 using namespace iroha_example;
 using namespace iroha_lib;
@@ -24,10 +23,26 @@ iroha::keypair_t admin_keypair;
 std::vector<iroha::keypair_t> alice_keys;
 std::vector<iroha::keypair_t> bob_keys;
 
-const std::string kAliceAccount = "alice@test";
-const std::string kBobAccount = "bob@test";
-const std::string kBitcoin = "bitcoin#test";
-const std::string kDoge = "dogecoin#test";
+const std::string kDomain = "test";
+const std::string kAliceName = "alice";
+const std::string kBobName = "bob";
+const std::string kAliceAccount = kAliceName + "@" + kDomain;
+const std::string kBobAccount = kBobName + "@" + kDomain;
+const std::string kBitcoinName = "bitcoin";
+const std::string kDogeName = "dogecoin";
+const std::string kBitcoin = kBitcoinName + "#" + kDomain;
+const std::string kDoge = kDogeName + "#" + kDomain;
+
+// test-only keys, same as in the Python example
+const std::string kAlicePrivateKey1 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba1";
+const std::string kAlicePrivateKey2 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba2";
+const std::string kBobPrivateKey1 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3";
+const std::string kBobPrivateKey2 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4";
+
 
 void prepareUsers();
 
@@ -51,7 +66,6 @@ void bobDeclinesExchangeRequest();
 void checkNoPendingTxs(
         const std::string& account_id,
         const iroha::keypair_t& keypair);
-}  // namespace
 
 
 int main()
@@ -62,17 +76,12 @@ int main()
         config = loadConfig();
         admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
 
-        // alice and bob keys (test-only, same as in the Python example)
         alice_keys = {
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba1"),
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba2")};
+            generateKeypairFromPrivateKey(kAlicePrivateKey1),
+            generateKeypairFromPrivateKey(kAlicePrivateKey2)};
         bob_keys = {
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3"),
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4")};
+            generateKeypairFromPrivateKey(kBobPrivateKey1),
+            generateKeypairFromPrivateKey(kBobPrivateKey2)};
 
         auto grpc_client_holder = makeClient(config);
         GrpcClient& grpc_client = *grpc_client_holder;
@@ -98,17 +107,17 @@ int main()
 }
 
 
-namespace {
-
 void prepareUsers()
 {
     auto tx = makeTx(config.admin_account_id, admin_keypair)
-            .createAsset("bitcoin", "test", 2)
-            .createAsset("dogecoin", "test", 2)
+            .createAsset(kBitcoinName, kDomain, 2)
+            .createAsset(kDogeName, kDomain, 2)
             .addAssetQuantity(kBitcoin, "100000", "")
             .addAssetQuantity(kDoge, "20000", "")
-            .createAccount("alice", "test", alice_keys[0].pubkey.to_hexstring())
-            .createAccount("bob", "test", bob_keys[0].pubkey.to_hexstring())
+            .createAccount(kAliceName, kDomain,
+                           alice_keys[0].pubkey.to_hexstring())
+            .createAccount(kBobName, kDomain,
+                           bob_keys[0].pubkey.to_hexstring())
             .transferAsset(config.admin_account_id, kAliceAccount, kBitcoin,
                            "init top up", "100000")
             .transferAsset(config.admin_account_id, kBobAccount, kDoge,
@@ -242,4 +251,3 @@ void checkNoPendingTxs(
     }
     std::cout << " ~~~" << std::endl;
 }
-}  // namespace

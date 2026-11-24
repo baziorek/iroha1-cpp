@@ -1,20 +1,17 @@
-// Demonstrates TLS-encrypted transport in iroha-lib.
-//
-// The node must be started with torii_tls_params enabled (server
-// certificate and key). The client connects over TLS when
-// IROHA_TLS_ROOT_CERT points to a PEM file with the root certificate
-// used to verify the node (in Iroha's Torii setup this is typically
-// the node's own self-signed certificate).
-//
-// Environment variables:
-//   IROHA_HOST_ADDR        node address (default 127.0.0.1)
-//   IROHA_PORT             torii TLS port (no default - must be set)
-//   ADMIN_ACCOUNT_ID       account used to sign the query
-//   ADMIN_PRIVATE_KEY      hex private key of that account
-//   IROHA_TLS_ROOT_CERT    path to PEM root certificate (required)
+/// @file TlsExample.cpp
+/// @brief Demonstrates TLS-encrypted transport: connects to a node with
+/// torii_tls_params enabled, performs a signed GetAccount query and a
+/// GetTxStatus call over the encrypted channel. Requires a running
+/// Iroha node with TLS configured.
+///
+/// Environment variables:
+///   IROHA_HOST_ADDR        node address (default 127.0.0.1)
+///   IROHA_PORT             torii TLS port (no default - must be set)
+///   ADMIN_ACCOUNT_ID       account used to sign the query
+///   ADMIN_PRIVATE_KEY      hex private key of that account
+///   IROHA_TLS_ROOT_CERT    path to PEM root certificate (required)
 
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -23,13 +20,10 @@
 #include "model/utils/Utils.h"
 
 
-namespace {
-
 using namespace iroha_example;
 
 void printAccount(const QueryResponse& response,
                   const std::string& account_id);
-}  // namespace
 
 
 int main()
@@ -78,8 +72,6 @@ int main()
 }
 
 
-namespace {
-
 void printAccount(const QueryResponse& response,
                   const std::string& account_id)
 {
@@ -101,4 +93,3 @@ void printAccount(const QueryResponse& response,
                     + account.account_id());
     }
 }
-}  // namespace

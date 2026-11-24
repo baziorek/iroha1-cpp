@@ -1,14 +1,13 @@
-// Port of iroha-python examples/mst-example.py:
-// multi-signature transaction (MST) - a "group" account with three
-// signatories (admin, alice, bob) and quorum 2. Alice initiates a
-// transfer from the group account; the transaction stays pending until
-// bob countersigns it.
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
-//
-// NOTE: MST must be enabled in the Iroha config (mst_support), same as
-// for the Python example.
+/// @file MstExample.cpp
+/// @brief Multi-signature transaction (MST): a "group" account with three
+/// signatories (admin, alice, bob) and quorum 2. Alice initiates a
+/// transfer from the group account; the transaction stays pending until
+/// bob countersigns it, then a second exchange repeats the flow in the
+/// opposite direction. MST must be enabled in the Iroha config.
+/// Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
 
 #include <iostream>
 #include <stdexcept>
@@ -17,9 +16,6 @@
 
 #include "common.hpp"
 
-
-namespace {
-
 using namespace iroha_example;
 using namespace iroha_lib;
 
@@ -27,12 +23,17 @@ Config config;
 GrpcClient* client = nullptr;
 iroha::keypair_t admin_keypair;
 
-const std::string kGroupAccount = "group@test";
-const std::string kAliceAccount = "alice@test";
-const std::string kBobAccount = "bob@test";
-const std::string kReceiverAccount = "receiver@test";
 const std::string kDomain = "test";
-const std::string kCoin = "coin#test";
+const std::string kGroupName = "group";
+const std::string kAliceName = "alice";
+const std::string kBobName = "bob";
+const std::string kReceiverName = "receiver";
+const std::string kGroupAccount = kGroupName + "@" + kDomain;
+const std::string kAliceAccount = kAliceName + "@" + kDomain;
+const std::string kBobAccount = kBobName + "@" + kDomain;
+const std::string kReceiverAccount = kReceiverName + "@" + kDomain;
+const std::string kCoinName = "coin";
+const std::string kCoin = kCoinName + "#" + kDomain;
 
 // test-only keys, same as in the Python example
 const std::string kGroupPrivateKey =
@@ -43,6 +44,7 @@ const std::string kBobPrivateKey =
     "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3";
 const std::string kReceiverPrivateKey =
     "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4";
+
 
 void createUserAccounts();
 
@@ -74,7 +76,6 @@ void expectBalance(
         const std::string& account_id,
         const std::string& asset_id,
         const std::string& expected_balance);
-}  // namespace
 
 
 int main()
@@ -129,18 +130,16 @@ int main()
 }
 
 
-namespace {
-
 void createUserAccounts()
 {
     auto tx = makeTx(config.admin_account_id, admin_keypair)
-            .createAccount("alice", kDomain,
+            .createAccount(kAliceName, kDomain,
                            getPublicKeyHexFromPrivateKey(kAlicePrivateKey))
-            .createAccount("bob", kDomain,
+            .createAccount(kBobName, kDomain,
                            getPublicKeyHexFromPrivateKey(kBobPrivateKey))
-            .createAccount("group", kDomain,
+            .createAccount(kGroupName, kDomain,
                            getPublicKeyHexFromPrivateKey(kGroupPrivateKey))
-            .createAccount("receiver", kDomain,
+            .createAccount(kReceiverName, kDomain,
                            getPublicKeyHexFromPrivateKey(kReceiverPrivateKey))
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*client, tx);
@@ -169,7 +168,7 @@ void mintAsset()
     // development environment; here we create it explicitly so the
     // example also works on a fresh chain
     auto tx = makeTx(config.admin_account_id, admin_keypair)
-            .createAsset("coin", kDomain, 2)
+            .createAsset(kCoinName, kDomain, 2)
             .addAssetQuantity(kCoin, "1000.00", "")
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*client, tx);
@@ -300,4 +299,3 @@ void expectBalance(
                     + "', expected '" + expected_balance + "'");
     }
 }
-}  // namespace

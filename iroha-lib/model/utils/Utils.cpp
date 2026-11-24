@@ -178,3 +178,12 @@ std::pair<std::string,std::string> splitAssetFullName(const std::string& assetFu
     const std::string assetDomain = assetFullName.substr(separatorPosition+1);
     return {assetName, assetDomain};
 }
+
+std::pair<std::string,std::string> splitAccountId(const std::string& accountId)
+{
+    constexpr const char nameDomainSeparator = '@';
+    const auto separatorPosition = accountId.find(nameDomainSeparator);
+    const std::string accountName = accountId.substr(0, separatorPosition);
+    const std::string accountDomain = accountId.substr(separatorPosition+1);
+    return {accountName, accountDomain};
+}

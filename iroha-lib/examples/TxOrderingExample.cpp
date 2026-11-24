@@ -1,9 +1,10 @@
-// Port of iroha-python examples/tx-ordering.py:
-// pagination with ordering - GetAccountAssetTransactions in ascending
-// and descending order.
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+/// @file TxOrderingExample.cpp
+/// @brief Pagination with ordering: sends 10 transfer transactions and
+/// then queries GetAccountAssetTransactions in ascending and descending
+/// order (ordering by created_time). Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
 
 #include <chrono>
 #include <iostream>
@@ -11,15 +12,20 @@
 
 #include "scenario.hpp"
 
+using iroha_example::Scenario;
+using iroha_example::makeTx;
+using iroha_example::sendTransactionAndPrintStatus;
 
-namespace {
-
-using namespace iroha_example;
-
-const std::string kUserAccount = "aa@test";
+const std::string kDomain = "test";
+const std::string kUserName = "aa";
+const std::string kUserAccount = kUserName + "@" + kDomain;
 const std::string kUserPrivateKey =
         "1234567890123456789012345678901234567890123456789012345678901234";
-const std::string kAssetId = "lemurcoin#test";
+const std::string kAssetName = "lemurcoin";
+const std::string kAssetId = kAssetName + "#" + kDomain;
+const uint32_t kPageSize = 3;
+const int kNumTransactions = 10;
+
 
 void createAccount(Scenario& scenario,
                    const iroha::keypair_t& user_keypair);
@@ -41,7 +47,6 @@ void getAccountAssetTransactions(
         Direction direction);
 
 void printParagraph(const std::string& text);
-}  // namespace
 
 
 int main()
@@ -59,7 +64,7 @@ int main()
         addCoinToAdmin(scenario);
 
         printParagraph("Creating transactions");
-        for (int i = 1; i <= 10; ++i) {
+        for (int i = 1; i <= kNumTransactions; ++i) {
             performTransferTransaction(
                         scenario, "tx " + std::to_string(i), i);
         }
@@ -77,14 +82,12 @@ int main()
 }
 
 
-namespace {
-
 void createAccount(Scenario& scenario,
                    const iroha::keypair_t& user_keypair)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
                      scenario.admin_keypair)
-            .createAccount("aa", "test",
+            .createAccount(kUserName, kDomain,
                            user_keypair.pubkey.to_hexstring())
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*scenario.client, tx);
@@ -94,7 +97,7 @@ void createAsset(Scenario& scenario)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
                      scenario.admin_keypair)
-            .createAsset("lemurcoin", "test", 2)
+            .createAsset(kAssetName, kDomain, 2)
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*scenario.client, tx);
 }
@@ -144,7 +147,7 @@ void getAccountAssetTransactions(
                 kUserAccount,
                 kAssetId,
                 user_keypair,
-                3,
+                kPageSize,
                 makeOrdering(direction));
 
     if (response.has_error_response()) {
@@ -176,4 +179,3 @@ void printParagraph(const std::string& text)
 {
     std::cout << "---------- " << text << " ----------" << std::endl;
 }
-}  // namespace

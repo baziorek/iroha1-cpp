@@ -1,3 +1,11 @@
+/// @file DomainAssetCreation.cpp
+/// @brief Creates a domain and an asset via command-line flags, tops up
+/// the admin asset balance and prints account assets and account info.
+/// Unlike the other examples it takes its parameters from gflags
+/// (--admin_account_name, --key_path, --peer_ip, --torii_port,
+/// --user_default_role, --asset_full_name, --tls_root_cert) instead of
+/// environment variables. Requires a running Iroha node.
+
 #include <format>
 #include <fstream>
 #include <iostream>

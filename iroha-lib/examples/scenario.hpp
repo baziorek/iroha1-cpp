@@ -3,7 +3,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "queries.pb.h"
 #include "common.hpp"
@@ -28,6 +27,11 @@ struct Scenario {
     std::string userAccountId() const
     {
         return user_account_name + "@" + user_domain;
+    }
+
+    std::string assetId() const
+    {
+        return asset_short_id + "#" + user_domain;
     }
 
     void init()

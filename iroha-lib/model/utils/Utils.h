@@ -57,3 +57,6 @@ void printTransactionStatuses(
 std::string string_to_hex(const std::string& in);
 
 std::pair<std::string,std::string> splitAssetFullName(const std::string& assetFullName);
+
+/// Splits an account id ("name@domain") into {name, domain}.
+std::pair<std::string,std::string> splitAccountId(const std::string& accountId);
