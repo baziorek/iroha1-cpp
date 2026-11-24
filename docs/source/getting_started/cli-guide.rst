@@ -1,6 +1,10 @@
 CLI guide: sending your first transactions and queries
 ======================================================
 
+.. note:: This page assumes ``iroha-cli`` is already available — it
+  ships inside the node distribution. See :doc:`cli` for how to obtain
+  it via Docker, AppImage or a source build.
+
 You can interact with Iroha using various ways.
 You can use our client libraries
 to write code in various programming languages (e.g. Java, Python, Javascript,
