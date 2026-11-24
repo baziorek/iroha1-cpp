@@ -589,7 +589,7 @@ namespace iroha {
       // 14.09.18 nickaleks: IR-1708 Load SQL from separate files
       add_asset_quantity_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
              new_quantity AS
              (
@@ -601,13 +601,13 @@ namespace iroha {
              checks AS -- error code and check result
              (
                  -- account exists
-                 SELECT 1 code, count(1) = 1 result
+                 SELECT {} code, count(1) = 1 result
                  FROM account
                  WHERE account_id = :creator
 
                  -- asset exists
                  UNION
-                 SELECT 3, count(1) = 1
+                 SELECT {}, count(1) = 1
                  FROM asset
                  WHERE asset_id = :asset_id
                     AND precision >= :precision
@@ -615,7 +615,7 @@ namespace iroha {
                  -- quantity overflow
                  UNION
                  SELECT
-                    4,
+                    {},
                     value < (2::decimal ^ 256) / (10::decimal ^ precision)
                  FROM new_quantity, asset
                  WHERE asset_id = :asset_id
@@ -633,20 +633,25 @@ namespace iroha {
              )
           SELECT CASE
               %s
-              WHEN EXISTS (SELECT * FROM inserted LIMIT 1) THEN 0
+              WHEN EXISTS (SELECT * FROM inserted LIMIT 1) THEN {}
               ELSE (SELECT code FROM checks WHERE not result ORDER BY code ASC LIMIT 1)
           END AS result;)",
+              command_error::kInternalError,
+              command_error::add_asset_quantity::kNoSuchAsset,
+              command_error::add_asset_quantity::kQuantityOverflow,
+              command_error::kOk),
           {std::format(R"(has_perm AS ({}),)", checkAccountDomainRoleOrGlobalRolePermission(
                   Role::kAddAssetQty,
                   Role::kAddDomainAssetQty,
                   ":creator",
                   ":asset_id")),
            "AND (SELECT * from has_perm)",
-           "WHEN NOT (SELECT * from has_perm) THEN 2"});
+           std::format(R"(WHEN NOT (SELECT * from has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       add_peer_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             inserted AS (
                 INSERT INTO peer(public_key, address, tls_certificate)
@@ -655,16 +660,18 @@ namespace iroha {
                     %s
                 ) RETURNING (1)
             )
-          SELECT CASE WHEN EXISTS (SELECT * FROM inserted) THEN 0
+          SELECT CASE WHEN EXISTS (SELECT * FROM inserted) THEN {}
               %s
-              ELSE 1 END AS result)",
+              ELSE {} END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(has_perm AS ({}),)", checkAccountRolePermission(Role::kAddPeer, ":creator")),
            "WHERE (SELECT * FROM has_perm)",
-           "WHEN NOT (SELECT * from has_perm) THEN 2"});
+           std::format(R"(WHEN NOT (SELECT * from has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       add_signatory_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             insert_signatory AS
             (
@@ -684,21 +691,23 @@ namespace iroha {
                 RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM insert_account_signatory) THEN 0
+            WHEN EXISTS (SELECT * FROM insert_account_signatory) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS RESULT;)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
                                 has_perm AS ({}),)", checkAccountHasRoleOrGrantablePerm(Role::kAddSignatory,
                                                  Grantable::kAddMySignatory,
                                                  ":creator",
                                                  ":target")),
            "WHERE (SELECT * FROM has_perm)",
-           "WHEN NOT (SELECT * from has_perm) THEN 2"});
+           std::format(R"(WHEN NOT (SELECT * from has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       append_role_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             role_exists AS (SELECT * FROM role WHERE role_id = :role),
             inserted AS (
@@ -707,11 +716,14 @@ namespace iroha {
                     SELECT :target, :role %s) RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
-            WHEN NOT EXISTS (SELECT * FROM role_exists) THEN 4
+            WHEN EXISTS (SELECT * FROM inserted) THEN {}
+            WHEN NOT EXISTS (SELECT * FROM role_exists) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::append_role::kNoSuchRole,
+              command_error::kInternalError),
           {std::format(R"(
             has_perm AS ({0}),
             has_root_perm AS ({1}),
@@ -735,15 +747,18 @@ namespace iroha {
               OR (EXISTS (SELECT * FROM account_roles) AND
               (SELECT * FROM account_has_role_permissions)
               AND (SELECT * FROM has_perm)))",
-           R"(WHEN NOT EXISTS (SELECT * FROM account_roles)
-                  AND NOT (SELECT * FROM has_root_perm) THEN 2
+           std::format(R"(WHEN NOT EXISTS (SELECT * FROM account_roles)
+                  AND NOT (SELECT * FROM has_root_perm) THEN {}
               WHEN NOT (SELECT * FROM account_has_role_permissions)
-                  AND NOT (SELECT * FROM has_root_perm) THEN 2
-              WHEN NOT (SELECT * FROM has_perm) THEN 2)"});
+                  AND NOT (SELECT * FROM has_root_perm) THEN {}
+              WHEN NOT (SELECT * FROM has_perm) THEN {})",
+                       command_error::kNoPermissions,
+                       command_error::kNoPermissions,
+                       command_error::kNoPermissions)});
 
       add_sync_peer_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             inserted AS (
                 INSERT INTO sync_peer(public_key, address, tls_certificate)
@@ -752,16 +767,18 @@ namespace iroha {
                     %s
                 ) RETURNING (1)
             )
-          SELECT CASE WHEN EXISTS (SELECT * FROM inserted) THEN 0
+          SELECT CASE WHEN EXISTS (SELECT * FROM inserted) THEN {}
               %s
-              ELSE 1 END AS result)",
+              ELSE {} END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(has_perm AS ({}),)", checkAccountRolePermission(Role::kAddPeer, ":creator")),
            "WHERE (SELECT * FROM has_perm)",
-           "WHEN NOT (SELECT * from has_perm) THEN 2"});
+           std::format(R"(WHEN NOT (SELECT * from has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       compare_and_set_account_detail_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             old_value AS
             (
@@ -785,7 +802,7 @@ namespace iroha {
                 SET data = jsonb_set(
                   CASE
                     WHEN data ? :creator THEN data
-                    ELSE jsonb_set(data, array[:creator], '{}')
+                    ELSE jsonb_set(data, array[:creator], '{{}}')
                   END,
                   array[:creator, :key], :new_value::jsonb
                 )
@@ -796,13 +813,17 @@ namespace iroha {
                 RETURNING (1)
             )
           SELECT CASE
-              WHEN EXISTS (SELECT * FROM inserted) THEN 0
+              WHEN EXISTS (SELECT * FROM inserted) THEN {}
               WHEN NOT EXISTS
-                  (SELECT * FROM account WHERE account_id=:target) THEN 3
-              WHEN NOT EXISTS (SELECT * FROM old_value) THEN 4
+                  (SELECT * FROM account WHERE account_id=:target) THEN {}
+              WHEN NOT EXISTS (SELECT * FROM old_value) THEN {}
               %s
-              ELSE 1
+              ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::compare_and_set_account_detail::kNoSuchAccount,
+              command_error::compare_and_set_account_detail::kNoMatchValue,
+              command_error::kInternalError),
           {std::format(R"(
               has_role_perm AS ({}),
               has_grantable_perm AS ({}),
@@ -829,12 +850,13 @@ namespace iroha {
                                  ":creator_domain",
                                  ":target_domain")),
            R"( AND (SELECT * FROM has_perm))",
-           R"( WHEN NOT (SELECT * FROM has_perm) THEN 2 )"});
+           std::format(R"( WHEN NOT (SELECT * FROM has_perm) THEN {} )",
+                       command_error::kNoPermissions)});
 
       create_account_statements_ =
           makeCommandStatements(
               sql_,
-              R"(
+              std::format(R"(
           WITH get_domain_default_role AS (SELECT default_role FROM domain
                                              WHERE domain_id = :domain),
             %s
@@ -854,7 +876,7 @@ namespace iroha {
             (
                 INSERT INTO account(account_id, domain_id, quorum, data)
                 (
-                    SELECT :account_id, :domain, 1, '{}'
+                    SELECT :account_id, :domain, 1, '{{}}'
                     WHERE EXISTS (SELECT * FROM insert_signatory)
                       AND EXISTS (SELECT * FROM get_domain_default_role)
                 ) RETURNING (1)
@@ -878,11 +900,14 @@ namespace iroha {
                 ) RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM insert_account_role) THEN 0
-            WHEN NOT EXISTS (SELECT * FROM get_domain_default_role) THEN 3
+            WHEN EXISTS (SELECT * FROM insert_account_role) THEN {}
+            WHEN NOT EXISTS (SELECT * FROM get_domain_default_role) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::create_account::kNoSuchDomain,
+              command_error::kInternalError),
               {std::format(R"(
            domain_role_permissions_bits AS (
                  SELECT COALESCE(bit_or(rhp.permission), '0'::bit({0})) AS bits
@@ -906,12 +931,14 @@ namespace iroha {
           )", kRolePermissionSetSize, checkAccountRolePermission(Role::kCreateAccount, ":creator"), checkAccountRolePermission(Role::kRoot, ":creator")),
                R"(AND (SELECT * FROM has_perm)
                 AND (SELECT * FROM creator_has_enough_permissions))",
-               R"(WHEN NOT (SELECT * FROM has_perm) THEN 2
-                WHEN NOT (SELECT * FROM creator_has_enough_permissions) THEN 2)"});
+               std::format(R"(WHEN NOT (SELECT * FROM has_perm) THEN {}
+                WHEN NOT (SELECT * FROM creator_has_enough_permissions) THEN {})",
+                            command_error::kNoPermissions,
+                            command_error::kNoPermissions)});
 
       create_asset_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             inserted AS
             (
@@ -922,18 +949,20 @@ namespace iroha {
                 ) RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
+            WHEN EXISTS (SELECT * FROM inserted) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
               has_perm AS ({}),)", checkAccountRolePermission(Role::kCreateAsset, ":creator")),
            R"(WHERE (SELECT * FROM has_perm))",
-           R"(WHEN NOT (SELECT * FROM has_perm) THEN 2)"});
+           std::format(R"(WHEN NOT (SELECT * FROM has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       create_domain_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             inserted AS
             (
@@ -944,18 +973,20 @@ namespace iroha {
                 ) RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
+            WHEN EXISTS (SELECT * FROM inserted) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
               has_perm AS ({}),)", checkAccountRolePermission(Role::kCreateDomain, ":creator")),
            R"(WHERE (SELECT * FROM has_perm))",
-           R"(WHEN NOT (SELECT * FROM has_perm) THEN 2)"});
+           std::format(R"(WHEN NOT (SELECT * FROM has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       create_role_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             insert_role AS (INSERT INTO role(role_id)
                                 (SELECT :role
@@ -969,11 +1000,14 @@ namespace iroha {
                 ) RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM insert_role_permissions) THEN 0
+            WHEN EXISTS (SELECT * FROM insert_role_permissions) THEN {}
             %s
-            WHEN EXISTS (SELECT * FROM role WHERE role_id = :role) THEN 2
-            ELSE 1
+            WHEN EXISTS (SELECT * FROM role WHERE role_id = :role) THEN {}
+            ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::create_role::kAlreadyExists,
+              command_error::kInternalError),
           {std::format(R"(
           account_has_role_permissions AS (
                 SELECT COALESCE(bit_or(rp.permission), '0'::bit({})) &
@@ -986,13 +1020,15 @@ namespace iroha {
            R"(WHERE (SELECT * FROM has_root_perm) OR
                     ((SELECT * FROM account_has_role_permissions)
                      AND (SELECT * FROM has_perm)))",
-           R"(WHEN NOT (SELECT * FROM account_has_role_permissions)
-               AND NOT (SELECT * FROM has_root_perm) THEN 2
-              WHEN NOT (SELECT * FROM has_perm) THEN 2)"});
+           std::format(R"(WHEN NOT (SELECT * FROM account_has_role_permissions)
+               AND NOT (SELECT * FROM has_root_perm) THEN {}
+              WHEN NOT (SELECT * FROM has_perm) THEN {})",
+                       command_error::kNoPermissions,
+                       command_error::kNoPermissions)});
 
       detach_role_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             deleted AS
             (
@@ -1003,24 +1039,30 @@ namespace iroha {
               RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM deleted) THEN 0
+            WHEN EXISTS (SELECT * FROM deleted) THEN {}
             WHEN NOT EXISTS (SELECT * FROM account
-                             WHERE account_id = :target) THEN 3
+                             WHERE account_id = :target) THEN {}
             WHEN NOT EXISTS (SELECT * FROM role
-                             WHERE role_id = :role) THEN 5
+                             WHERE role_id = :role) THEN {}
             WHEN NOT EXISTS (SELECT * FROM account_has_roles
-                             WHERE account_id=:target AND role_id=:role) THEN 4
+                             WHERE account_id=:target AND role_id=:role) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::detach_role::kNoSuchAccount,
+              command_error::detach_role::kRoleNotFound,
+              command_error::detach_role::kNoSuchRole,
+              command_error::kInternalError),
           {std::format(R"(
             has_perm AS ({}),)", checkAccountRolePermission(Role::kDetachRole, ":creator")),
            R"(AND (SELECT * FROM has_perm))",
-           R"(WHEN NOT (SELECT * FROM has_perm) THEN 2)"});
+           std::format(R"(WHEN NOT (SELECT * FROM has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       grant_permission_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             inserted AS (
               INSERT INTO account_has_grantable_permissions AS
@@ -1032,18 +1074,20 @@ namespace iroha {
               RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
+            WHEN EXISTS (SELECT * FROM inserted) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
             has_perm AS ({}),)", checkAccountRolePermission(":required_perm", ":creator")),
            R"( WHERE (SELECT * FROM has_perm))",
-           R"(WHEN NOT (SELECT * FROM has_perm) THEN 2)"});
+           std::format(R"(WHEN NOT (SELECT * FROM has_perm) THEN {})",
+                       command_error::kNoPermissions)});
 
       remove_peer_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
           removed AS (
               DELETE FROM peer WHERE public_key = lower(:pubkey)
@@ -1051,10 +1095,11 @@ namespace iroha {
               RETURNING (1)
           )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM removed) THEN 0
+            WHEN EXISTS (SELECT * FROM removed) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
             has_perm AS ({}),
             get_peer AS (
@@ -1068,14 +1113,17 @@ namespace iroha {
              AND (SELECT * FROM has_perm)
              AND EXISTS (SELECT * FROM get_peer)
              AND EXISTS (SELECT * FROM check_peers))",
-           R"(
-             WHEN NOT EXISTS (SELECT * from get_peer) THEN 3
-             WHEN NOT EXISTS (SELECT * from check_peers) THEN 4
-             WHEN NOT (SELECT * from has_perm) THEN 2)"});
+           std::format(R"(
+             WHEN NOT EXISTS (SELECT * from get_peer) THEN {}
+             WHEN NOT EXISTS (SELECT * from check_peers) THEN {}
+             WHEN NOT (SELECT * from has_perm) THEN {})",
+                         command_error::remove_peer::kNoSuchPeer,
+                         command_error::remove_peer::kTooFewPeers,
+                         command_error::kNoPermissions)});
 
       remove_signatory_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             delete_account_signatory AS (DELETE FROM account_has_signatory
                 WHERE account_id = :target
@@ -1094,16 +1142,21 @@ namespace iroha {
           SELECT CASE
             WHEN EXISTS (SELECT * FROM delete_account_signatory) THEN
             CASE
-                WHEN EXISTS (SELECT * FROM delete_signatory) THEN 0
+                WHEN EXISTS (SELECT * FROM delete_signatory) THEN {}
                 WHEN EXISTS (SELECT 1 FROM account_has_signatory
-                             WHERE public_key = lower(:pubkey)) THEN 0
+                             WHERE public_key = lower(:pubkey)) THEN {}
                 WHEN EXISTS (SELECT 1 FROM peer
-                             WHERE public_key = lower(:pubkey)) THEN 0
-                ELSE 1
+                             WHERE public_key = lower(:pubkey)) THEN {}
+                ELSE {}
             END
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::kOk,
+              command_error::kOk,
+              command_error::kInternalError,
+              command_error::kInternalError),
           {std::format(R"(
           has_perm AS ({}),
           get_account AS (
@@ -1131,12 +1184,16 @@ namespace iroha {
               AND EXISTS (SELECT * FROM get_signatories)
               AND EXISTS (SELECT * FROM check_account_signatories)
           )",
-           R"(
-              WHEN NOT EXISTS (SELECT * FROM get_account) THEN 3
-              WHEN NOT (SELECT * FROM has_perm) THEN 2
-              WHEN NOT EXISTS (SELECT * FROM get_signatory) THEN 4
-              WHEN NOT EXISTS (SELECT * FROM check_account_signatories) THEN 5
-          )"});
+           std::format(R"(
+              WHEN NOT EXISTS (SELECT * FROM get_account) THEN {}
+              WHEN NOT (SELECT * FROM has_perm) THEN {}
+              WHEN NOT EXISTS (SELECT * FROM get_signatory) THEN {}
+              WHEN NOT EXISTS (SELECT * FROM check_account_signatories) THEN {}
+          )",
+                      command_error::remove_signatory::kNoSuchAccount,
+                      command_error::kNoPermissions,
+                      command_error::remove_signatory::kNoSuchSignatory,
+                      command_error::remove_signatory::kQuorumTooHigh)});
 
       revoke_permission_statements_ = makeCommandStatements(
           sql_,
@@ -1157,10 +1214,11 @@ namespace iroha {
               RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
+            WHEN EXISTS (SELECT * FROM inserted) THEN {1}
             %s
-            ELSE 1
-          END AS result)", kGrantablePermissionSetSize),
+            ELSE {2}
+          END AS result)", kGrantablePermissionSetSize,
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
             has_perm AS (
               SELECT
@@ -1173,27 +1231,31 @@ namespace iroha {
               WHERE account_id = :creator AND
               permittee_account_id = :target),)", kGrantablePermissionSetSize),
            R"( AND (SELECT * FROM has_perm))",
-           R"( WHEN NOT (SELECT * FROM has_perm) THEN 2 )"});
+           std::format(R"( WHEN NOT (SELECT * FROM has_perm) THEN {} )",
+                       command_error::kNoPermissions)});
 
       set_account_detail_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             inserted AS
             (
                 UPDATE account SET data = jsonb_set(
                 CASE WHEN data ? :creator THEN data ELSE
-                jsonb_set(data, array[:creator], '{}') END,
+                jsonb_set(data, array[:creator], '{{}}') END,
                 array[:creator, :key], :value::jsonb) WHERE account_id=:target %s
                 RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
+            WHEN EXISTS (SELECT * FROM inserted) THEN {}
             WHEN NOT EXISTS
-                    (SELECT * FROM account WHERE account_id=:target) THEN 3
+                    (SELECT * FROM account WHERE account_id=:target) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::set_account_detail::kNoSuchAccount,
+              command_error::kInternalError),
           {std::format(R"(
               has_role_perm AS ({}),
               has_grantable_perm AS ({}),
@@ -1206,11 +1268,12 @@ namespace iroha {
               )", checkAccountRolePermission(Role::kSetDetail, ":creator"), checkAccountGrantablePermission(
                   Grantable::kSetMyAccountDetail, ":creator", ":target")),
            R"( AND (SELECT * FROM has_perm))",
-           R"( WHEN NOT (SELECT * FROM has_perm) THEN 2 )"});
+           std::format(R"( WHEN NOT (SELECT * FROM has_perm) THEN {} )",
+                       command_error::kNoPermissions)});
 
       remove_sync_peer_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
           removed AS (
               DELETE FROM sync_peer WHERE public_key = lower(:pubkey)
@@ -1218,10 +1281,11 @@ namespace iroha {
               RETURNING (1)
           )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM removed) THEN 0
+            WHEN EXISTS (SELECT * FROM removed) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
             has_perm AS ({}),
             get_peer AS (
@@ -1235,14 +1299,17 @@ namespace iroha {
              AND (SELECT * FROM has_perm)
              AND EXISTS (SELECT * FROM get_peer)
              AND EXISTS (SELECT * FROM check_peers))",
-           R"(
-             WHEN NOT EXISTS (SELECT * from get_peer) THEN 3
-             WHEN NOT EXISTS (SELECT * from check_peers) THEN 4
-             WHEN NOT (SELECT * from has_perm) THEN 2)"});
+           std::format(R"(
+             WHEN NOT EXISTS (SELECT * from get_peer) THEN {}
+             WHEN NOT EXISTS (SELECT * from check_peers) THEN {}
+             WHEN NOT (SELECT * from has_perm) THEN {})",
+                         command_error::remove_sync_peer::kNoSuchPeer,
+                         command_error::remove_sync_peer::kTooFewPeers,
+                         command_error::kNoPermissions)});
 
       set_quorum_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             updated AS (
                 UPDATE account SET quorum=:quorum
@@ -1251,10 +1318,11 @@ namespace iroha {
                 RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM updated) THEN 0
+            WHEN EXISTS (SELECT * FROM updated) THEN {}
             %s
-            ELSE 1
+            ELSE {}
           END AS result)",
+              command_error::kOk, command_error::kInternalError),
           {std::format(R"(
             get_signatories AS (
                 SELECT public_key FROM account_has_signatory
@@ -1273,14 +1341,18 @@ namespace iroha {
               (SELECT * FROM get_signatories)
               AND EXISTS (SELECT * FROM check_account_signatories)
               AND (SELECT * FROM has_perm))",
-           R"(
-              WHEN NOT (SELECT * FROM has_perm) THEN 2
-              WHEN NOT EXISTS (SELECT * FROM get_signatories) THEN 4
-              WHEN NOT EXISTS (SELECT * FROM check_account_signatories) THEN 5
-              )"});
+           std::format(R"(
+              WHEN NOT (SELECT * FROM has_perm) THEN {}
+              WHEN NOT EXISTS (SELECT * FROM get_signatories) THEN {}
+              WHEN NOT EXISTS (SELECT * FROM check_account_signatories) THEN {}
+              )",
+                      command_error::kNoPermissions,
+                      command_error::set_quorum::kNoSignatories,
+                      command_error::set_quorum::kInvalidQuorum)});
 
-      store_engine_response_statements_ = makeCommandStatements(sql_,
-                                                                R"(
+      store_engine_response_statements_ = makeCommandStatements(
+          sql_,
+          std::format(R"(
           WITH
             inserted AS (
               INSERT INTO engine_calls
@@ -1301,14 +1373,15 @@ namespace iroha {
               RETURNING (1)
             )
           SELECT CASE
-            WHEN EXISTS (SELECT * FROM inserted) THEN 0
-            ELSE 1
+            WHEN EXISTS (SELECT * FROM inserted) THEN {}
+            ELSE {}
           END AS result)",
-                                                                {});
+              command_error::kOk, command_error::kInternalError),
+          {});
 
       subtract_asset_quantity_statements_ = makeCommandStatements(
           sql_,
-          R"(
+          std::format(R"(
           WITH %s
             has_account AS (SELECT account_id FROM account
                             WHERE account_id = :creator LIMIT 1),
@@ -1341,13 +1414,17 @@ namespace iroha {
                RETURNING (1)
             )
           SELECT CASE
-              WHEN EXISTS (SELECT * FROM inserted LIMIT 1) THEN 0
+              WHEN EXISTS (SELECT * FROM inserted LIMIT 1) THEN {}
               %s
-              WHEN NOT EXISTS (SELECT * FROM has_asset LIMIT 1) THEN 3
+              WHEN NOT EXISTS (SELECT * FROM has_asset LIMIT 1) THEN {}
               WHEN NOT EXISTS
-                  (SELECT value FROM new_value WHERE value >= 0 LIMIT 1) THEN 4
-              ELSE 1
+                  (SELECT value FROM new_value WHERE value >= 0 LIMIT 1) THEN {}
+              ELSE {}
           END AS result)",
+              command_error::kOk,
+              command_error::subtract_asset_quantity::kNoSuchAsset,
+              command_error::subtract_asset_quantity::kNegativeQuantity,
+              command_error::kInternalError),
           {std::format(R"(
                has_perm AS ({}),)", checkAccountDomainRoleOrGlobalRolePermission(
                   Role::kSubtractAssetQty,
@@ -1355,7 +1432,8 @@ namespace iroha {
                   ":creator",
                   ":asset_id")),
            R"( AND (SELECT * FROM has_perm))",
-           R"( WHEN NOT (SELECT * FROM has_perm) THEN 2 )"});
+           std::format(R"( WHEN NOT (SELECT * FROM has_perm) THEN {} )",
+                       command_error::kNoPermissions)});
 
       transfer_asset_statements_ = makeCommandStatements(
           sql_,
@@ -1379,39 +1457,39 @@ namespace iroha {
             checks AS -- error code and check result
             (
                 -- source account exists
-                SELECT 3 code, count(1) = 1 result
+                SELECT {} code, count(1) = 1 result
                 FROM account
                 WHERE account_id = :source_account_id
 
                 -- dest account exists
                 UNION
-                SELECT 4, count(1) = 1
+                SELECT {}, count(1) = 1
                 FROM account
                 WHERE account_id = :dest_account_id
 
                 -- asset exists
                 UNION
-                SELECT 5, count(1) = 1
+                SELECT {}, count(1) = 1
                 FROM asset
                 WHERE asset_id = :asset_id
                    AND precision >= :precision
 
                 -- enough source quantity
                 UNION
-                SELECT 6, value >= 0
+                SELECT {}, value >= 0
                 FROM new_src_quantity
 
                 -- dest quantity overflow
                 UNION
                 SELECT
-                    7,
+                    {},
                     value < (2::decimal ^ 256) / (10::decimal ^ precision)
                 FROM new_dest_quantity, asset
                 WHERE asset_id = :asset_id
 
                 -- description length
                 UNION
-                SELECT 8, :description_length <= setting_value::integer
+                SELECT {}, :description_length <= setting_value::integer
                 FROM setting
                 WHERE setting_key = '{}'
             ),
@@ -1438,12 +1516,21 @@ namespace iroha {
                 RETURNING (1)
             )
           SELECT CASE
-              WHEN EXISTS (SELECT * FROM insert_dest LIMIT 1) THEN 0
-              WHEN EXISTS (SELECT * FROM checks WHERE not result and code = 4) THEN 4
+              WHEN EXISTS (SELECT * FROM insert_dest LIMIT 1) THEN {}
+              WHEN EXISTS (SELECT * FROM checks WHERE not result and code = {}) THEN {}
               %s
               ELSE (SELECT code FROM checks WHERE not result ORDER BY code ASC LIMIT 1)
           END AS result)",
-              iroha::ametsuchi::kMaxDescriptionSizeKey),
+              command_error::transfer_asset::kNoSuchSourceAccount,
+              command_error::transfer_asset::kNoSuchDestinationAccount,
+              command_error::transfer_asset::kNoSuchAsset,
+              command_error::transfer_asset::kNotEnoughBalance,
+              command_error::transfer_asset::kQuantityOverflow,
+              command_error::transfer_asset::kDescriptionTooLong,
+              iroha::ametsuchi::kMaxDescriptionSizeKey,
+              command_error::kOk,
+              command_error::transfer_asset::kNoSuchDestinationAccount,
+              command_error::transfer_asset::kNoSuchDestinationAccount),
           {std::format(R"(
               has_role_perm AS ({}),
               has_grantable_perm AS ({}),
@@ -1468,11 +1555,12 @@ namespace iroha {
                                               ":source_account_id"), checkAccountRolePermission(Role::kReceive, ":dest_account_id")),
            R"( AND (SELECT * FROM has_perm))",
            R"( AND (SELECT * FROM has_perm))",
-           R"( WHEN NOT (SELECT * FROM has_perm) THEN 2 )"});
+           std::format(R"( WHEN NOT (SELECT * FROM has_perm) THEN {} )",
+                       command_error::kNoPermissions)});
 
       set_setting_value_statements_ = makeCommandStatements(
           sql_,
-          R"(INSERT INTO setting(setting_key, setting_value)
+          std::format(R"(INSERT INTO setting(setting_key, setting_value)
              VALUES
              (
                  :setting_key,
@@ -1480,7 +1568,8 @@ namespace iroha {
              )
              ON CONFLICT (setting_key)
                  DO UPDATE SET setting_value = EXCLUDED.setting_value
-             RETURNING 0)",
+             RETURNING {})",
+              command_error::kOk),
           {});
     }
 
