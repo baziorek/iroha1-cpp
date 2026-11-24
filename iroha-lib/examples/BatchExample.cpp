@@ -29,6 +29,77 @@ const std::string kBobAccount = "bob@test";
 const std::string kBitcoin = "bitcoin#test";
 const std::string kDoge = "dogecoin#test";
 
+void prepareUsers();
+
+void addKeyAndSetQuorum(
+        const std::string& account_id,
+        const iroha::keypair_t& account_key,
+        const iroha::keypair_t& key_to_add);
+
+void addKeysAndSetQuorum();
+
+std::vector<Transaction> fetchPendingTransactions(
+        const iroha::keypair_t& keypair,
+        const std::string& account_id);
+
+void aliceCreatesExchangeBatch();
+
+void bobAcceptsExchangeRequest();
+
+void bobDeclinesExchangeRequest();
+
+void checkNoPendingTxs(
+        const std::string& account_id,
+        const iroha::keypair_t& keypair);
+}  // namespace
+
+
+int main()
+{
+    std::cout << "\nPLEASE ENSURE THAT MST IS ENABLED IN IROHA CONFIG\n\n";
+
+    try {
+        config = loadConfig();
+        admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
+
+        // alice and bob keys (test-only, same as in the Python example)
+        alice_keys = {
+            generateKeypairFromPrivateKey(
+                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba1"),
+            generateKeypairFromPrivateKey(
+                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba2")};
+        bob_keys = {
+            generateKeypairFromPrivateKey(
+                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3"),
+            generateKeypairFromPrivateKey(
+                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4")};
+
+        auto grpc_client_holder = makeClient(config);
+        GrpcClient& grpc_client = *grpc_client_holder;
+        client = &grpc_client;
+
+        prepareUsers();
+        addKeysAndSetQuorum();
+
+        aliceCreatesExchangeBatch();
+        bobAcceptsExchangeRequest();
+        checkNoPendingTxs(kBobAccount, bob_keys[0]);
+
+        aliceCreatesExchangeBatch();
+        try {
+            bobDeclinesExchangeRequest();  // the batch is expected to fail
+        } catch (const std::runtime_error&) {
+        }
+        checkNoPendingTxs(kBobAccount, bob_keys[0]);
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
+    }
+}
+
+
+namespace {
+
 void prepareUsers()
 {
     auto tx = makeTx(config.admin_account_id, admin_keypair)
@@ -172,47 +243,3 @@ void checkNoPendingTxs(
     std::cout << " ~~~" << std::endl;
 }
 }  // namespace
-
-
-int main()
-{
-    std::cout << "\nPLEASE ENSURE THAT MST IS ENABLED IN IROHA CONFIG\n\n";
-
-    try {
-        config = loadConfig();
-        admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
-
-        // alice and bob keys (test-only, same as in the Python example)
-        alice_keys = {
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba1"),
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba2")};
-        bob_keys = {
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3"),
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4")};
-
-        auto grpc_client_holder = makeClient(config);
-        GrpcClient& grpc_client = *grpc_client_holder;
-        client = &grpc_client;
-
-        prepareUsers();
-        addKeysAndSetQuorum();
-
-        aliceCreatesExchangeBatch();
-        bobAcceptsExchangeRequest();
-        checkNoPendingTxs(kBobAccount, bob_keys[0]);
-
-        aliceCreatesExchangeBatch();
-        try {
-            bobDeclinesExchangeRequest();  // the batch is expected to fail
-        } catch (const std::runtime_error&) {
-        }
-        checkNoPendingTxs(kBobAccount, bob_keys[0]);
-    } catch (const std::exception& e) {
-        std::cerr << "[E] " << e.what() << std::endl;
-        return 1;
-    }
-}

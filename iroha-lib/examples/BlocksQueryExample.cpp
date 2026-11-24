@@ -20,37 +20,9 @@ using namespace iroha_lib;
 void sendCreateAccountTransaction(
         Scenario& scenario,
         const iroha::keypair_t& user_keypair,
-        const std::string& account_name)
-{
-    const auto domain = scenario.config.admin_account_id.substr(
-                scenario.config.admin_account_id.find('@') + 1);
-    auto tx = makeTx(scenario.config.admin_account_id,
-                     scenario.admin_keypair)
-            .createAccount(account_name, domain,
-                           user_keypair.pubkey.to_hexstring())
-            .signAndAddSignature();
-    scenario.client->send(tx);
-    std::cout << "tx \"CreateAccount\" is sent" << std::endl;
-}
+        const std::string& account_name);
 
-void printBlock(const BlockQueryResponse& response)
-{
-    if (response.has_block_error_response()) {
-        std::cerr << "Blocks stream error: "
-                  << response.block_error_response().message() << std::endl;
-        return;
-    }
-    const auto& block = response.block_response().block();
-    if (block.has_block_v1()) {
-        const auto& payload = block.block_v1().payload();
-        std::cout << "\nNext block: height=" << payload.height()
-                  << ", tx_number=" << payload.tx_number()
-                  << ", created_time=" << payload.created_time()
-                  << std::endl;
-    } else {
-        std::cout << "\nNext block: " << block.DebugString() << std::endl;
-    }
-}
+void printBlock(const BlockQueryResponse& response);
 }  // namespace
 
 
@@ -90,3 +62,42 @@ int main()
         return 1;
     }
 }
+
+
+namespace {
+
+void sendCreateAccountTransaction(
+        Scenario& scenario,
+        const iroha::keypair_t& user_keypair,
+        const std::string& account_name)
+{
+    const auto domain = scenario.config.admin_account_id.substr(
+                scenario.config.admin_account_id.find('@') + 1);
+    auto tx = makeTx(scenario.config.admin_account_id,
+                     scenario.admin_keypair)
+            .createAccount(account_name, domain,
+                           user_keypair.pubkey.to_hexstring())
+            .signAndAddSignature();
+    scenario.client->send(tx);
+    std::cout << "tx \"CreateAccount\" is sent" << std::endl;
+}
+
+void printBlock(const BlockQueryResponse& response)
+{
+    if (response.has_block_error_response()) {
+        std::cerr << "Blocks stream error: "
+                  << response.block_error_response().message() << std::endl;
+        return;
+    }
+    const auto& block = response.block_response().block();
+    if (block.has_block_v1()) {
+        const auto& payload = block.block_v1().payload();
+        std::cout << "\nNext block: height=" << payload.height()
+                  << ", tx_number=" << payload.tx_number()
+                  << ", created_time=" << payload.created_time()
+                  << std::endl;
+    } else {
+        std::cout << "\nNext block: " << block.DebugString() << std::endl;
+    }
+}
+}  // namespace

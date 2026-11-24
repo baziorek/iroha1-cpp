@@ -44,6 +44,93 @@ const std::string kBobPrivateKey =
 const std::string kReceiverPrivateKey =
     "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4";
 
+void createUserAccounts();
+
+void setupGroupAccount();
+
+void mintAsset();
+
+void transferCoinFromAdmin(
+        const std::string& dest_id,
+        const std::string& asset_id,
+        const std::string& amount);
+
+void transferCoinFromGroup(
+        const std::string& dest_id,
+        const std::string& asset_id,
+        const std::string& amount,
+        const iroha::keypair_t& creator_keypair);
+
+std::vector<Transaction> fetchPendingTransactions(
+        const iroha::keypair_t& keypair);
+
+void printAccountAssets(const std::string& account_id);
+
+std::string getBalance(const std::string& account_id, const std::string& asset_id);
+
+void signPendingTransactions(const iroha::keypair_t& keypair);
+
+void expectBalance(
+        const std::string& account_id,
+        const std::string& asset_id,
+        const std::string& expected_balance);
+}  // namespace
+
+
+int main()
+{
+    std::cout << "\nPLEASE ENSURE THAT MST IS ENABLED IN IROHA CONFIG\n\n";
+
+    try {
+        config = loadConfig();
+        admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
+
+        const auto alice_keypair = generateKeypairFromPrivateKey(kAlicePrivateKey);
+        const auto bob_keypair = generateKeypairFromPrivateKey(kBobPrivateKey);
+
+        auto grpc_client_holder = makeClient(config);
+        GrpcClient& grpc_client = *grpc_client_holder;
+        client = &grpc_client;
+
+        std::cout << "1. creating accounts" << std::endl;
+        createUserAccounts();
+        setupGroupAccount();
+
+        std::cout << "2. mint coins and give to group account" << std::endl;
+        mintAsset();
+        transferCoinFromAdmin(kGroupAccount, kCoin, "42.00");
+
+        std::cout << "3. alice initiates transfer 14.0 from group to receiver"
+                  << std::endl;
+        transferCoinFromGroup(kReceiverAccount, kCoin, "14.00", alice_keypair);
+
+        std::cout << "4. bob countersigns transfer" << std::endl;
+        signPendingTransactions(bob_keypair);
+
+        printAccountAssets(kReceiverAccount);
+        printAccountAssets(kGroupAccount);
+        expectBalance(kReceiverAccount, kCoin, "14.00");
+
+        std::cout << "5. bob initiates transfer 7.0 from group to receiver"
+                  << std::endl;
+        transferCoinFromGroup(kReceiverAccount, kCoin, "7.00", bob_keypair);
+
+        std::cout << "6. alice countersigns transfer" << std::endl;
+        signPendingTransactions(alice_keypair);
+
+        printAccountAssets(kReceiverAccount);
+        printAccountAssets(kGroupAccount);
+        expectBalance(kReceiverAccount, kCoin, "21.00");
+        expectBalance(kGroupAccount, kCoin, "21.00");
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
+    }
+}
+
+
+namespace {
+
 void createUserAccounts()
 {
     auto tx = makeTx(config.admin_account_id, admin_keypair)
@@ -214,55 +301,3 @@ void expectBalance(
     }
 }
 }  // namespace
-
-
-int main()
-{
-    std::cout << "\nPLEASE ENSURE THAT MST IS ENABLED IN IROHA CONFIG\n\n";
-
-    try {
-        config = loadConfig();
-        admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
-
-        const auto alice_keypair = generateKeypairFromPrivateKey(kAlicePrivateKey);
-        const auto bob_keypair = generateKeypairFromPrivateKey(kBobPrivateKey);
-
-        auto grpc_client_holder = makeClient(config);
-        GrpcClient& grpc_client = *grpc_client_holder;
-        client = &grpc_client;
-
-        std::cout << "1. creating accounts" << std::endl;
-        createUserAccounts();
-        setupGroupAccount();
-
-        std::cout << "2. mint coins and give to group account" << std::endl;
-        mintAsset();
-        transferCoinFromAdmin(kGroupAccount, kCoin, "42.00");
-
-        std::cout << "3. alice initiates transfer 14.0 from group to receiver"
-                  << std::endl;
-        transferCoinFromGroup(kReceiverAccount, kCoin, "14.00", alice_keypair);
-
-        std::cout << "4. bob countersigns transfer" << std::endl;
-        signPendingTransactions(bob_keypair);
-
-        printAccountAssets(kReceiverAccount);
-        printAccountAssets(kGroupAccount);
-        expectBalance(kReceiverAccount, kCoin, "14.00");
-
-        std::cout << "5. bob initiates transfer 7.0 from group to receiver"
-                  << std::endl;
-        transferCoinFromGroup(kReceiverAccount, kCoin, "7.00", bob_keypair);
-
-        std::cout << "6. alice countersigns transfer" << std::endl;
-        signPendingTransactions(alice_keypair);
-
-        printAccountAssets(kReceiverAccount);
-        printAccountAssets(kGroupAccount);
-        expectBalance(kReceiverAccount, kCoin, "21.00");
-        expectBalance(kGroupAccount, kCoin, "21.00");
-    } catch (const std::exception& e) {
-        std::cerr << "[E] " << e.what() << std::endl;
-        return 1;
-    }
-}

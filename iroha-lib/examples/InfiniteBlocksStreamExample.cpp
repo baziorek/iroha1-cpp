@@ -20,10 +20,7 @@ using namespace iroha_example;
 
 volatile std::sig_atomic_t g_stop = 0;
 
-void onSignal(int)
-{
-    g_stop = 1;
-}
+void onSignal(int);
 }  // namespace
 
 
@@ -85,3 +82,12 @@ int main()
         return 1;
     }
 }
+
+
+namespace {
+
+void onSignal(int)
+{
+    g_stop = 1;
+}
+}  // namespace

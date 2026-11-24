@@ -28,26 +28,7 @@ namespace {
 using namespace iroha_example;
 
 void printAccount(const QueryResponse& response,
-                  const std::string& account_id)
-{
-    if (response.has_error_response()) {
-        throw std::runtime_error(
-                    "GetAccount error: "
-                    + response.error_response().message());
-    }
-    if (not response.has_account_response()) {
-        throw std::runtime_error("Unexpected response type");
-    }
-    const auto& account = response.account_response().account();
-    std::cout << "account_id = " << account.account_id()
-              << ", quorum = " << account.quorum()
-              << ", json_data = " << account.json_data() << std::endl;
-    if (account.account_id() != account_id) {
-        throw std::runtime_error(
-                    "Unexpected account in response: "
-                    + account.account_id());
-    }
-}
+                  const std::string& account_id);
 }  // namespace
 
 
@@ -95,3 +76,29 @@ int main()
         return 1;
     }
 }
+
+
+namespace {
+
+void printAccount(const QueryResponse& response,
+                  const std::string& account_id)
+{
+    if (response.has_error_response()) {
+        throw std::runtime_error(
+                    "GetAccount error: "
+                    + response.error_response().message());
+    }
+    if (not response.has_account_response()) {
+        throw std::runtime_error("Unexpected response type");
+    }
+    const auto& account = response.account_response().account();
+    std::cout << "account_id = " << account.account_id()
+              << ", quorum = " << account.quorum()
+              << ", json_data = " << account.json_data() << std::endl;
+    if (account.account_id() != account_id) {
+        throw std::runtime_error(
+                    "Unexpected account in response: "
+                    + account.account_id());
+    }
+}
+}  // namespace

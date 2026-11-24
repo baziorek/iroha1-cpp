@@ -13,24 +13,7 @@
 namespace {
 using namespace iroha_example;
 
-void printTransactionsPage(const QueryResponse& response)
-{
-    if (response.has_error_response()) {
-        std::cerr << "GetAccountTransactions error: "
-                  << response.error_response().message() << std::endl;
-        return;
-    }
-    if (not response.has_transactions_page_response()) {
-        std::cerr << "Unexpected response type" << std::endl;
-        return;
-    }
-    const auto& page = response.transactions_page_response();
-    std::cout << "all_transactions_size = " << page.all_transactions_size()
-              << ", returned = " << page.transactions_size() << std::endl;
-    for (const auto& tx : page.transactions()) {
-        std::cout << "  " << txSummary(tx) << std::endl;
-    }
-}
+void printTransactionsPage(const QueryResponse& response);
 }  // namespace
 
 
@@ -84,3 +67,26 @@ int main()
         return 1;
     }
 }
+
+
+namespace {
+
+void printTransactionsPage(const QueryResponse& response)
+{
+    if (response.has_error_response()) {
+        std::cerr << "GetAccountTransactions error: "
+                  << response.error_response().message() << std::endl;
+        return;
+    }
+    if (not response.has_transactions_page_response()) {
+        std::cerr << "Unexpected response type" << std::endl;
+        return;
+    }
+    const auto& page = response.transactions_page_response();
+    std::cout << "all_transactions_size = " << page.all_transactions_size()
+              << ", returned = " << page.transactions_size() << std::endl;
+    for (const auto& tx : page.transactions()) {
+        std::cout << "  " << txSummary(tx) << std::endl;
+    }
+}
+}  // namespace

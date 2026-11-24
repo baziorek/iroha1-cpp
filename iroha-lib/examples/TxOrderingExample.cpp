@@ -22,6 +22,64 @@ const std::string kUserPrivateKey =
 const std::string kAssetId = "lemurcoin#test";
 
 void createAccount(Scenario& scenario,
+                   const iroha::keypair_t& user_keypair);
+
+void createAsset(Scenario& scenario);
+
+void addCoinToAdmin(Scenario& scenario);
+
+void performTransferTransaction(
+        Scenario& scenario,
+        const std::string& description,
+        int amount);
+
+Ordering makeOrdering(Direction direction);
+
+void getAccountAssetTransactions(
+        Scenario& scenario,
+        const iroha::keypair_t& user_keypair,
+        Direction direction);
+
+void printParagraph(const std::string& text);
+}  // namespace
+
+
+int main()
+{
+    try {
+        const auto user_keypair =
+                generateKeypairFromPrivateKey(kUserPrivateKey);
+
+        Scenario scenario;
+        scenario.init();
+
+        printParagraph("Preparing");
+        createAccount(scenario, user_keypair);
+        createAsset(scenario);
+        addCoinToAdmin(scenario);
+
+        printParagraph("Creating transactions");
+        for (int i = 1; i <= 10; ++i) {
+            performTransferTransaction(
+                        scenario, "tx " + std::to_string(i), i);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+
+        printParagraph("Querying as usual");
+        getAccountAssetTransactions(scenario, user_keypair, Direction::kAscending);
+
+        printParagraph("Querying as with reversed order");
+        getAccountAssetTransactions(scenario, user_keypair, Direction::kDescending);
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
+    }
+}
+
+
+namespace {
+
+void createAccount(Scenario& scenario,
                    const iroha::keypair_t& user_keypair)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
@@ -119,36 +177,3 @@ void printParagraph(const std::string& text)
     std::cout << "---------- " << text << " ----------" << std::endl;
 }
 }  // namespace
-
-
-int main()
-{
-    try {
-        const auto user_keypair =
-                generateKeypairFromPrivateKey(kUserPrivateKey);
-
-        Scenario scenario;
-        scenario.init();
-
-        printParagraph("Preparing");
-        createAccount(scenario, user_keypair);
-        createAsset(scenario);
-        addCoinToAdmin(scenario);
-
-        printParagraph("Creating transactions");
-        for (int i = 1; i <= 10; ++i) {
-            performTransferTransaction(
-                        scenario, "tx " + std::to_string(i), i);
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-
-        printParagraph("Querying as usual");
-        getAccountAssetTransactions(scenario, user_keypair, Direction::kAscending);
-
-        printParagraph("Querying as with reversed order");
-        getAccountAssetTransactions(scenario, user_keypair, Direction::kDescending);
-    } catch (const std::exception& e) {
-        std::cerr << "[E] " << e.what() << std::endl;
-        return 1;
-    }
-}
