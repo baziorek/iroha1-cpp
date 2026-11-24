@@ -17,9 +17,11 @@ namespace iroha_cli {
 
     InteractiveStatusCli::InteractiveStatusCli(
         const std::string &default_peer_ip,
-        int default_port)
+        int default_port,
+        const std::optional<iroha_lib::TlsOptions> &tls)
         : default_peer_ip_(default_peer_ip),
-          default_port_(default_port) {
+          default_port_(default_port),
+          tls_(tls) {
       createActionsMenu();
       createResultMenu();
     }
@@ -120,7 +122,8 @@ namespace iroha_cli {
       iroha::protocol::ToriiResponse answer;
       if (iroha::hexstringToBytestring(txHash_)) {
         auto response = CliClient(address.value().first,
-                                  address.value().second)
+                                  address.value().second,
+                                  tls_)
                             .getTxStatus(txHash_);
         if (response.status.ok()) {
           answer = response.answer;
@@ -143,7 +146,7 @@ namespace iroha_cli {
       }
 
       // Save the transaction hash together with the fetched status
-      auto response = CliClient(default_peer_ip_, default_port_)
+      auto response = CliClient(default_peer_ip_, default_port_, tls_)
                           .getTxStatus(txHash_);
       const auto message = response.status.ok()
           ? getTxStatusMessage(response.answer)

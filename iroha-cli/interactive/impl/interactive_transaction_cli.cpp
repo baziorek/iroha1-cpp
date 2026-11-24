@@ -207,12 +207,14 @@ namespace iroha_cli {
         int default_port,
         const iroha::keypair_t &keypair,
         logger::LoggerManagerTreePtr response_handler_log_manager,
-        logger::LoggerPtr log)
+        logger::LoggerPtr log,
+        const std::optional<iroha_lib::TlsOptions> &tls)
         : current_context_(MAIN),
           creator_(creator_account),
           default_peer_ip_(default_peer_ip),
           default_port_(default_port),
           keypair_(keypair),
+          tls_(tls),
           response_handler_log_manager_(
               std::move(response_handler_log_manager)),
           log_(std::move(log)) {
@@ -563,7 +565,8 @@ namespace iroha_cli {
 
       GrpcResponseHandler response_handler(response_handler_log_manager_);
       response_handler.handle(CliClient(address.value().first,
-                                        address.value().second)
+                                        address.value().second,
+                                        tls_)
                                   .sendTx(tx));
 
       printTxHash(tx);

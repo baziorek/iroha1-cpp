@@ -75,6 +75,23 @@ iroha::keypair_t *makeOldModel(const shared_model::crypto::Keypair &keypair) {
           .assumeValue()};
 }
 
+std::optional<iroha_lib::TlsOptions> loadTlsOptions(
+    const std::string &cert_path, const logger::LoggerPtr &logger) {
+  if (cert_path.empty()) {
+    return std::nullopt;
+  }
+  std::ifstream cert_file(cert_path);
+  if (not cert_file.is_open()) {
+    logger->error("Cannot open TLS root certificate: {}", cert_path);
+    return std::nullopt;
+  }
+  std::ostringstream pem;
+  pem << cert_file.rdbuf();
+  iroha_lib::TlsOptions options;
+  options.pem_root_certs = pem.str();
+  return options;
+}
+
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   gflags::ShutDownCommandLineFlags();
@@ -162,22 +179,7 @@ int main(int argc, char *argv[]) {
   }
   // Send to Iroha Peer json transaction/query
   else if (not FLAGS_json_transaction.empty() or not FLAGS_json_query.empty()) {
-    const auto tls = [&]() -> std::optional<iroha_lib::TlsOptions> {
-      if (FLAGS_tls_root_cert.empty()) {
-        return std::nullopt;
-      }
-      std::ifstream cert_file(FLAGS_tls_root_cert);
-      if (not cert_file.is_open()) {
-        logger->error("Cannot open TLS root certificate: {}",
-                      FLAGS_tls_root_cert);
-        return std::nullopt;
-      }
-      std::ostringstream pem;
-      pem << cert_file.rdbuf();
-      iroha_lib::TlsOptions options;
-      options.pem_root_certs = pem.str();
-      return options;
-    }();
+    const auto tls = loadTlsOptions(FLAGS_tls_root_cert, logger);
     if (FLAGS_tls_root_cert.size() and not tls) {
       return 1;
     }
@@ -256,6 +258,10 @@ int main(int argc, char *argv[]) {
           FLAGS_pass_phrase);
       return EXIT_FAILURE;
     }
+    const auto tls = loadTlsOptions(FLAGS_tls_root_cert, logger);
+    if (FLAGS_tls_root_cert.size() and not tls) {
+      return 1;
+    }
     // TODO 13/09/17 grimadas: Init counters from Iroha, or read from disk?
     // IR-334
     InteractiveCli interactiveCli(
@@ -268,7 +274,8 @@ int main(int argc, char *argv[]) {
         response_handler_log_manager,
         pb_qry_factory_log,
         json_qry_factory_log,
-        log_manager->getChild("InteractiveCli"));
+        log_manager->getChild("InteractiveCli"),
+        tls);
     interactiveCli.run();
   } else {
     logger->error("Invalid flags");

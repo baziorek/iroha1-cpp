@@ -24,7 +24,7 @@ else()
             logger_manager
         )
 
-        add_install_step_for_bin(irohalib_${example}_example)
+        ## Examples are build-only: they are not installed into packages.
     endforeach()
 
     # DomainAssetCreation additionally uses gflags

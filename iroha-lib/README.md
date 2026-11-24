@@ -1,7 +1,8 @@
 # Hyperledger Iroha C++ library
 
 
-**Current version of the library was tested and compatible with Iroha 1.5.0.**
+**This library implements the Iroha 1.x client protocol and is developed
+against the 1.6.x line of the community fork.**
 
 The library was created to provide a convenient interface for C++ applications to communicate with [Iroha](https://github.com/hyperledger/iroha) blockchain. This includes sending transactions and queries, streaming transaction statuses and block commits.
 
@@ -9,36 +10,52 @@ The library was created to provide a convenient interface for C++ applications t
 # iroha-lib
 
 Client library of [Iroha](https://github.com/hyperledger/iroha) written completely in modern C++.
-Currently, the latest HL Iroha 1.5 release (`hyperledger/iroha:1.5.0` Docker image) is supported.
+It can be built **standalone** (only the client library, no node) or as part
+of the full Iroha build.
 
 
 ## Installation
 
-Follow these steps to run the project:
+`iroha-lib` is a set of **static** libraries — there is no packaged install;
+you build it from sources and link against it.
 
-1. Set up and run Iroha peer in a Docker container. [Follow the instructions from Iroha documentation](https://iroha.readthedocs.io/en/main/getting_started/).
+### Standalone build (recommended for client applications)
 
-2. Clone this repository.
-
-3. Build the project:
-
-``` bash
-cmake --build ./build --target iroha_lib_model
-```
-
-4. Go to the `examples` directory:
+Requires the same vcpkg-based dependency set as the node
+(see `vcpkg/VCPKG_DEPS_LIST`):
 
 ``` bash
-cd examples
+git clone https://github.com/baziorek/iroha1-cpp.git
+cd iroha1-cpp
+
+# build dependencies once (same script as for the node)
+./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build
+
+cmake -S iroha-lib -B build-iroha-lib \
+    -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake \
+    -DCMAKE_BUILD_TYPE=Release
+cmake --build build-iroha-lib --target iroha_lib_model
 ```
 
-5. Run the selected example:
+### In-tree build
+
+When building the whole repository, `iroha-lib` is included automatically
+(`add_subdirectory(iroha-lib)` in the top-level `CMakeLists.txt`) and its
+artifacts land in `build/bin/`.
+
+### Running an example
+
+Example binaries are named `irohalib_<Name>_example` and are produced under
+the build tree (`build/bin/` in-tree, `build-iroha-lib/examples/` standalone).
+They need a running Iroha node — the defaults assume the
+`docker run -p 50051:50051 hyperledger/iroha` development setup
+(`admin@test` / `test` domain genesis):
 
 ``` bash
-./tx_example
+./build/bin/irohalib_TxExample_example
 ```
 
-6. Check the logs to see if the scenario completed successfully.
+Check the logs to see if the scenario completed successfully.
 
 
 ## Examples
@@ -220,4 +237,7 @@ iroha_lib::GrpcClient(
 
 ## Compatibility and release policy
 
-The `develop` branch is compatible with tagged releases of Iroha.
+The library speaks the Iroha 1.x Torii protocol and is versioned together
+with this repository (see the root `CHANGELOG.md`). It is part of a
+**community-maintained fork** — see the disclaimer in the repository README
+for the support/warranty policy.

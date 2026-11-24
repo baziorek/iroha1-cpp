@@ -216,7 +216,20 @@ Installing dependencies with Vcpkg Dependency Manager
 =====================================================
 
 Currently we use Vcpkg as a dependency manager for all platforms - Linux, Windows and MacOS.
-We use a fixed version of Vcpkg to ensure the patches we need will work.
+We use a fixed version of Vcpkg (pinned in ``vcpkg/VCPKG_COMMIT_SHA``) to ensure the patches we need will work.
+
+The complete list of required dependencies is maintained in a single place —
+``vcpkg/VCPKG_DEPS_LIST`` — and reproduced below. vcpkg resolves each port
+to the newest version available in the pinned vcpkg baseline; these are the
+**minimum supported versions** for a successful build:
+
+.. literalinclude:: ../../../vcpkg/VCPKG_DEPS_LIST
+   :language: text
+
+.. note:: If you build outside vcpkg (e.g. system packages), make sure your
+  versions are **not older** than the ones the pinned vcpkg baseline provides.
+  Notably, the code requires **soci 4.x** (uses ``soci/std-optional.h``),
+  **protobuf with gRPC codegen**, **Boost >= 1.73** and **OpenSSL 3.x**.
 
 That stable version can only be found inside the Iroha repository, so we will need to clone Iroha.
 The whole process is pretty similar for all platforms but the exact commands are slightly different.
