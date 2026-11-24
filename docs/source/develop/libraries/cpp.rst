@@ -96,14 +96,14 @@ a domain and an asset (from ``examples/scenario.hpp``):
 
 .. literalinclude:: ../../../../iroha-lib/examples/scenario.hpp
    :language: c++
-   :lines: 44-51
+   :lines: 45-56
 
 Sending a query and reading the response (from
 ``examples/scenario.hpp``):
 
 .. literalinclude:: ../../../../iroha-lib/examples/scenario.hpp
    :language: c++
-   :lines: 182-196
+   :lines: 179-201
 
 A complete runnable example is ``examples/TxExample.cpp`` — it creates a
 domain and asset, registers an account, transfers coins and runs

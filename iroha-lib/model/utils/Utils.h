@@ -56,4 +56,20 @@ void printTransactionStatuses(
 
 std::string string_to_hex(const std::string& in);
 
+/// Separator between the asset name and the domain in an asset id
+/// ("name#domain").
+inline constexpr char kAssetIdSeparator = '#';
+/// Separator between the account name and the domain in an account id
+/// ("name@domain").
+inline constexpr char kAccountIdSeparator = '@';
+
 std::pair<std::string,std::string> splitAssetFullName(const std::string& assetFullName);
+
+/// Splits an account id ("name@domain") into {name, domain}.
+std::pair<std::string,std::string> splitAccountId(const std::string& accountId);
+
+/// Combines an asset name and a domain into an asset id ("name#domain").
+std::string combineAssetId(const std::string& assetName, const std::string& domain);
+
+/// Combines an account name and a domain into an account id ("name@domain").
+std::string combineAccountId(const std::string& accountName, const std::string& domain);

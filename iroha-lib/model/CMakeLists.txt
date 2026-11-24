@@ -15,6 +15,7 @@ add_library(iroha_lib_model
     generators/QueryGenerator.cpp
     utils/Utils.h
     utils/Utils.cpp
+    utils/error_codes.hpp
     utils/key_files.hpp
     utils/key_files.cpp
     utils/genesis.hpp

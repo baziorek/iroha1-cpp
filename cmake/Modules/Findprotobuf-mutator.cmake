@@ -1,7 +1,10 @@
 add_library(protobuf-mutator UNKNOWN IMPORTED)
 
 set(URL https://github.com/google/libprotobuf-mutator.git)
-set(VERSION 50168166d03e26bc83ab2be7aed587a883bb9cc9)
+## v1.5 (dc4ced33) is the newest tag; it builds with C++17, which the
+## protobuf headers from the current vcpkg pin require (older commits
+## hardcode -std=gnu++11 and fail against them).
+set(VERSION dc4ced337a9fb4047e2dc727268fbac55ca82f73)
 set(protomutator_LIB ${CMAKE_STATIC_LIBRARY_PREFIX}protobuf-mutator${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(libfuzzer_LIB ${CMAKE_STATIC_LIBRARY_PREFIX}protobuf-mutator-libfuzzer${CMAKE_STATIC_LIBRARY_SUFFIX})
 
@@ -11,6 +14,7 @@ externalproject_add(google_protobuf-mutator
     CMAKE_ARGS
                     -G${CMAKE_GENERATOR}
                     -DLIB_PROTO_MUTATOR_TESTING=OFF
+                    -DCMAKE_CXX_STANDARD=17
                     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}

@@ -1,17 +1,84 @@
-// Port of iroha-python examples/query-transactions.py:
-// same command scenario as tx-example.py, plus GetAccountTransactions
-// queries - simple, filtered by tx_time range and by tx_height range.
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+/// @file QueryExample.cpp
+/// @brief Runs the same command scenario as TxExample, then demonstrates
+/// GetAccountTransactions queries: unfiltered, filtered by transaction
+/// time range and by block height range. Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
 
 #include <iostream>
 
 #include "scenario.hpp"
 
 
-namespace {
-using namespace iroha_example;
+using iroha_example::AccountTransactionsParams;
+using iroha_example::Scenario;
+using iroha_example::timestampFromMillis;
+using iroha_example::txSummary;
+using iroha_lib::QueryResponse;
+
+const std::string kDetailKey = "age";
+const std::string kDetailValue = "18";
+const uint32_t kPageSize = 3;
+
+
+void printTransactionsPage(const QueryResponse& response);
+
+
+int main()
+{
+    try {
+        Scenario scenario;
+        scenario.init();
+
+        const auto user_id = scenario.userAccountId();
+        const auto asset_id = scenario.assetId();
+
+        scenario.createDomainAndAsset(scenario.user_domain,
+                                      scenario.asset_short_id);
+        const auto created_time = scenario.addCoinToAdmin(asset_id);
+        scenario.createAccount(scenario.user_account_name,
+                               scenario.user_domain);
+        scenario.transferCoin(scenario.config.admin_account_id,
+                              user_id, asset_id);
+        scenario.userGrantsToAdminSetAccountDetailPermission(user_id);
+        scenario.setAccountDetail(user_id, kDetailKey, kDetailValue);
+
+        std::cout << "--- query_transactions_simple (page_size="
+                  << kPageSize << ") ---" << std::endl;
+        printTransactionsPage(
+                    scenario.getAccountTransactions(
+                        scenario.config.admin_account_id, kPageSize));
+
+        // query for txs in measured time range (+-1ms around created_time)
+        std::cout << "--- transactions from time interval query ---"
+                  << std::endl;
+        AccountTransactionsParams time_params;
+        time_params.page_size = kPageSize;
+        time_params.first_tx_time = timestampFromMillis(created_time - 1);
+        time_params.last_tx_time = timestampFromMillis(created_time + 1);
+        printTransactionsPage(
+                    scenario.getAccountTransactions(
+                        scenario.config.admin_account_id, time_params));
+
+        // query for txs in given height range
+        std::cout << "--- transactions from height range query ---"
+                  << std::endl;
+        AccountTransactionsParams height_params;
+        height_params.page_size = kPageSize;
+        height_params.first_tx_height = 2;
+        height_params.last_tx_height = 3;
+        printTransactionsPage(
+                    scenario.getAccountTransactions(
+                        scenario.config.admin_account_id, height_params));
+
+        std::cout << "done" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
+    }
+}
+
 
 void printTransactionsPage(const QueryResponse& response)
 {
@@ -29,58 +96,5 @@ void printTransactionsPage(const QueryResponse& response)
               << ", returned = " << page.transactions_size() << std::endl;
     for (const auto& tx : page.transactions()) {
         std::cout << "  " << txSummary(tx) << std::endl;
-    }
-}
-}  // namespace
-
-
-int main()
-{
-    try {
-        Scenario scenario;
-        scenario.init();
-
-        scenario.createDomainAndAsset("domain", "coin");
-        const auto created_time = scenario.addCoinToAdmin("coin#domain");
-        scenario.createAccount("userone", "domain");
-        scenario.transferCoin(scenario.config.admin_account_id,
-                              "userone@domain", "coin#domain");
-        scenario.userGrantsToAdminSetAccountDetailPermission("userone@domain");
-        scenario.setAccountDetail("userone@domain", "age", "18");
-
-        std::cout << "--- query_transactions_simple (page_size=3) ---"
-                  << std::endl;
-        printTransactionsPage(
-                    scenario.getAccountTransactions(
-                        scenario.config.admin_account_id, 3));
-
-        // query for txs in measured time range (+-1ms around created_time)
-        std::cout << "--- transactions from time interval query ---"
-                  << std::endl;
-        printTransactionsPage(
-                    scenario.getAccountTransactions(
-                        scenario.config.admin_account_id,
-                        3,
-                        {},
-                        timestampFromMillis(created_time - 1),
-                        timestampFromMillis(created_time + 1)));
-
-        // query for txs in given height range
-        std::cout << "--- transactions from height range query ---"
-                  << std::endl;
-        printTransactionsPage(
-                    scenario.getAccountTransactions(
-                        scenario.config.admin_account_id,
-                        3,
-                        {},
-                        {},
-                        {},
-                        2,
-                        3));
-
-        std::cout << "done" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "[E] " << e.what() << std::endl;
-        return 1;
     }
 }

@@ -1,19 +1,47 @@
-// Port of iroha-python examples/batch-example.py:
-// atomic exchange batch (MST) between two accounts, each with quorum 2.
-// NOTE: this is NOT a multisig example - it demonstrates atomic batches
-// (MST must be enabled in the Iroha config, same as for the Python example).
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+/// @file BatchExample.cpp
+/// @brief Atomic exchange batch (MST batches): alice and bob, each with
+/// quorum 2, swap assets atomically — alice proposes the batch, bob
+/// accepts it (and a second exchange is declined on purpose to show
+/// batch failure). MST must be enabled in the Iroha config.
+/// Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
+///
+/// The MST exchange looks like this (all steps go over one gRPC client):
+///
+///   ADMIN                          ALICE (quorum 2)             BOB (quorum 2)
+///     |                                |                            |
+///     |-- create assets/accounts ----->|                            |
+///     |   fund alice: bitcoin          |                            |
+///     |   fund bob:   dogecoin         |                            |
+///     |                                |                            |
+///     |                                |-- batch #1 --------------->|
+///     |                                |   tx1: alice -> bob        |
+///     |                                |        1 bitcoin           |
+///     |                                |   tx2: bob   -> alice      |
+///     |                                |        2 dogecoin          |
+///     |                                |   (signed by alice only,   |
+///     |                                |    bob's tx is unsigned)   |
+///     |                                |<----- pending txs ---------|
+///     |                                |                            |
+///     |                                |-- batch #2 --------------->|
+///     |                                |   tx1: alice's sigs        |
+///     |                                |        cleared             |
+///     |                                |   tx2: signed by bob       |
+///     |                                |                            |
+///     |<=========== atomic commit: BOTH txs succeed, or NEITHER ====|
+///     |                                |                            |
+///     |                                |-- batch #3 (same again,    |
+///     |                                |   but tx2 signed with      |
+///     |                                |   ALICE's keys -> invalid) |
+///     |<=========== batch rejected, pending txs cleared ============|
 
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 
 #include "common.hpp"
-
-
-namespace {
 
 using namespace iroha_example;
 using namespace iroha_lib;
@@ -24,24 +52,112 @@ iroha::keypair_t admin_keypair;
 std::vector<iroha::keypair_t> alice_keys;
 std::vector<iroha::keypair_t> bob_keys;
 
-const std::string kAliceAccount = "alice@test";
-const std::string kBobAccount = "bob@test";
-const std::string kBitcoin = "bitcoin#test";
-const std::string kDoge = "dogecoin#test";
+const std::string kDomain = "test";
+const std::string kAliceName = "alice";
+const std::string kBobName = "bob";
+const std::string kAliceAccount = combineAccountId(kAliceName, kDomain);
+const std::string kBobAccount = combineAccountId(kBobName, kDomain);
+const std::string kBitcoinName = "bitcoin";
+const std::string kDogeName = "dogecoin";
+const std::string kBitcoin = combineAssetId(kBitcoinName, kDomain);
+const std::string kDoge = combineAssetId(kDogeName, kDomain);
+
+// initial amounts minted by admin and transferred to alice/bob
+const std::string kBitcoinTotal = "100000";
+const std::string kDogeTotal = "20000";
+// amounts swapped in the exchange batches below
+const std::string kExchangeBitcoin = "1";
+const std::string kExchangeDoge = "2";
+
+// test-only keys, same as in the Python example
+const std::string kAlicePrivateKey1 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba1";
+const std::string kAlicePrivateKey2 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba2";
+const std::string kBobPrivateKey1 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3";
+const std::string kBobPrivateKey2 =
+    "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4";
+
+
+void prepareUsers();
+
+void addKeyAndSetQuorum(
+        const std::string& account_id,
+        const iroha::keypair_t& account_key,
+        const iroha::keypair_t& key_to_add);
+
+void addKeysAndSetQuorum();
+
+std::vector<Transaction> fetchPendingTransactions(
+        const iroha::keypair_t& keypair,
+        const std::string& account_id);
+
+void aliceCreatesExchangeBatch();
+
+void bobAcceptsExchangeRequest();
+
+void bobDeclinesExchangeRequest();
+
+void checkNoPendingTxs(
+        const std::string& account_id,
+        const iroha::keypair_t& keypair);
+
+
+int main()
+{
+    std::cout << "\nPLEASE ENSURE THAT MST IS ENABLED IN IROHA CONFIG\n\n";
+
+    try {
+        config = loadConfig();
+        admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
+
+        alice_keys = {
+            generateKeypairFromPrivateKey(kAlicePrivateKey1),
+            generateKeypairFromPrivateKey(kAlicePrivateKey2)};
+        bob_keys = {
+            generateKeypairFromPrivateKey(kBobPrivateKey1),
+            generateKeypairFromPrivateKey(kBobPrivateKey2)};
+
+        auto grpc_client_holder = makeClient(config);
+        GrpcClient& grpc_client = *grpc_client_holder;
+        client = &grpc_client;
+
+        prepareUsers();
+        addKeysAndSetQuorum();
+
+        aliceCreatesExchangeBatch();
+        bobAcceptsExchangeRequest();
+        checkNoPendingTxs(kBobAccount, bob_keys[0]);
+
+        aliceCreatesExchangeBatch();
+        try {
+            bobDeclinesExchangeRequest();  // the batch is expected to fail
+        } catch (const std::runtime_error&) {
+        }
+        checkNoPendingTxs(kBobAccount, bob_keys[0]);
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
+    }
+}
+
 
 void prepareUsers()
 {
     auto tx = makeTx(config.admin_account_id, admin_keypair)
-            .createAsset("bitcoin", "test", 2)
-            .createAsset("dogecoin", "test", 2)
-            .addAssetQuantity(kBitcoin, "100000", "")
-            .addAssetQuantity(kDoge, "20000", "")
-            .createAccount("alice", "test", alice_keys[0].pubkey.to_hexstring())
-            .createAccount("bob", "test", bob_keys[0].pubkey.to_hexstring())
+            .createAsset(kBitcoinName, kDomain, /*precision=*/2)
+            .createAsset(kDogeName, kDomain, /*precision=*/2)
+            .addAssetQuantity(kBitcoin, kBitcoinTotal)
+            .addAssetQuantity(kDoge, kDogeTotal)
+            .createAccount(kAliceName, kDomain,
+                           alice_keys[0].pubkey.to_hexstring())
+            .createAccount(kBobName, kDomain,
+                           bob_keys[0].pubkey.to_hexstring())
             .transferAsset(config.admin_account_id, kAliceAccount, kBitcoin,
-                           "init top up", "100000")
+                           /*description=*/"init top up", kBitcoinTotal)
             .transferAsset(config.admin_account_id, kBobAccount, kDoge,
-                           "init doge", "20000")
+                           /*description=*/"init doge", kDogeTotal)
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*client, tx);
 }
@@ -91,10 +207,10 @@ void aliceCreatesExchangeBatch()
     // unsigned transactions - signatures are added after the batch meta
     iroha_lib::Tx alice_tx_builder = makeTx(kAliceAccount, alice_keys[0], 2);
     alice_tx_builder.transferAsset(kAliceAccount, kBobAccount, kBitcoin,
-                                   "", "1");
+                                   "", kExchangeBitcoin);
     iroha_lib::Tx bob_tx_builder = makeTx(kBobAccount, bob_keys[0]);
     bob_tx_builder.transferAsset(kBobAccount, kAliceAccount, kDoge,
-                                 "", "2");
+                                 "", kExchangeDoge);
 
     std::vector<Transaction> transactions{
         alice_tx_builder.getTransaction(),
@@ -170,49 +286,4 @@ void checkNoPendingTxs(
         std::cout << "query failed: " << e.what() << std::endl;
     }
     std::cout << " ~~~" << std::endl;
-}
-}  // namespace
-
-
-int main()
-{
-    std::cout << "\nPLEASE ENSURE THAT MST IS ENABLED IN IROHA CONFIG\n\n";
-
-    try {
-        config = loadConfig();
-        admin_keypair = generateKeypairFromPrivateKey(config.admin_private_key);
-
-        // alice and bob keys (test-only, same as in the Python example)
-        alice_keys = {
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba1"),
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba2")};
-        bob_keys = {
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba3"),
-            generateKeypairFromPrivateKey(
-                "f101537e319568c765b2cc89698325604991dca57b9716b58016b253506caba4")};
-
-        auto grpc_client_holder = makeClient(config);
-        GrpcClient& grpc_client = *grpc_client_holder;
-        client = &grpc_client;
-
-        prepareUsers();
-        addKeysAndSetQuorum();
-
-        aliceCreatesExchangeBatch();
-        bobAcceptsExchangeRequest();
-        checkNoPendingTxs(kBobAccount, bob_keys[0]);
-
-        aliceCreatesExchangeBatch();
-        try {
-            bobDeclinesExchangeRequest();  // the batch is expected to fail
-        } catch (const std::runtime_error&) {
-        }
-        checkNoPendingTxs(kBobAccount, bob_keys[0]);
-    } catch (const std::exception& e) {
-        std::cerr << "[E] " << e.what() << std::endl;
-        return 1;
-    }
 }

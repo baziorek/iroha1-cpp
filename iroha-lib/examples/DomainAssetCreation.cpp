@@ -1,3 +1,11 @@
+/// @file DomainAssetCreation.cpp
+/// @brief Creates a domain and an asset via command-line flags, tops up
+/// the admin asset balance and prints account assets and account info.
+/// Unlike the other examples it takes its parameters from gflags
+/// (--admin_account_name, --key_path, --peer_ip, --torii_port,
+/// --user_default_role, --asset_full_name, --tls_root_cert) instead of
+/// environment variables. Requires a running Iroha node.
+
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -93,7 +101,7 @@ void run(const std::string& adminAccountName, const std::string& key_path,
                 adminAccountName,
                 key_path,
                 assetFullName,
-                "100");
+                /*assetAmount=*/"100");
 
     sendTransaction(tx2CreateDomainAndAsset, peer_ip, torii_port, tls);
     sendTransaction(tx2AddAssetQuantity, peer_ip, torii_port, tls);
@@ -127,7 +135,7 @@ iroha::protocol::Transaction generateTransactionWhichCreatesDomainAndAsset(
             .createAsset(
                 asset_name,
                 domain_id,
-                0)
+                /*precision=*/0)
             .signAndAddSignature();
 }
 
@@ -148,7 +156,7 @@ iroha::protocol::Transaction generateTransactionWhichAddsAssetQuantiti(
     return iroha_lib::Tx(
                 account_name,
                 keypair)
-            .addAssetQuantity(assetIdWithDomain, assetAmount, "")
+            .addAssetQuantity(assetIdWithDomain, assetAmount)
             .signAndAddSignature();
 }
 

@@ -1,9 +1,10 @@
-// Port of iroha-python examples/infinite-blocks-stream.py:
-// wait for new blocks forever - send some commands to the node
-// to see blocks coming. Stop with Ctrl+C.
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+/// @file InfiniteBlocksStreamExample.cpp
+/// @brief Waits for new blocks forever and prints each arriving block —
+/// send some transactions to the node to see blocks coming. Stop with
+/// Ctrl+C. Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
 
 #include <atomic>
 #include <chrono>
@@ -14,17 +15,12 @@
 #include "common.hpp"
 #include "scenario.hpp"
 
-
-namespace {
 using namespace iroha_example;
 
 volatile std::sig_atomic_t g_stop = 0;
 
-void onSignal(int)
-{
-    g_stop = 1;
-}
-}  // namespace
+
+void onSignal(int);
 
 
 int main()
@@ -84,4 +80,10 @@ int main()
         std::cerr << "[E] " << e.what() << std::endl;
         return 1;
     }
+}
+
+
+void onSignal(int)
+{
+    g_stop = 1;
 }

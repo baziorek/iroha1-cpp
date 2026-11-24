@@ -1,9 +1,10 @@
-// Port of iroha-python examples/tx-ordering.py:
-// pagination with ordering - GetAccountAssetTransactions in ascending
-// and descending order.
-//
-// Node address and credentials are taken from environment variables:
-//   IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY
+/// @file TxOrderingExample.cpp
+/// @brief Pagination with ordering: sends 10 transfer transactions and
+/// then queries GetAccountAssetTransactions in ascending and descending
+/// order (ordering by created_time). Requires a running Iroha node.
+///
+/// Connection settings come from environment variables (see common.hpp):
+/// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
 
 #include <chrono>
 #include <iostream>
@@ -11,22 +12,82 @@
 
 #include "scenario.hpp"
 
+using iroha_example::Scenario;
+using iroha_example::makeTx;
+using iroha_example::sendTransactionAndPrintStatus;
 
-namespace {
-
-using namespace iroha_example;
-
-const std::string kUserAccount = "aa@test";
+const std::string kDomain = "test";
+const std::string kUserName = "aa";
+const std::string kUserAccount = combineAccountId(kUserName, kDomain);
 const std::string kUserPrivateKey =
         "1234567890123456789012345678901234567890123456789012345678901234";
-const std::string kAssetId = "lemurcoin#test";
+const std::string kAssetName = "lemurcoin";
+const std::string kAssetId = combineAssetId(kAssetName, kDomain);
+const uint32_t kPageSize = 3;
+const int kNumTransactions = 10;
+
+
+void createAccount(Scenario& scenario,
+                   const iroha::keypair_t& user_keypair);
+
+void createAsset(Scenario& scenario);
+
+void addCoinToAdmin(Scenario& scenario);
+
+void performTransferTransaction(
+        Scenario& scenario,
+        const std::string& description,
+        int amount);
+
+Ordering makeOrdering(Direction direction);
+
+void getAccountAssetTransactions(
+        Scenario& scenario,
+        const iroha::keypair_t& user_keypair,
+        Direction direction);
+
+void printParagraph(const std::string& text);
+
+
+int main()
+{
+    try {
+        const auto user_keypair =
+                generateKeypairFromPrivateKey(kUserPrivateKey);
+
+        Scenario scenario;
+        scenario.init();
+
+        printParagraph("Preparing");
+        createAccount(scenario, user_keypair);
+        createAsset(scenario);
+        addCoinToAdmin(scenario);
+
+        printParagraph("Creating transactions");
+        for (int i = 1; i <= kNumTransactions; ++i) {
+            performTransferTransaction(
+                        scenario, "tx " + std::to_string(i), i);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+
+        printParagraph("Querying as usual");
+        getAccountAssetTransactions(scenario, user_keypair, Direction::kAscending);
+
+        printParagraph("Querying as with reversed order");
+        getAccountAssetTransactions(scenario, user_keypair, Direction::kDescending);
+    } catch (const std::exception& e) {
+        std::cerr << "[E] " << e.what() << std::endl;
+        return 1;
+    }
+}
+
 
 void createAccount(Scenario& scenario,
                    const iroha::keypair_t& user_keypair)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
                      scenario.admin_keypair)
-            .createAccount("aa", "test",
+            .createAccount(kUserName, kDomain,
                            user_keypair.pubkey.to_hexstring())
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*scenario.client, tx);
@@ -36,7 +97,7 @@ void createAsset(Scenario& scenario)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
                      scenario.admin_keypair)
-            .createAsset("lemurcoin", "test", 2)
+            .createAsset(kAssetName, kDomain, 2)
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*scenario.client, tx);
 }
@@ -45,7 +106,7 @@ void addCoinToAdmin(Scenario& scenario)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
                      scenario.admin_keypair)
-            .addAssetQuantity(kAssetId, "10000", "")
+            .addAssetQuantity(kAssetId, "10000")
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*scenario.client, tx);
 }
@@ -86,7 +147,7 @@ void getAccountAssetTransactions(
                 kUserAccount,
                 kAssetId,
                 user_keypair,
-                3,
+                kPageSize,
                 makeOrdering(direction));
 
     if (response.has_error_response()) {
@@ -117,38 +178,4 @@ void getAccountAssetTransactions(
 void printParagraph(const std::string& text)
 {
     std::cout << "---------- " << text << " ----------" << std::endl;
-}
-}  // namespace
-
-
-int main()
-{
-    try {
-        const auto user_keypair =
-                generateKeypairFromPrivateKey(kUserPrivateKey);
-
-        Scenario scenario;
-        scenario.init();
-
-        printParagraph("Preparing");
-        createAccount(scenario, user_keypair);
-        createAsset(scenario);
-        addCoinToAdmin(scenario);
-
-        printParagraph("Creating transactions");
-        for (int i = 1; i <= 10; ++i) {
-            performTransferTransaction(
-                        scenario, "tx " + std::to_string(i), i);
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-
-        printParagraph("Querying as usual");
-        getAccountAssetTransactions(scenario, user_keypair, Direction::kAscending);
-
-        printParagraph("Querying as with reversed order");
-        getAccountAssetTransactions(scenario, user_keypair, Direction::kDescending);
-    } catch (const std::exception& e) {
-        std::cerr << "[E] " << e.what() << std::endl;
-        return 1;
-    }
 }
