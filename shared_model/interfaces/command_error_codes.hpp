@@ -141,6 +141,16 @@ namespace set_setting_value {
 // only universal codes are emitted (2 = updates only allowed in genesis block)
 }  // namespace set_setting_value
 
+/**
+ * Codes emitted only by the RocksDB command executor (test backend).
+ * The Postgres executor has no equivalent for these; they are kept
+ * here so both backends share one header.
+ */
+namespace rocksdb_backend {
+inline constexpr std::uint32_t kPermissionIsAlreadySet = 1007; ///< grant_permission: permission already granted
+inline constexpr std::uint32_t kPublicKeyIsEmpty = 1008;       ///< remove_peer: empty public key
+}  // namespace rocksdb_backend
+
 }  // namespace command_error
 
 #endif  // IROHA_SHARED_MODEL_COMMAND_ERROR_CODES_HPP
