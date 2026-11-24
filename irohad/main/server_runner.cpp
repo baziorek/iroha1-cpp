@@ -18,6 +18,15 @@ using namespace iroha::network;
 
 namespace {
 
+  /// How often the server pings a connection that has been idle for this
+  /// long. Keeps long-lived streams (tx status, block commits) and idle
+  /// client channels alive through NAT/LB idle timeouts.
+  /// See https://github.com/hyperledger-iroha/iroha/issues/1351
+  constexpr int kKeepaliveTimeMs = 60 * 1000;
+  /// How long to wait for a keepalive ping response before considering
+  /// the connection dead.
+  constexpr int kKeepaliveTimeoutMs = 20 * 1000;
+
   std::shared_ptr<grpc::ServerCredentials> createCredentials(
       const boost::optional<std::shared_ptr<const TlsCredentials>>
           &my_tls_creds) {
@@ -71,6 +80,13 @@ iroha::expected::Result<int, std::string> ServerRunner::run() {
 
   // enable retry policy
   builder.AddChannelArgument(GRPC_ARG_ENABLE_RETRIES, 1);
+
+  // keepalive pings keep idle connections alive; without them long-lived
+  // streams die silently on NAT/LB idle timeouts (issue #1351)
+  builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS, kKeepaliveTimeMs);
+  builder.AddChannelArgument(
+      GRPC_ARG_KEEPALIVE_TIMEOUT_MS, kKeepaliveTimeoutMs);
+  builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1);
 
   server_instance_ = builder.BuildAndStart();
   server_instance_cv_.notify_one();
