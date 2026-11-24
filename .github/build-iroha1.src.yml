@@ -699,8 +699,9 @@ jobs:
 
   ## Build vcpkg dependencies once up-front; the Debug/Release build jobs
   ## then restore the shared cache instead of compiling ~100 ports twice.
-  ## Cache key matches the gcc-14 legs (vcpkg deps are built inside the
-  ## same container toolchain regardless of CMAKE_BUILD_TYPE).
+  ## Cache key matches the gcc-14 legs; CC/CXX must match them too, otherwise
+  ## vcpkg ports are compiled by the container's default compiler and LTO
+  ## objects mismatch at link time (gcc-13 objects vs g++-14 linker).
   vcpkg-deps:
     needs:
       - Docker-iroha-builder
@@ -726,6 +727,9 @@ jobs:
           key:          ${{runner.os}}-vcpkg-gcc-14.${{ hashFiles('vcpkg/**') }}
           restore-keys: ${{runner.os}}-vcpkg-gcc-14.
       - name: Build iroha vcpkg dependancies
+        env:
+          CC:  gcc-14
+          CXX: g++-14
         run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
 
   ## Package release binaries (irohad, iroha-cli) as AppImages.
