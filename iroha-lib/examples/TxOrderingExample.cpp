@@ -18,11 +18,11 @@ using iroha_example::sendTransactionAndPrintStatus;
 
 const std::string kDomain = "test";
 const std::string kUserName = "aa";
-const std::string kUserAccount = kUserName + "@" + kDomain;
+const std::string kUserAccount = combineAccountId(kUserName, kDomain);
 const std::string kUserPrivateKey =
         "1234567890123456789012345678901234567890123456789012345678901234";
 const std::string kAssetName = "lemurcoin";
-const std::string kAssetId = kAssetName + "#" + kDomain;
+const std::string kAssetId = combineAssetId(kAssetName, kDomain);
 const uint32_t kPageSize = 3;
 const int kNumTransactions = 10;
 
@@ -106,7 +106,7 @@ void addCoinToAdmin(Scenario& scenario)
 {
     auto tx = makeTx(scenario.config.admin_account_id,
                      scenario.admin_keypair)
-            .addAssetQuantity(kAssetId, "10000", "")
+            .addAssetQuantity(kAssetId, "10000")
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*scenario.client, tx);
 }

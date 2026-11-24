@@ -12,6 +12,18 @@ namespace iroha_example {
 
 using namespace iroha_lib;
 
+/// Optional parameters of a GetAccountTransactions query; unset fields
+/// mean "no bound" on that side of the range.
+struct AccountTransactionsParams {
+    uint32_t page_size = 10;
+    std::optional<std::string> first_tx_hash;
+    std::optional<google::protobuf::Timestamp> first_tx_time;
+    std::optional<google::protobuf::Timestamp> last_tx_time;
+    std::optional<uint64_t> first_tx_height;
+    std::optional<uint64_t> last_tx_height;
+    std::optional<Ordering> ordering;
+};
+
 // Shared scenario ported from iroha-python tx-example.py /
 // query-transactions.py: domain+asset creation, account creation,
 // transfers, permissions and account detail queries.
@@ -26,12 +38,12 @@ struct Scenario {
 
     std::string userAccountId() const
     {
-        return user_account_name + "@" + user_domain;
+        return combineAccountId(user_account_name, user_domain);
     }
 
     std::string assetId() const
     {
-        return asset_short_id + "#" + user_domain;
+        return combineAssetId(asset_short_id, user_domain);
     }
 
     void init()
@@ -60,7 +72,7 @@ struct Scenario {
             const std::string& amount = "1000.00")
     {
         auto tx = makeTx(config.admin_account_id, admin_keypair)
-                .addAssetQuantity(asset, amount, "")
+                .addAssetQuantity(asset, amount)
                 .signAndAddSignature();
         const auto created_time =
                 tx.payload().reduced_payload().created_time();
@@ -133,7 +145,7 @@ struct Scenario {
             const std::string& amount)
     {
         auto tx = makeTx(config.admin_account_id, admin_keypair)
-                .addAssetQuantity(asset_id, amount, "")
+                .addAssetQuantity(asset_id, amount)
                 .signAndAddSignature();
         sendTransactionAndPrintStatus(*client, tx);
     }
@@ -186,16 +198,26 @@ struct Scenario {
             const std::optional<uint64_t> last_tx_height = {},
             const std::optional<Ordering>& ordering = {})
     {
+        return getAccountTransactions(account_id,
+                AccountTransactionsParams{
+                    page_size, first_tx_hash, first_tx_time, last_tx_time,
+                    first_tx_height, last_tx_height, ordering});
+    }
+
+    QueryResponse getAccountTransactions(
+            const std::string& account_id,
+            const AccountTransactionsParams& params)
+    {
         const auto query = iroha_lib::Query(
                     admin_keypair, nextQueryCounter(), config.admin_account_id)
                 .getAccountTransactions(account_id,
-                                        first_tx_hash,
-                                        first_tx_time,
-                                        last_tx_time,
-                                        first_tx_height,
-                                        last_tx_height,
-                                        page_size,
-                                        ordering)
+                                        params.first_tx_hash,
+                                        params.first_tx_time,
+                                        params.last_tx_time,
+                                        params.first_tx_height,
+                                        params.last_tx_height,
+                                        params.page_size,
+                                        params.ordering)
                 .signAndAddSignature();
         return client->send(query);
     }

@@ -101,7 +101,7 @@ void run(const std::string& adminAccountName, const std::string& key_path,
                 adminAccountName,
                 key_path,
                 assetFullName,
-                "100");
+                /*assetAmount=*/"100");
 
     sendTransaction(tx2CreateDomainAndAsset, peer_ip, torii_port, tls);
     sendTransaction(tx2AddAssetQuantity, peer_ip, torii_port, tls);
@@ -135,7 +135,7 @@ iroha::protocol::Transaction generateTransactionWhichCreatesDomainAndAsset(
             .createAsset(
                 asset_name,
                 domain_id,
-                0)
+                /*precision=*/0)
             .signAndAddSignature();
 }
 
@@ -156,7 +156,7 @@ iroha::protocol::Transaction generateTransactionWhichAddsAssetQuantiti(
     return iroha_lib::Tx(
                 account_name,
                 keypair)
-            .addAssetQuantity(assetIdWithDomain, assetAmount, "")
+            .addAssetQuantity(assetIdWithDomain, assetAmount)
             .signAndAddSignature();
 }
 

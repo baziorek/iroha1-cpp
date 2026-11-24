@@ -12,9 +12,9 @@
 ///
 ///   ADMIN                          ALICE (quorum 2)             BOB (quorum 2)
 ///     |                                |                            |
-///     |-- create assets/accounts ------>|                            |
-///     |   fund alice: bitcoin           |                            |
-///     |   fund bob:   dogecoin          |                            |
+///     |-- create assets/accounts ----->|                            |
+///     |   fund alice: bitcoin          |                            |
+///     |   fund bob:   dogecoin         |                            |
 ///     |                                |                            |
 ///     |                                |-- batch #1 --------------->|
 ///     |                                |   tx1: alice -> bob        |
@@ -30,12 +30,12 @@
 ///     |                                |        cleared             |
 ///     |                                |   tx2: signed by bob       |
 ///     |                                |                            |
-///     |<=========== atomic commit: BOTH txs succeed, or NEITHER ======|
+///     |<=========== atomic commit: BOTH txs succeed, or NEITHER ====|
 ///     |                                |                            |
 ///     |                                |-- batch #3 (same again,    |
 ///     |                                |   but tx2 signed with      |
 ///     |                                |   ALICE's keys -> invalid) |
-///     |<=========== batch rejected, pending txs cleared =============|
+///     |<=========== batch rejected, pending txs cleared ============|
 
 #include <iostream>
 #include <stdexcept>
@@ -55,12 +55,19 @@ std::vector<iroha::keypair_t> bob_keys;
 const std::string kDomain = "test";
 const std::string kAliceName = "alice";
 const std::string kBobName = "bob";
-const std::string kAliceAccount = kAliceName + "@" + kDomain;
-const std::string kBobAccount = kBobName + "@" + kDomain;
+const std::string kAliceAccount = combineAccountId(kAliceName, kDomain);
+const std::string kBobAccount = combineAccountId(kBobName, kDomain);
 const std::string kBitcoinName = "bitcoin";
 const std::string kDogeName = "dogecoin";
-const std::string kBitcoin = kBitcoinName + "#" + kDomain;
-const std::string kDoge = kDogeName + "#" + kDomain;
+const std::string kBitcoin = combineAssetId(kBitcoinName, kDomain);
+const std::string kDoge = combineAssetId(kDogeName, kDomain);
+
+// initial amounts minted by admin and transferred to alice/bob
+const std::string kBitcoinTotal = "100000";
+const std::string kDogeTotal = "20000";
+// amounts swapped in the exchange batches below
+const std::string kExchangeBitcoin = "1";
+const std::string kExchangeDoge = "2";
 
 // test-only keys, same as in the Python example
 const std::string kAlicePrivateKey1 =
@@ -139,18 +146,18 @@ int main()
 void prepareUsers()
 {
     auto tx = makeTx(config.admin_account_id, admin_keypair)
-            .createAsset(kBitcoinName, kDomain, 2)
-            .createAsset(kDogeName, kDomain, 2)
-            .addAssetQuantity(kBitcoin, "100000", "")
-            .addAssetQuantity(kDoge, "20000", "")
+            .createAsset(kBitcoinName, kDomain, /*precision=*/2)
+            .createAsset(kDogeName, kDomain, /*precision=*/2)
+            .addAssetQuantity(kBitcoin, kBitcoinTotal)
+            .addAssetQuantity(kDoge, kDogeTotal)
             .createAccount(kAliceName, kDomain,
                            alice_keys[0].pubkey.to_hexstring())
             .createAccount(kBobName, kDomain,
                            bob_keys[0].pubkey.to_hexstring())
             .transferAsset(config.admin_account_id, kAliceAccount, kBitcoin,
-                           "init top up", "100000")
+                           /*description=*/"init top up", kBitcoinTotal)
             .transferAsset(config.admin_account_id, kBobAccount, kDoge,
-                           "init doge", "20000")
+                           /*description=*/"init doge", kDogeTotal)
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*client, tx);
 }
@@ -200,10 +207,10 @@ void aliceCreatesExchangeBatch()
     // unsigned transactions - signatures are added after the batch meta
     iroha_lib::Tx alice_tx_builder = makeTx(kAliceAccount, alice_keys[0], 2);
     alice_tx_builder.transferAsset(kAliceAccount, kBobAccount, kBitcoin,
-                                   "", "1");
+                                   "", kExchangeBitcoin);
     iroha_lib::Tx bob_tx_builder = makeTx(kBobAccount, bob_keys[0]);
     bob_tx_builder.transferAsset(kBobAccount, kAliceAccount, kDoge,
-                                 "", "2");
+                                 "", kExchangeDoge);
 
     std::vector<Transaction> transactions{
         alice_tx_builder.getTransaction(),

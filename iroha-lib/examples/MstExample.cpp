@@ -8,6 +8,27 @@
 ///
 /// Connection settings come from environment variables (see common.hpp):
 /// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
+///
+/// The multi-signature flow looks like this:
+///
+///   ADMIN                    GROUP account (quorum 2)      RECEIVER
+///     |                     signatories: admin, alice, bob      |
+///     |-- create users ------>|                                 |
+///     |-- mint coin, fund ---->| 42.00 coin                    |
+///     |                        |                                |
+///     |    ALICE creates tx: group -> receiver, 14.00 coin      |
+///     |                        |-- tx (1 sig) ----------------->|
+///     |                        |   status: PENDING (needs 2nd)  |
+///     |    BOB fetches pending txs, adds his signature          |
+///     |                        |-- tx (2 sigs) ---------------->|
+///     |                        |   status: COMMITTED            |
+///     |                        |   receiver: 14.00, group: 28.00|
+///     |                        |                                |
+///     |    BOB creates tx: group -> receiver, 7.00 coin         |
+///     |                        |-- tx (1 sig) ----------------->|
+///     |    ALICE countersigns  |-- tx (2 sigs) ---------------->|
+///     |                        |   status: COMMITTED            |
+///     |                        |   receiver: 21.00, group: 21.00|
 
 #include <iostream>
 #include <stdexcept>
@@ -28,12 +49,10 @@ const std::string kGroupName = "group";
 const std::string kAliceName = "alice";
 const std::string kBobName = "bob";
 const std::string kReceiverName = "receiver";
-const std::string kGroupAccount = kGroupName + "@" + kDomain;
-const std::string kAliceAccount = kAliceName + "@" + kDomain;
-const std::string kBobAccount = kBobName + "@" + kDomain;
-const std::string kReceiverAccount = kReceiverName + "@" + kDomain;
+const std::string kGroupAccount = combineAccountId(kGroupName, kDomain);
+const std::string kReceiverAccount = combineAccountId(kReceiverName, kDomain);
 const std::string kCoinName = "coin";
-const std::string kCoin = kCoinName + "#" + kDomain;
+const std::string kCoin = combineAssetId(kCoinName, kDomain);
 
 // test-only keys, same as in the Python example
 const std::string kGroupPrivateKey =
@@ -164,12 +183,25 @@ void setupGroupAccount()
 
 void mintAsset()
 {
-    // the Python example assumes coin#test already exists in the
-    // development environment; here we create it explicitly so the
-    // example also works on a fresh chain
+    // coin#test may already exist (e.g. in the development genesis);
+    // create it only when missing so the example works on any chain
+    const auto query = iroha_lib::Query(
+                admin_keypair, nextQueryCounter(), config.admin_account_id)
+            .getAssetInfo(config.admin_account_id, kCoin)
+            .signAndAddSignature();
+    const auto response = client->send(query);
+    if (response.has_asset_response()) {
+        std::cout << kCoin << " already exists, skipping creation"
+                  << std::endl;
+    } else {
+        auto tx = makeTx(config.admin_account_id, admin_keypair)
+                .createAsset(kCoinName, kDomain, 2)
+                .signAndAddSignature();
+        sendTransactionAndPrintStatus(*client, tx);
+    }
+
     auto tx = makeTx(config.admin_account_id, admin_keypair)
-            .createAsset(kCoinName, kDomain, 2)
-            .addAssetQuantity(kCoin, "1000.00", "")
+            .addAssetQuantity(kCoin, "1000.00")
             .signAndAddSignature();
     sendTransactionAndPrintStatus(*client, tx);
 }

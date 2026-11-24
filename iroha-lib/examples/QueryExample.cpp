@@ -11,6 +11,7 @@
 #include "scenario.hpp"
 
 
+using iroha_example::AccountTransactionsParams;
 using iroha_example::Scenario;
 using iroha_example::timestampFromMillis;
 using iroha_example::txSummary;
@@ -52,26 +53,24 @@ int main()
         // query for txs in measured time range (+-1ms around created_time)
         std::cout << "--- transactions from time interval query ---"
                   << std::endl;
+        AccountTransactionsParams time_params;
+        time_params.page_size = kPageSize;
+        time_params.first_tx_time = timestampFromMillis(created_time - 1);
+        time_params.last_tx_time = timestampFromMillis(created_time + 1);
         printTransactionsPage(
                     scenario.getAccountTransactions(
-                        scenario.config.admin_account_id,
-                        kPageSize,
-                        {},
-                        timestampFromMillis(created_time - 1),
-                        timestampFromMillis(created_time + 1)));
+                        scenario.config.admin_account_id, time_params));
 
         // query for txs in given height range
         std::cout << "--- transactions from height range query ---"
                   << std::endl;
+        AccountTransactionsParams height_params;
+        height_params.page_size = kPageSize;
+        height_params.first_tx_height = 2;
+        height_params.last_tx_height = 3;
         printTransactionsPage(
                     scenario.getAccountTransactions(
-                        scenario.config.admin_account_id,
-                        kPageSize,
-                        {},
-                        {},
-                        {},
-                        2,
-                        3));
+                        scenario.config.admin_account_id, height_params));
 
         std::cout << "done" << std::endl;
     } catch (const std::exception& e) {

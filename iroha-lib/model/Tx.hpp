@@ -35,7 +35,7 @@ public:
     Tx& addAssetQuantity(
             const std::string& asset_id,
             const std::string& amount,
-            const std::string& title);
+            const std::string& title = "");
     Tx& addPeer(
             const std::string& address,
             const std::string& pubkey,
@@ -85,7 +85,7 @@ public:
     Tx& subtractAssetQuantity(
             const std::string& asset_id,
             const std::string& amount,
-            const std::string& title);
+            const std::string& title = "");
     Tx& transferAsset(
             const std::string& account_id,
             const std::string& dest_account_id,

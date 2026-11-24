@@ -22,6 +22,11 @@
 
 using namespace iroha_example;
 
+// hash of a transaction that does not exist; only used to demonstrate
+// the GetTxStatus command over the TLS channel
+const std::string kUnknownTxHash =
+        "0000000000000000000000000000000000000000000000000000000000000000";
+
 void printAccount(const QueryResponse& response,
                   const std::string& account_id);
 
@@ -53,7 +58,7 @@ int main()
         // command service over the same TLS channel
         ToriiResponse status;
         const auto status_status = client->getTxStatus(
-                    "0000000000000000000000000000000000000000000000000000000000000000",
+                    kUnknownTxHash,
                     &status);
         if (not status_status.ok()) {
             throw std::runtime_error(
@@ -64,7 +69,6 @@ int main()
                   << TxStatus_Name(status.tx_status()) << std::endl;
 
         std::cout << "TLS example finished successfully" << std::endl;
-        return 0;
     } catch (const std::exception& e) {
         std::cerr << "TLS example failed: " << e.what() << std::endl;
         return 1;
