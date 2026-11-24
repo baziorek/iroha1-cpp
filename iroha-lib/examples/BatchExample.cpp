@@ -7,6 +7,35 @@
 ///
 /// Connection settings come from environment variables (see common.hpp):
 /// IROHA_HOST_ADDR, IROHA_PORT, ADMIN_ACCOUNT_ID, ADMIN_PRIVATE_KEY.
+///
+/// The MST exchange looks like this (all steps go over one gRPC client):
+///
+///   ADMIN                          ALICE (quorum 2)             BOB (quorum 2)
+///     |                                |                            |
+///     |-- create assets/accounts ------>|                            |
+///     |   fund alice: bitcoin           |                            |
+///     |   fund bob:   dogecoin          |                            |
+///     |                                |                            |
+///     |                                |-- batch #1 --------------->|
+///     |                                |   tx1: alice -> bob        |
+///     |                                |        1 bitcoin           |
+///     |                                |   tx2: bob   -> alice      |
+///     |                                |        2 dogecoin          |
+///     |                                |   (signed by alice only,   |
+///     |                                |    bob's tx is unsigned)   |
+///     |                                |<----- pending txs ---------|
+///     |                                |                            |
+///     |                                |-- batch #2 --------------->|
+///     |                                |   tx1: alice's sigs        |
+///     |                                |        cleared             |
+///     |                                |   tx2: signed by bob       |
+///     |                                |                            |
+///     |<=========== atomic commit: BOTH txs succeed, or NEITHER ======|
+///     |                                |                            |
+///     |                                |-- batch #3 (same again,    |
+///     |                                |   but tx2 signed with      |
+///     |                                |   ALICE's keys -> invalid) |
+///     |<=========== batch rejected, pending txs cleared =============|
 
 #include <iostream>
 #include <stdexcept>
