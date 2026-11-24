@@ -108,15 +108,9 @@ Environment-specific parameters
   (in minutes).
   The default value is 1440.
 
-- ``proposal_creation_timeout`` (previously - ``max_rounds_delay``)\* is an optional parameter specifying the maximum delay
-  between two consensus rounds (in milliseconds).
+- ``proposal_creation_timeout`` (previously named ``max_rounds_delay``)\* is an optional parameter specifying the maximum time (in milliseconds) the ordering service waits while assembling a proposal — i.e. collecting transactions up to ``max_proposal_size`` — before answering a proposal request.
   The default value is 3000.
-  When Iroha is idle, it gradually increases the delay to reduce CPU, network
-  and logging load.
-  However too long delay may be unwanted when first transactions arrive after a
-  long idle time.
-  This parameter allows users to find an optimal value in a tradeoff between
-  resource consumption and the delay of getting back to work after an idle
+  A second, derived timeout — the network deadline for ``RequestProposal`` RPCs between peers — is computed automatically as ``2 × proposal_creation_timeout`` and is not separately configurable.
 
     **This parameter affects resource consumption.** When you can expect Iroha to stay idle for longer periods of time and would like to save some resources, increase this value - it will make Iroha check for new transactions more rarely. NB: the first transaction after idle period might be a little delayed due to that. Second and further blocks will be processed quicker.
 

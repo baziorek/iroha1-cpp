@@ -81,6 +81,14 @@ Peer
 A node that is a part of Iroha network.
 It participates in `consensus <#consensus>`_ process.
 
+A peer can also be registered as a **syncing peer** — a node that only
+follows the ledger (e.g. for backup or audit purposes) without taking
+part in consensus voting. Syncing peers are added with the regular
+`AddPeer <../develop/api/commands.html#add-peer>`__ command using a peer
+record marked as syncing; the same ``can_add_peer`` permission applies.
+They receive consensus state directly so they can catch up, but they do
+not propose blocks or vote.
+
 Permission
 ==========
 
@@ -176,16 +184,41 @@ In any of these modes, the set of transaction statuses is the same:
 Transaction Status Set
 ^^^^^^^^^^^^^^^^^^^^^^
 
- - NOT_RECEIVED: requested peer does not have this transaction.
- - ENOUGH_SIGNATURES_COLLECTED: this is a multisignature transaction which has enough signatures and is going to be validated by the peer.
- - MST_PENDING: this transaction is a multisignature transaction which has to be signed by more keys (as requested in quorum field).
- - MST_EXPIRED: this transaction is a multisignature transaction which is no longer valid and is going to be deleted by this peer.
- - STATELESS_VALIDATION_FAILED: the transaction was formed with some fields, not meeting stateless validation constraints. This status is returned to a client, who formed transaction, right after the transaction was sent. It would also return the reason — what rule was violated.
- - STATELESS_VALIDATION_SUCCESS: the transaction has successfully passed stateless validation. This status is returned to a client, who formed transaction, right after the transaction was sent.
- - STATEFUL_VALIDATION_FAILED: the transaction has commands, which violate validation rules, checking state of the chain (e.g. asset balance, account permissions, etc.). It would also return the reason — what rule was violated.
- - STATEFUL_VALIDATION_SUCCESS: the transaction has successfully passed stateful validation.
- - COMMITTED: the transaction is the part of a block, which gained enough votes and is in the block store at the moment.
- - REJECTED: this exact transaction was rejected by the peer during stateful validation step in previous consensus rounds. Rejected transactions' hashes are stored in `block <#block>`__ store. This is required in order to prevent `replay attacks <https://en.wikipedia.org/wiki/Replay_attack>`__.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Status
+     - Meaning
+   * - ``NOT_RECEIVED``
+     - Requested peer does not have this transaction.
+   * - ``ENOUGH_SIGNATURES_COLLECTED``
+     - Multisignature transaction has enough signatures and is going to
+       be validated.
+   * - ``MST_PENDING``
+     - Multisignature transaction still needs more signatures to reach
+       the quorum.
+   * - ``MST_EXPIRED``
+     - Multisignature transaction is no longer valid and is going to be
+       deleted.
+   * - ``STATELESS_VALIDATION_FAILED``
+     - Transaction is malformed or signatures are invalid; the reason is
+       returned.
+   * - ``STATELESS_VALIDATION_SUCCESS``
+     - Transaction passed stateless validation; returned right after it
+       was sent.
+   * - ``STATEFUL_VALIDATION_FAILED``
+     - A command violates state-dependent rules (balance, permissions,
+       etc.); the reason is returned.
+   * - ``STATEFUL_VALIDATION_SUCCESS``
+     - Transaction passed stateful validation.
+   * - ``COMMITTED``
+     - Transaction is part of a block that gained enough votes and is in
+       the block store.
+   * - ``REJECTED``
+     - Transaction was rejected during stateful validation in a previous
+       consensus round; its hash is stored in the `block <#block>`__
+       store to prevent replay attacks.
 
 Pending Transactions
 ^^^^^^^^^^^^^^^^^^^^
