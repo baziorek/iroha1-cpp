@@ -13,3 +13,4 @@ To learn, what Iroha is made of, please check out "What's inside Iroha?"
 
       core_concepts.rst
       architecture.rst
+      yac.rst

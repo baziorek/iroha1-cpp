@@ -67,7 +67,7 @@ Solving that issue -- known as the consensus problem -- is important in distribu
 
 An algorithm to achieve agreement on a block among peers in the network. By having it in the system, reliability is increased.
 
-For consensus as Iroha's component, please check `this link <architecture.html#block-consensus-yac>`_.
+For consensus as Iroha's component, please check `this link <architecture.html#block-consensus-yac>`_; for a detailed description of the YAC protocol see `YAC documentation <yac.html>`_.
 
 Domain
 ======
