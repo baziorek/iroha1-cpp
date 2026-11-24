@@ -216,6 +216,13 @@ Atomic Batch
 
 All the transactions within an atomic batch should pass `stateful validation`_ for the batch to be applied to a ledger.
 
+When an atomic batch fails stateful validation, every transaction in the batch receives its own status updates, so the failing transaction can be identified from the status stream:
+
+- The transaction containing the failing command receives ``STATEFUL_VALIDATION_FAILED`` with a non-empty ``err_or_cmd_name`` (the name of the failed command), a command-specific ``error_code`` (see `commands section <../develop/api/commands.html>`__ for the meaning of codes), and ``failed_cmd_index`` set to the position of the failed command **within that transaction** (not within the batch).
+- Every other transaction in the batch receives ``STATEFUL_VALIDATION_FAILED`` with an empty ``err_or_cmd_name``, ``error_code`` ``1`` and ``failed_cmd_index`` equal to ``18446744073709551615`` (``SIZE_MAX``, meaning "no specific command"), followed by ``REJECTED`` once the batch is committed to a block.
+
+So to find out which transaction broke the batch, look for the status update whose ``err_or_cmd_name`` is not empty; ``failed_cmd_index`` then tells which command inside that transaction failed.
+
 Ordered Batch
 -------------
 

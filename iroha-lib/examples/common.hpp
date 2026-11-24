@@ -143,6 +143,8 @@ inline void printTxStatus(const ToriiResponse& status, int index)
 {
     std::cout << index << ": status_name=" << TxStatus_Name(status.tx_status())
               << ", status_code=" << status.tx_status()
+              << ", err_or_cmd_name=\"" << status.err_or_cmd_name() << "\""
+              << ", failed_cmd_index=" << status.failed_cmd_index()
               << ", error_code=" << status.error_code() << std::endl;
 }
 
