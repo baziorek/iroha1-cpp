@@ -34,7 +34,7 @@ cd iroha1-cpp
 cmake -S iroha-lib -B build-iroha-lib \
     -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake \
     -DCMAKE_BUILD_TYPE=Release
-cmake --build build-iroha-lib --target iroha_lib_model
+cmake --build build-iroha-lib --target iroha_lib
 ```
 
 ### In-tree build

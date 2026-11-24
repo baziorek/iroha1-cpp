@@ -1,7 +1,7 @@
 # Copyright Soramitsu Co., Ltd. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-add_library(iroha_lib_model
+add_library(iroha_lib
     BlocksQuery.hpp
     BlocksQuery.cpp
     Query.hpp
@@ -21,7 +21,7 @@ add_library(iroha_lib_model
     utils/genesis.hpp
     utils/genesis.cpp
     )
-target_link_libraries(iroha_lib_model
+target_link_libraries(iroha_lib
     grpc_client
     pb_model_converters
     json_model_converters
@@ -29,6 +29,6 @@ target_link_libraries(iroha_lib_model
     logger_manager
     shared_model_proto_backend
     )
-target_include_directories(iroha_lib_model PUBLIC
+target_include_directories(iroha_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     )
