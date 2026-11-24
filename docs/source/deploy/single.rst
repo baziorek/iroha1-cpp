@@ -152,4 +152,16 @@ If they are met, you can move forward with the following command:
     -e KEY='node0' \
     # Docker network name
     --network=iroha-network \
-    hyperledger/iroha:latest
+    hyperledger/iroha:1.6.0
+
+.. note:: ``hyperledger/iroha:1.6.0`` is the last official upstream
+  Iroha 1 image — do not use ``:latest`` (a stale 2022 build).
+
+.. note:: On the **first start** Iroha rebuilds the WSV from the
+  blockstore, which is memory-hungry — on large ledgers this can
+  OOM-kill the container (see
+  `issue #1833 <https://github.com/hyperledger-iroha/iroha/issues/1833>`_).
+  Docker containers have no memory limit by default, but on
+  **Docker Desktop** (macOS/Windows) the whole VM has a memory cap —
+  raise it in *Settings → Resources*, or pass ``--memory`` to
+  ``docker run`` on Linux hosts.
