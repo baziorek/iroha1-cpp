@@ -3,142 +3,160 @@
 #include <string>
 #include <unordered_map>
 
+#include "interfaces/command_error_codes.hpp"
 
 /**
  * Human-readable descriptions of command error codes.
- * Port of examples/utilities/errorCodes2Hr.py from iroha-python.
- * Result codes are translated for text from documentation:
- * https://iroha.readthedocs.io/en/develop/develop/api/commands.html
+ * Codes are defined in shared_model/interfaces/command_error_codes.hpp
+ * (single source of truth shared with the command executor);
+ * command names match the names reported by the node in
+ * ToriiResponse::err_or_cmd_name.
  */
-
-namespace command_error {
-
-/// Error codes that have the same meaning for every command.
-/// Codes >= 3 are command-specific; see errorCodesPerCommand().
-inline constexpr uint32_t kOk = 0;
-inline constexpr uint32_t kInternalError = 1;
-inline constexpr uint32_t kNoPermissions = 2;
-
-}  // namespace command_error
 
 inline const std::unordered_map<std::string, std::unordered_map<uint32_t, std::string>>& errorCodesPerCommand()
 {
     static const std::unordered_map<std::string, std::unordered_map<uint32_t, std::string>> codes{
         {"CreateDomain", {
-            {0, "OK"},
-            {1, "Could not create role (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "Domain already exists"},
-            {4, "No default role found"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not create domain (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::create_domain::kAlreadyExists, "Domain already exists"},
+            {command_error::create_domain::kNoDefaultRole, "No default role found"},
         }},
         {"CreateAsset", {
-            {0, "OK"},
-            {1, "Could not create asset"},
-            {2, "No such permissions"},
-            {3, "No such domain"},
-            {4, "Asset already exists"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not create asset"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::create_asset::kNoSuchDomain, "No such domain"},
+            {command_error::create_asset::kAlreadyExists, "Asset already exists"},
         }},
         {"AddAssetQuantity", {
-            {0, "OK"},
-            {1, "Could not add asset quantity/transfer asset"},
-            {2, "No such permissions"},
-            {3, "No such asset/No such source account"},
-            {4, "Summation overflow (Resulting asset quantity is greater than the system can support)/No such destination account"},
-            {5, "No such asset found"},
-            {6, "Not enough balance"},
-            {7, "Too much asset to transfer"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not add asset quantity (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::add_asset_quantity::kNoSuchAsset, "No such asset or insufficient precision"},
+            {command_error::add_asset_quantity::kQuantityOverflow, "Summation overflow (Resulting asset quantity is greater than the system can support)"},
+        }},
+        {"SubtractAssetQuantity", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not subtract asset quantity (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::subtract_asset_quantity::kNoSuchAsset, "No such asset"},
+            {command_error::subtract_asset_quantity::kNegativeQuantity, "Asset quantity cannot be negative"},
         }},
         {"CreateAccount", {
-            {0, "OK"},
-            {1, "Could not create account"},
-            {2, "No such permissions"},
-            {3, "No such domain"},
-            {4, "Account already exists"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not create account"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::create_account::kNoSuchDomain, "No such domain"},
+            {command_error::create_account::kAlreadyExists, "Account already exists"},
         }},
         {"TransferAsset", {
-            {0, "OK"},
-            {1, "Could not transfer asset (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such source account"},
-            {4, "No such destination account"},
-            {5, "No such asset found"},
-            {6, "Not enough balance"},
-            {7, "Too much asset to transfer"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not transfer asset (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::transfer_asset::kNoSuchSourceAccount, "No such source account"},
+            {command_error::transfer_asset::kNoSuchDestinationAccount, "No such destination account"},
+            {command_error::transfer_asset::kNoSuchAsset, "No such asset found"},
+            {command_error::transfer_asset::kNotEnoughBalance, "Not enough balance"},
+            {command_error::transfer_asset::kQuantityOverflow, "Too much asset to transfer"},
+            {command_error::transfer_asset::kDescriptionTooLong, "Description is too long"},
         }},
         {"GrantPermission", {
-            {0, "OK"},
-            {1, "Could not grant permission (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not grant permission (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::grant_permission::kNoSuchAccount, "No such account"},
+        }},
+        {"RevokePermission", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not revoke permission (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::revoke_permission::kNoSuchAccount, "No such account"},
         }},
         {"SetAccountDetail", {
-            {0, "OK"},
-            {1, "Could not set account detail (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not set account detail (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::set_account_detail::kNoSuchAccount, "No such account"},
         }},
         {"CompareAndSetAccountDetail", {
-            {0, "OK"},
-            {1, "Could not compare and set account detail (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
-            {4, "No match values"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not compare and set account detail (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::compare_and_set_account_detail::kNoSuchAccount, "No such account"},
+            {command_error::compare_and_set_account_detail::kNoMatchValue, "No match values"},
         }},
         {"CreateRole", {
-            {0, "OK"},
-            {1, "Could not create role (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "Role already exists"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not create role (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::create_role::kAlreadyExists, "Role already exists"},
         }},
         {"AppendRole", {
-            {0, "OK"},
-            {1, "Could not append role (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
-            {4, "No such role"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not append role (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::append_role::kNoSuchAccount, "No such account"},
+            {command_error::append_role::kNoSuchRole, "No such role"},
+        }},
+        {"DetachRole", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not detach role (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::detach_role::kNoSuchAccount, "No such account"},
+            {command_error::detach_role::kNoSuchRole, "Role is not attached to the account"},
+            {command_error::detach_role::kRoleNotFound, "No such role"},
         }},
         {"AddPeer", {
-            {0, "OK"},
-            {1, "Could not add peer (Internal error happened)"},
-            {2, "No such permissions"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not add peer (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
         }},
         {"RemovePeer", {
-            {0, "OK"},
-            {1, "Could not remove peer (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such peer"},
-            {4, "Network size does not allow to remove peer (After removing the peer the network would be empty)"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not remove peer (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::remove_peer::kNoSuchPeer, "No such peer"},
+            {command_error::remove_peer::kTooFewPeers, "Network size does not allow to remove peer (After removing the peer the network would be empty)"},
         }},
         {"AddSignatory", {
-            {0, "OK"},
-            {1, "Could not add signatory (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
-            {4, "Signatory already exists"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not add signatory (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::add_signatory::kNoSuchAccount, "No such account"},
+            {command_error::add_signatory::kAlreadyExists, "Signatory already exists"},
         }},
         {"RemoveSignatory", {
-            {0, "OK"},
-            {1, "Could not remove signatory (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
-            {4, "No such signatory"},
-            {5, "Quorum does not allow to remove signatory (After removing the signatory account will be left with less signatories, than its quorum allows)"},
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not remove signatory (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::remove_signatory::kNoSuchAccount, "No such account"},
+            {command_error::remove_signatory::kNoSuchSignatory, "No such signatory"},
+            {command_error::remove_signatory::kQuorumTooHigh, "Quorum does not allow to remove signatory (After removing the signatory account will be left with less signatories, than its quorum allows)"},
         }},
-        {"SetAccountQuorum", {
-            {0, "OK"},
-            {1, "Could not set quorum (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "No such account"},
-            {4, "No signatories on account (Add some signatories before setting quorum)"},
-            {5, "New quorum is incorrect (New quorum size is less than account's signatories amount)"},
+        {"SetQuorum", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not set quorum (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::set_quorum::kNoSuchAccount, "No such account"},
+            {command_error::set_quorum::kNoSignatories, "No signatories on account (Add some signatories before setting quorum)"},
+            {command_error::set_quorum::kInvalidQuorum, "New quorum is incorrect (New quorum size is less than account's signatories amount)"},
         }},
-        {"GetAccountAssetTransactions", {
-            {0, "OK"},
-            {1, "Could not get account transactions (Internal error happened)"},
-            {2, "No such permissions"},
-            {3, "Invalid signatures"},
-            {4, "Invalid pagination hash"},
-            {5, "Invalid account id"},
+        {"CallEngine", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not call engine (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions"},
+            {command_error::call_engine::kEngineError, "Contract engine call failed"},
+        }},
+        {"SetSettingValue", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not set setting value (Internal error happened)"},
+            {command_error::kNoPermissions, "No such permissions (SetSettingValue is only allowed in genesis block)"},
+        }},
+        {"StoreEngineReceiptsResponse", {
+            {command_error::kOk, "OK"},
+            {command_error::kInternalError, "Could not store engine response (Internal error happened)"},
         }},
     };
     return codes;

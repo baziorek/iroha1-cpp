@@ -22,6 +22,7 @@
 #include "ametsuchi/impl/soci_utils.hpp"
 #include "ametsuchi/setting_query.hpp"
 #include "ametsuchi/vm_caller.hpp"
+#include "interfaces/command_error_codes.hpp"
 #include "interfaces/commands/add_asset_quantity.hpp"
 #include "interfaces/commands/add_peer.hpp"
 #include "interfaces/commands/add_signatory.hpp"
@@ -93,33 +94,92 @@ namespace {
   const std::map<std::string, std::map<int, int>> kCmdNameToErrorCode{
       std::make_pair(
           "AddSignatory",
-          std::map<int, int>{std::make_pair(0, 3), std::make_pair(7, 4)}),
+          std::map<int, int>{
+              std::make_pair(
+                  0,
+                  static_cast<int>(command_error::add_signatory::kNoSuchAccount)),
+              std::make_pair(
+                  7,
+                  static_cast<int>(
+                      command_error::add_signatory::kAlreadyExists))}),
       std::make_pair(
           "AppendRole",
-          std::map<int, int>{std::make_pair(0, 3), std::make_pair(2, 4)}),
+          std::map<int, int>{
+              std::make_pair(
+                  0,
+                  static_cast<int>(command_error::append_role::kNoSuchAccount)),
+              std::make_pair(
+                  2,
+                  static_cast<int>(command_error::append_role::kNoSuchRole))}),
       std::make_pair(
           "DetachRole",
-          std::map<int, int>{std::make_pair(0, 3), std::make_pair(2, 5)}),
-      std::make_pair("RemoveSignatory",
-                     std::map<int, int>{std::make_pair(0, 3)}),
-      std::make_pair("SetAccountDetail",
-                     std::map<int, int>{std::make_pair(0, 3)}),
-      std::make_pair("SetQuorum", std::map<int, int>{std::make_pair(0, 3)}),
-      std::make_pair("GrantPermission",
-                     std::map<int, int>{std::make_pair(1, 3)}),
-      std::make_pair("RevokePermission",
-                     std::map<int, int>{std::make_pair(1, 3)}),
+          std::map<int, int>{
+              std::make_pair(
+                  0,
+                  static_cast<int>(command_error::detach_role::kNoSuchAccount)),
+              std::make_pair(
+                  2,
+                  static_cast<int>(command_error::detach_role::kRoleNotFound))}),
+      std::make_pair(
+          "RemoveSignatory",
+          std::map<int, int>{std::make_pair(
+              0,
+              static_cast<int>(
+                  command_error::remove_signatory::kNoSuchAccount))}),
+      std::make_pair(
+          "SetAccountDetail",
+          std::map<int, int>{std::make_pair(
+              0,
+              static_cast<int>(
+                  command_error::set_account_detail::kNoSuchAccount))}),
+      std::make_pair(
+          "SetQuorum",
+          std::map<int, int>{std::make_pair(
+              0,
+              static_cast<int>(
+                  command_error::set_quorum::kNoSuchAccount))}),
+      std::make_pair(
+          "GrantPermission",
+          std::map<int, int>{std::make_pair(
+              1, static_cast<int>(command_error::grant_permission::kNoSuchAccount))}),
+      std::make_pair(
+          "RevokePermission",
+          std::map<int, int>{std::make_pair(
+              1,
+              static_cast<int>(
+                  command_error::revoke_permission::kNoSuchAccount))}),
       std::make_pair(
           "CreateAccount",
-          std::map<int, int>{std::make_pair(3, 3), std::make_pair(8, 4)}),
+          std::map<int, int>{
+              std::make_pair(
+                  3,
+                  static_cast<int>(command_error::create_account::kNoSuchDomain)),
+              std::make_pair(
+                  8,
+                  static_cast<int>(command_error::create_account::kAlreadyExists))}),
       std::make_pair(
           "CreateAsset",
-          std::map<int, int>{std::make_pair(3, 3), std::make_pair(4, 4)}),
+          std::map<int, int>{
+              std::make_pair(
+                  3,
+                  static_cast<int>(command_error::create_asset::kNoSuchDomain)),
+              std::make_pair(
+                  4,
+                  static_cast<int>(command_error::create_asset::kAlreadyExists))}),
       std::make_pair(
           "CreateDomain",
-          std::map<int, int>{std::make_pair(5, 3), std::make_pair(9, 4)}),
-      std::make_pair("CreateRole", std::map<int, int>{std::make_pair(6, 3)}),
-      std::make_pair("AddSignatory", std::map<int, int>{std::make_pair(7, 4)})};
+          std::map<int, int>{
+              std::make_pair(
+                  5,
+                  static_cast<int>(command_error::create_domain::kAlreadyExists)),
+              std::make_pair(
+                  9,
+                  static_cast<int>(command_error::create_domain::kNoDefaultRole))}),
+      std::make_pair(
+          "CreateRole",
+          std::map<int, int>{std::make_pair(
+              6,
+              static_cast<int>(command_error::create_role::kAlreadyExists))})};
 
   /**
    * Get a real error code based on the fake one and a command name
@@ -176,7 +236,9 @@ namespace {
       }
     }
     // parsing is not successful, return the general error
-    return makeCommandError(std::move(command_name), 1, std::move(query_args));
+    return makeCommandError(std::move(command_name),
+                            command_error::kInternalError,
+                            std::move(query_args));
   }
 
   template <typename T>
@@ -485,7 +547,9 @@ namespace iroha {
           statement_.define_and_bind();
           statement_.exchange_for_rowset(soci::into(r));
           statement_.execute();
-          auto result = statement_.fetch() ? r.get<int>(0) : 1;
+          auto result = statement_.fetch()
+              ? r.get<int>(0)
+              : static_cast<int>(command_error::kInternalError);
           statement_.bind_clean_up();
           temp_values_.clear();
           if (result != 0) {
@@ -1566,7 +1630,9 @@ namespace iroha {
                 soci::into(has_permission);
             if (has_permission == 0) {
               return makeCommandError(
-                  "CallEngine", 2, "Not enough permissions.");
+                  "CallEngine",
+                  command_error::kNoPermissions,
+                  "Not enough permissions.");
             }
           }
 
@@ -1611,14 +1677,20 @@ namespace iroha {
                   },
                   [](auto &&error) -> CommandResult {
                     return makeCommandError(
-                        "CallEngine", 3, std::move(error.error));
+                        "CallEngine",
+                        command_error::call_engine::kEngineError,
+                        std::move(error.error));
                   });
 
         } else {
-          return makeCommandError("CallEngine", 1, "Engine is not configured.");
+          return makeCommandError("CallEngine",
+                                  command_error::kInternalError,
+                                  "Engine is not configured.");
         }
       } catch (std::exception const &e) {
-        return makeCommandError("CallEngine", 1, e.what());
+        return makeCommandError("CallEngine",
+                                command_error::kInternalError,
+                                e.what());
       }
       return {};
     }
@@ -1957,7 +2029,7 @@ namespace iroha {
         // when we decide to allow settings updates, we just add permissions
         return makeCommandError(
             "SetSettingValue",
-            2,
+            command_error::kNoPermissions,
             "Currently SetSettingValue is only allowed in genesis block.");
       }
 
