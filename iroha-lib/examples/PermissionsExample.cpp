@@ -30,9 +30,6 @@ const std::string kRoleName = "asset_creator";
 
 // proto command name reported in ToriiResponse::err_or_cmd_name
 const std::string kCreateAssetCommandName = "CreateAsset";
-// create_asset command error code for "No such permissions"
-// (see error_codes.hpp / command error enums)
-const uint32_t kNoSuchPermissions = 2;
 
 Config config;
 GrpcClient* client = nullptr;
@@ -149,9 +146,9 @@ void checkPermissionDenied(const ToriiResponse& status)
                     "expected failing command '" + kCreateAssetCommandName
                     + "', got '" + status.err_or_cmd_name() + "'");
     }
-    if (status.error_code() != kNoSuchPermissions) {
+    if (status.error_code() != command_error::kNoPermissions) {
         throw std::runtime_error(
-                    "expected error_code " + std::to_string(kNoSuchPermissions)
+                    "expected error_code " + std::to_string(command_error::kNoPermissions)
                     + " (No such permissions), got "
                     + std::to_string(status.error_code())
                     + " (" + errorCodeToHumanReadable(

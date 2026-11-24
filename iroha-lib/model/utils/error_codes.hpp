@@ -11,6 +11,16 @@
  * https://iroha.readthedocs.io/en/develop/develop/api/commands.html
  */
 
+namespace command_error {
+
+/// Error codes that have the same meaning for every command.
+/// Codes >= 3 are command-specific; see errorCodesPerCommand().
+inline constexpr uint32_t kOk = 0;
+inline constexpr uint32_t kInternalError = 1;
+inline constexpr uint32_t kNoPermissions = 2;
+
+}  // namespace command_error
+
 inline const std::unordered_map<std::string, std::unordered_map<uint32_t, std::string>>& errorCodesPerCommand()
 {
     static const std::unordered_map<std::string, std::unordered_map<uint32_t, std::string>> codes{

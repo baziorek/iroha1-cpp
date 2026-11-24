@@ -19,7 +19,7 @@
 #include "model/utils/Utils.h"
 #include "grpc_client/GrpcClient.hpp"
 
-#include "error_codes.hpp"
+#include "model/utils/error_codes.hpp"
 
 
 namespace iroha_example {
