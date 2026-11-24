@@ -16,7 +16,8 @@ Prerequisites
 .. note:: The library only works in Python 3 environment (Python 2 is not supported).
 
 To use Iroha Python library, you need to get it from the
-`repository <https://github.com/hyperledger/iroha-python>`_ or via pip3:
+`repository <https://github.com/baziorek/iroha1-python>`_ (community fork
+of `iroha-python <https://github.com/hyperledger/iroha-python>`_) or via pip3:
 
 .. code-block:: shell
 
@@ -69,14 +70,14 @@ Running example transactions
 
 If you only want to try what Iroha transactions would look like,
 you can simply go to the examples from the repository
-`here <https://github.com/hyperledger/iroha-python/tree/master/examples>`_.
+`here <https://github.com/baziorek/iroha1-python/tree/iroha1-main/examples>`_.
 Here is the `tx-example.py` file with comments to clarify each step:
 
-.. remoteliteralinclude:: https://raw.githubusercontent.com/hyperledger/iroha-python/master/examples/tx-example.py
+.. remoteliteralinclude:: https://raw.githubusercontent.com/baziorek/iroha1-python/iroha1-main/examples/tx-example.py
    :language: python
 
 
 Now, if you have `irohad` running, you can run the example or
 your own file by simply opening the .py file in another tab.
 
-.. note:: There are more samples in the `iroha-python examples directory <https://github.com/hyperledger/iroha-python/tree/main/examples>`_.
+.. note:: There are more samples in the `iroha-python examples directory <https://github.com/baziorek/iroha1-python/tree/iroha1-main/examples>`_.

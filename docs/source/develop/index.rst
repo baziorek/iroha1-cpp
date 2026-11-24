@@ -14,5 +14,6 @@ It might help you understand the general idea of how frontend can be used with H
 
     libraries.rst
     keys.rst
+    wsv-storage.rst
     api.rst
     cases.rst

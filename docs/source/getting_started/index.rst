@@ -86,12 +86,19 @@ writing a list of peers and creating a genesis block.
 
 Don't be scared away — we have prepared an example configuration for this guide,
 so you can start testing Iroha node now.
-In order to get those files, you need to clone the `Iroha repository <https://github.com/hyperledger/iroha>`_
-from Github or copy them manually (cloning is faster, though).
+In order to get those files, you need to clone this repository
+or copy them manually (cloning is faster, though).
+
+.. note:: This guide uses the community-maintained fork
+  `baziorek/iroha1-cpp <https://github.com/baziorek/iroha1-cpp>`_,
+  which keeps Iroha 1 buildable on modern toolchains. The upstream
+  `hyperledger/iroha <https://github.com/hyperledger/iroha>`_
+  repository's ``main`` branch now contains Iroha 2 (a Rust rewrite) —
+  the C++ sources live on its ``iroha1-main`` branch.
 
 .. code-block:: shell
 
-  git clone -b main https://github.com/hyperledger/iroha --depth=1
+  git clone -b iroha1-main https://github.com/baziorek/iroha1-cpp --depth=1
 
 .. hint:: ``--depth=1`` option allows us to download only the latest commit and
   save some time and bandwidth. If you want to get a full commit history, you
@@ -113,11 +120,17 @@ Let's start Iroha node in Docker container with the following command:
   docker run --name iroha \
   -d \
   -p 50051:50051 \
-  -v $(pwd)/iroha/example:/opt/iroha_data \
+  -v $(pwd)/iroha1-cpp/example:/opt/iroha_data \
   -v blockstore:/tmp/block_store \
   --network=iroha-network \
   -e KEY='node0' \
-  hyperledger/iroha:latest
+  hyperledger/iroha:1.6.0
+
+.. note:: The ``hyperledger/iroha:1.6.0`` image is the last official
+  upstream Iroha 1 build. Do **not** use the ``:latest`` tag — it is a
+  stale 2022 image. This fork does not publish its own Docker image;
+  for a fork build use the release packages (deb/rpm/AppImage) or build
+  from source (see :ref:`build-guide`).
 
 .. note:: If you are using Iroha with RocksDB, please add ``--entrypoint irohad`` to these parameters, to skip the PostgreSQL container check.
 .. note:: To use `metrics <../maintenance/metrics.html>`_ with Docker please also set up the port ``-p7001:7001`` and edit the ``config.docker`` file with ``0.0.0.0:7001``.
@@ -137,8 +150,8 @@ Let's look in details what this command does:
   for communication with PostgreSQL server
 - ``-e KEY='node0' \`` - here please indicate a key name that will identify the node allowing it to confirm operations.
   The keys should be placed in the directory with configuration files mentioned above.
-- ``hyperledger/iroha:latest`` is a reference to the image pointing to the
-  latest `release <https://github.com/hyperledger/iroha/releases>`__
+- ``hyperledger/iroha:1.6.0`` is a reference to the image pointing to the
+  last `Iroha 1 release <https://github.com/hyperledger/iroha/releases>`__
 
 You can check the logs by running ``docker logs iroha``.
 

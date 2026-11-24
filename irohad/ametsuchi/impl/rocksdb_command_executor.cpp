@@ -15,6 +15,7 @@
 #include "ametsuchi/setting_query.hpp"
 #include "ametsuchi/vm_caller.hpp"
 #include "common/to_lower.hpp"
+#include "interfaces/command_error_codes.hpp"
 #include "interfaces/commands/add_asset_quantity.hpp"
 #include "interfaces/commands/add_peer.hpp"
 #include "interfaces/commands/add_signatory.hpp"
@@ -142,7 +143,7 @@ CommandResult RocksDbCommandExecutor::execute(
           return {};
         } catch (std::exception &e) {
           return expected::makeError(CommandError{
-              command.toString(), ErrorCodes::kException, e.what()});
+              command.toString(), command_error::kInternalError, e.what()});
         }
       },
       cmd.get());
@@ -196,7 +197,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
   result += amount;
   common.valueBuffer().assign(result.toStringRepr());
   if (common.valueBuffer()[0] == 'N')
-    return makeError<void>(ErrorCodes::kInvalidAssetAmount,
+    return makeError<void>(command_error::add_asset_quantity::kQuantityOverflow,
                            "Invalid asset {} amount {}",
                            command.assetId(),
                            result.toString());
@@ -297,7 +298,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
   if (auto result = forSignatory<kDbOperation::kCheck, kDbEntry::kMustNotExist>(
           common, account_name, domain_id, pk);
       expected::hasError(result))
-    return makeError<void>(ErrorCodes::kSignatoryMustNotExist,
+    return makeError<void>(command_error::add_signatory::kAlreadyExists,
                            "Signatory must not exist.");
 
   common.valueBuffer().clear();
@@ -325,7 +326,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
         opt_permissions,
         forRole<kDbOperation::kGet, kDbEntry::kMustExist>(common, role_name));
     if (!opt_permissions->isSubsetOf(creator_permissions))
-      return makeError<void>(ErrorCodes::kNoPermissions,
+      return makeError<void>(command_error::kNoPermissions,
                              "Insufficient permissions");
   }
 
@@ -352,7 +353,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
     bool do_validation,
     shared_model::interface::RolePermissionSet const &creator_permissions) {
   if (!vm_caller_)
-    return makeError<void>(ErrorCodes::kNotConfigured,
+    return makeError<void>(command_error::kInternalError,
                            "Engine is not configured.");
 
   auto const &[creator_account_name, creator_domain_id] =
@@ -393,7 +394,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
             if (!burrow_storage.getCallId())
               if (auto result = burrow_storage.initCallId();
                   expected::hasError(result))
-                return makeError<void>(ErrorCodes::kNotConfigured,
+                return makeError<void>(command_error::kInternalError,
                                        "initCallId error: {}",
                                        result.assumeError());
 
@@ -506,7 +507,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
     return {};
   }
 
-  return makeError<void>(ErrorCodes::kIncorrectOldValue, "Old value incorrect");
+  return makeError<void>(command_error::compare_and_set_account_detail::kNoMatchValue, "Old value incorrect");
 }
 
 RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
@@ -536,7 +537,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
       forRole<kDbOperation::kGet, kDbEntry::kMustExist>(common, default_role));
 
   if (do_validation && !opt_permissions->isSubsetOf(creator_permissions))
-    return makeError<void>(ErrorCodes::kNoPermissions,
+    return makeError<void>(command_error::kNoPermissions,
                            "Insufficient permissions");
 
   common.valueBuffer() = "";
@@ -649,7 +650,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
     RDB_ERROR_CHECK(checkPermissions(creator_permissions, {Role::kCreateRole}));
 
     if (!role_permissions.isSubsetOf(creator_permissions))
-      return makeError<void>(ErrorCodes::kNoPermissions,
+      return makeError<void>(command_error::kNoPermissions,
                              "Insufficient permissions");
   }
 
@@ -657,7 +658,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
   if (auto result = forRole<kDbOperation::kCheck, kDbEntry::kMustNotExist>(
           common, role_name);
       expected::hasError(result))
-    return makeError<void>(ErrorCodes::kRoleAlreadyExists, "Already exists.");
+    return makeError<void>(command_error::create_role::kAlreadyExists, "Already exists.");
 
   common.valueBuffer().assign(role_permissions.toBitstring());
   RDB_ERROR_CHECK(forRole<kDbOperation::kPut>(common, role_name));
@@ -724,7 +725,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
 
   // check if already granted
   if (granted_account_permissions.isSet(granted_perm))
-    return makeError<void>(ErrorCodes::kPermissionIsAlreadySet,
+    return makeError<void>(command_error::rocksdb_backend::kPermissionIsAlreadySet,
                            "Permission is already set.");
 
   granted_account_permissions.set(granted_perm);
@@ -745,7 +746,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
     bool do_validation,
     shared_model::interface::RolePermissionSet const &creator_permissions) {
   if (command.pubkey().empty())
-    return makeError<void>(ErrorCodes::kPublicKeyIsEmpty, "Pubkey empty.");
+    return makeError<void>(command_error::rocksdb_backend::kPublicKeyIsEmpty, "Pubkey empty.");
 
   if (do_validation)
     RDB_ERROR_CHECK(checkPermissions(creator_permissions,
@@ -770,7 +771,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
                         common, syncing_node));
   if (*opt_peers_count == 1ull)
     return makeError<void>(
-        ErrorCodes::kPeersCountIsNotEnough, "Can not remove last peer {}.", pk);
+        command_error::remove_peer::kTooFewPeers, "Can not remove last peer {}.", pk);
 
   common.encode(*opt_peers_count - 1ull);
   RDB_ERROR_CHECK(forPeersCount<kDbOperation::kPut>(common, syncing_node));
@@ -799,7 +800,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
   if (auto result = forQuorum<kDbOperation::kGet, kDbEntry::kMustExist>(
           common, account_name, domain_id);
       expected::hasError(result))
-    return makeError<void>(ErrorCodes::kNoAccount,
+    return makeError<void>(command_error::remove_signatory::kNoSuchAccount,
                            std::move(result.assumeError()));
   else
     quorum = *result.assumeValue();
@@ -832,7 +833,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
   if (auto result = forSignatory<kDbOperation::kCheck, kDbEntry::kMustExist>(
           common, account_name, domain_id, pk);
       expected::hasError(result))
-    return makeError<void>(ErrorCodes::kNoSignatory,
+    return makeError<void>(command_error::remove_signatory::kNoSuchSignatory,
                            std::move(result.assumeError()));
 
   uint64_t counter = 0;
@@ -848,7 +849,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
 
   if (counter <= quorum)
     return makeError<void>(
-        ErrorCodes::kCountNotEnough,
+        command_error::remove_signatory::kQuorumTooHigh,
         "Remove signatory {} for account {} with quorum {} failed.",
         pk,
         command.accountId(),
@@ -887,7 +888,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
 
   // check if not granted
   if (!granted_account_permissions.isSet(revoked_perm))
-    return makeError<void>(ErrorCodes::kNoPermissions, "Permission not set");
+    return makeError<void>(command_error::kNoPermissions, "Permission not set");
 
   granted_account_permissions.unset(revoked_perm);
   common.valueBuffer().assign(granted_account_permissions.toBitstring());
@@ -1015,7 +1016,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
                               account_name);
 
   if (command.newQuorum() > counter)
-    return makeError<void>(ErrorCodes::kCountNotEnough,
+    return makeError<void>(command_error::set_quorum::kInvalidQuorum,
                            "Quorum value more than signatories. {}",
                            command.toString());
 
@@ -1072,7 +1073,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
   result -= amount;
   common.valueBuffer().assign(result.toStringRepr());
   if (common.valueBuffer()[0] == 'N')
-    return makeError<void>(ErrorCodes::kInvalidAmount,
+    return makeError<void>(command_error::subtract_asset_quantity::kNegativeQuantity,
                            "Invalid {} amount {} from {}",
                            command.toString(),
                            result.toString(),
@@ -1117,7 +1118,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
         accountPermissions(
             common, destination_account_name, destination_domain_id));
     if (!destination_permissions.isSet(Role::kReceive))
-      return makeError<void>(ErrorCodes::kNoPermissions,
+      return makeError<void>(command_error::kNoPermissions,
                              "Not enough permissions. {}",
                              command.toString());
 
@@ -1154,7 +1155,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
       uint64_t max_description_size = 0;
       common.decode(max_description_size);
       if (description.size() > max_description_size)
-        return makeError<void>(ErrorCodes::kInvalidFieldSize,
+        return makeError<void>(command_error::transfer_asset::kDescriptionTooLong,
                                "Too big description");
     }
   }
@@ -1168,7 +1169,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
 
   source_balance -= amount;
   if (source_balance.toStringRepr()[0] == 'N')
-    return makeError<void>(ErrorCodes::kNotEnoughAssets, "Not enough assets");
+    return makeError<void>(command_error::transfer_asset::kNotEnoughBalance, "Not enough assets");
 
   RDB_TRY_GET_VALUE(
       opt_account_asset_size,
@@ -1194,7 +1195,7 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
 
   destination_balance += amount;
   if (destination_balance.toStringRepr()[0] == 'N')
-    return makeError<void>(ErrorCodes::kIncorrectBalance, "Incorrect balance");
+    return makeError<void>(command_error::transfer_asset::kQuantityOverflow, "Incorrect balance");
 
   common.valueBuffer().assign(source_balance.toStringRepr());
   RDB_ERROR_CHECK(forAccountAsset<kDbOperation::kPut>(

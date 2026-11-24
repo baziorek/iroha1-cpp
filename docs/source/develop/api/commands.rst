@@ -4,6 +4,24 @@ Commands
 A command changes the state, called World State View, by performing an action over an entity (asset, account) in the system.
 Any command should be included in a transaction to perform an action.
 
+Error codes
+-----------
+
+Every command may fail with a numeric ``error_code`` reported in the transaction status.
+Codes ``0``, ``1`` and ``2`` have the same meaning for all commands
+(``0`` = success, ``1`` = internal error, ``2`` = no permissions);
+codes ``>= 3`` are command-specific.
+
+The canonical definitions live in ``shared_model/interfaces/command_error_codes.hpp``,
+which is shared by the command executors (Postgres and RocksDB backends)
+and by client libraries. The per-command tables below document the
+meanings of those codes; if a table and the header ever disagree,
+the header is the source of truth.
+
+.. literalinclude:: ../../../../shared_model/interfaces/command_error_codes.hpp
+   :language: cpp
+   :caption: shared_model/interfaces/command_error_codes.hpp
+
 Add asset quantity
 ------------------
 

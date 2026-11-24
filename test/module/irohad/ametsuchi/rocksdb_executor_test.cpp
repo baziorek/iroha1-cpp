@@ -1521,7 +1521,7 @@ namespace iroha::ametsuchi {
             asset_id, shared_model::interface::Amount{"2.0"}, ""));
 
     std::vector<std::string> query_args{account_id, asset_id, "2.0"};
-    CHECK_ERROR_CODE_AND_MESSAGE(cmd_result, 3, query_args);
+    CHECK_ERROR_CODE_AND_MESSAGE(cmd_result, 4, query_args);
   }
 
   /**

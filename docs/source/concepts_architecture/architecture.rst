@@ -79,6 +79,8 @@ Block Consensus (YAC)
 
 Consensus is the heart of the blockchain - it preserves a consistent state among the `peers <glossary.html#peer>`__ within a peer network.
 Iroha uses own consensus algorithm called Yet Another Consensus (aka YAC).
+For a detailed description of the protocol — rounds, voting, supermajority
+models and failure handling — see :ref:`yac`.
 
 You can check out a video with a thorough explanation of the principles of consensus and YAC in particular `here <https://youtu.be/mzuAbalxOKo>`__.
 

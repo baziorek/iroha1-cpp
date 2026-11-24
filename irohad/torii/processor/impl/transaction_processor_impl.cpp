@@ -134,10 +134,9 @@ namespace iroha {
         TxStatusType tx_status,
         const shared_model::crypto::Hash &hash,
         const validation::CommandError &cmd_error) const {
-      auto tx_error = cmd_error.name.empty()
-          ? shared_model::interface::TxStatusFactory::TransactionError{}
-          : shared_model::interface::TxStatusFactory::TransactionError{
-                cmd_error.name, cmd_error.index, cmd_error.error_code};
+      auto tx_error =
+          shared_model::interface::TxStatusFactory::TransactionError{
+              cmd_error.name, cmd_error.index, cmd_error.error_code};
       switch (tx_status) {
         case TxStatusType::kStatelessFailed: {
           status_bus_->publish(
