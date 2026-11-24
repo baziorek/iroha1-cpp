@@ -1,0 +1,98 @@
+name: Fuzzing
+
+## Smoke/regression runs of the fuzz targets in test/fuzzing.
+## The targets are built with the standalone_fuzz_target_runner (no libFuzzer),
+## so this job replays a generated corpus through every target and fails on
+## crashes. For coverage-guided fuzzing use OSS-Fuzz or a local libFuzzer build
+## (cmake -DFUZZING=ON with clang and -fsanitize=fuzzer).
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'test/fuzzing/**'
+      - 'test/CMakeLists.txt'
+      - 'CMakeLists.txt'
+      - 'irohad/ordering/**'
+      - 'irohad/torii/**'
+      - '.github/workflows/fuzzing.yml'
+  push:
+    branches: ['fuzzing-ci']
+
+jobs:
+  fuzz-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add swap space
+        ## Linking the fuzz targets pulls in most of the static libs; the
+        ## hosted runner has ~16GB RAM and no swap. Best-effort only.
+        run: |
+          if ! swapon --show 2>/dev/null | grep -q .; then
+            fallocate -l 8G /swapfile 2>/dev/null \
+              || dd if=/dev/zero of=/swapfile bs=1M count=8192 status=none
+            chmod 600 /swapfile
+            mkswap /swapfile && swapon /swapfile \
+              || echo "::warning::swap setup failed"
+          fi
+          free -h || true
+
+      - name: Cache vcpkg-build
+        ## Caches the whole vcpkg-build dir: vcpkg clone, vcpkg-tool build,
+        ## installed ports and binarycache. build_iroha_deps.sh cleans only
+        ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
+        uses: actions/cache@v4
+        with:
+          path: vcpkg-build
+          key: ${{runner.os}}-vcpkg-fuzzing-${{ hashFiles('vcpkg/**') }}
+          restore-keys: ${{runner.os}}-vcpkg-fuzzing-
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+          ## Match the gcc-14 toolchain used by the main build workflow;
+          ## fall back to the default compiler if g++-14 is unavailable.
+          if sudo apt-get install -y gcc-14 g++-14; then
+            echo "CC=gcc-14" >> "$GITHUB_ENV"
+            echo "CXX=g++-14" >> "$GITHUB_ENV"
+          else
+            echo "::warning::g++-14 not available, using default compiler"
+          fi
+
+      - name: Build iroha vcpkg dependancies
+        run: ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build; test -f $PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
+
+      - name: CMake configure
+        run: >
+          cmake -B build-fuzz
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake
+          -DCMAKE_BUILD_TYPE=Release
+          -GNinja
+          -DTESTING=ON
+          -DFUZZING=ON
+          -DBENCHMARKING=OFF
+
+      - name: Build fuzz targets
+        run: cmake --build build-fuzz --target fuzzing -- -j$(nproc | awk '{printf("%.0f",$1*0.77)}')
+
+      - name: Generate smoke corpus
+        run: |
+          mkdir -p /tmp/fuzz_corpus
+          ## deterministic pseudo-random inputs, plus edge cases
+          for i in $(seq 1 200); do
+            head -c $(( (i * 2654435761) % 1024 + 1 )) /dev/urandom > /tmp/fuzz_corpus/id_$i
+          done
+          : > /tmp/fuzz_corpus/empty
+          printf '\x00' > /tmp/fuzz_corpus/zero
+          printf '\xff\xff\xff\xff' > /tmp/fuzz_corpus/ff
+
+      - name: Run fuzz targets on corpus
+        run: |
+          set -e
+          for f in build-fuzz/test_bin/*_fuzz; do
+            echo "=== $f"
+            timeout 600 "$f" /tmp/fuzz_corpus/*
+          done

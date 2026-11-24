@@ -8,6 +8,9 @@ if(DEFINED ENV{LIB_FUZZING_ENGINE})
   set(fuzzing_engine "")
 else()
   add_library(fuzzing_engine standalone_fuzz_target_runner.cpp)
+  # test/CMakeLists.txt force-includes gtest_boost_optional_printer.hpp, which
+  # needs Boost headers; this target links nothing that would propagate them.
+  target_include_directories(fuzzing_engine SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
   set(fuzzing_engine fuzzing_engine)
 endif()
 
@@ -100,6 +103,7 @@ target_link_libraries(consensus_fuzz
   yac_transport
   yac
   test_logger
+  sync_subscription
   ${fuzzing_engine}
   )
 

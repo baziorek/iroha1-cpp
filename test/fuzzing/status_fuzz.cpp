@@ -19,7 +19,6 @@
 #include "logger/dummy_logger.hpp"
 #include "module/irohad/ametsuchi/mock_tx_presence_cache.hpp"
 #include "module/irohad/common/validators_config.hpp"
-#include "module/irohad/multi_sig_transactions/mst_mocks.hpp"
 #include "module/irohad/network/network_mocks.hpp"
 #include "module/irohad/torii/torii_mocks.hpp"
 #include "torii/impl/command_service_impl.hpp"
@@ -36,32 +35,17 @@ struct CommandFixture {
   std::shared_ptr<iroha::torii::CommandServiceTransportGrpc> service_transport_;
   std::shared_ptr<iroha::torii::TransactionProcessorImpl> tx_processor_;
   std::shared_ptr<iroha::network::MockPeerCommunicationService> pcs_;
-  std::shared_ptr<iroha::MockMstProcessor> mst_processor_;
   std::shared_ptr<iroha::torii::CommandServiceImpl::CacheType> cache_;
   std::shared_ptr<iroha::ametsuchi::MockTxPresenceCache> tx_presence_cache_;
 
-  rxcpp::subjects::subject<iroha::DataType> mst_notifier_;
-  rxcpp::subjects::subject<std::shared_ptr<iroha::MstState>>
-      mst_state_notifier_;
-
   CommandFixture() {
     pcs_ = std::make_shared<iroha::network::MockPeerCommunicationService>();
-
-    mst_processor_ =
-        std::make_shared<iroha::MockMstProcessor>(logger::getDummyLoggerPtr());
-    EXPECT_CALL(*mst_processor_, onStateUpdateImpl())
-        .WillRepeatedly(Return(mst_state_notifier_.get_observable()));
-    EXPECT_CALL(*mst_processor_, onPreparedBatchesImpl())
-        .WillRepeatedly(Return(mst_notifier_.get_observable()));
-    EXPECT_CALL(*mst_processor_, onExpiredBatchesImpl())
-        .WillRepeatedly(Return(mst_notifier_.get_observable()));
 
     auto status_bus = std::make_shared<iroha::torii::MockStatusBus>();
     auto status_factory =
         std::make_shared<shared_model::proto::ProtoTxStatusFactory>();
     tx_processor_ = std::make_shared<iroha::torii::TransactionProcessorImpl>(
         pcs_,
-        mst_processor_,
         status_bus,
         status_factory,
         logger::getDummyLoggerPtr());
