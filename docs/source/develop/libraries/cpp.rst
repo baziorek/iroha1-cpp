@@ -8,7 +8,7 @@ deploying the node itself.
 
 The library can be built in two ways:
 
-* as a part of the full Iroha build (target ``iroha_lib_model``), or
+* as a part of the full Iroha build (target ``iroha_lib``), or
 * **standalone** — only the client library and its dependencies are
   compiled, no node code (no block storage, no Torii service, no
   synchronization) is required.
@@ -21,20 +21,27 @@ self-contained CMake project. It reuses ``shared_model``, ``libs`` and the
 model converters from the repository, so you still need the full source
 tree — but only the library targets are compiled.
 
+The library has a small dependency set — ``protobuf``, ``grpc``,
+``boost``, ``spdlog``, ``rapidjson``, ``gflags`` and ``iroha-ed25519``
+(see ``vcpkg/VCPKG_DEPS_LIST``). When using vcpkg they are installed
+once up front with the same script as for the node — see
+:ref:`build-guide` for the full instructions:
+
 .. code:: sh
 
-    # from the repository root; adjust the toolchain file to your vcpkg
+    # from the repository root; builds vcpkg into ./vcpkg-build
+    ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build
+
+Then configure and build:
+
+.. code:: sh
+
     cmake -S iroha-lib -B build-iroha-lib \
-        -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake \
+        -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake \
         -DVCPKG_TARGET_TRIPLET=x64-linux \
         -DCMAKE_BUILD_TYPE=Release
 
-    cmake --build build-iroha-lib --target iroha_lib_model -j$(nproc)
-
-Required dependencies: ``protobuf``, ``grpc``, ``boost``, ``spdlog``,
-``rapidjson``, ``gflags`` and ``iroha-ed25519`` (see
-``vcpkg/VCPKG_DEPS_LIST``). When using vcpkg they are installed
-automatically by the toolchain file.
+    cmake --build build-iroha-lib --target iroha_lib -j$(nproc)
 
 To also build the bundled examples (``TxExample``, ``BatchExample``,
 ``QueryExample``, ``TxOrderingExample``, ``BlocksQueryExample``,
@@ -49,11 +56,11 @@ Building Inside the Node Project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When the whole project is configured, the library is available as the
-``iroha_lib_model`` target (together with ``grpc_client``):
+``iroha_lib`` target (together with ``grpc_client``):
 
 .. code:: sh
 
-    cmake --build build --target iroha_lib_model -j$(nproc)
+    cmake --build build --target iroha_lib -j$(nproc)
 
 Using the Library
 ^^^^^^^^^^^^^^^^^

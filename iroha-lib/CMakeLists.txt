@@ -25,7 +25,7 @@ endif()
 #   cmake -S iroha-lib -B build-iroha-lib \
 #       -DCMAKE_TOOLCHAIN_FILE=<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake \
 #       -DVCPKG_TARGET_TRIPLET=x64-linux
-#   cmake --build build-iroha-lib --target iroha_lib_model
+#   cmake --build build-iroha-lib --target iroha_lib
 #
 # Required dependencies (see vcpkg/VCPKG_DEPS_LIST): protobuf, grpc,
 # boost, spdlog, rapidjson, gflags, iroha-ed25519.

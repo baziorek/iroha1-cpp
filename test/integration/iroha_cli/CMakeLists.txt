@@ -10,7 +10,7 @@ set_tests_properties(integration_iroha_cli_test PROPERTIES
     TIMEOUT 900)
 target_link_libraries(iroha_cli_test
     integration_framework
-    iroha_lib_model
+    iroha_lib
     pb_model_converters
     json_model_converters
     )

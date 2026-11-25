@@ -28,7 +28,7 @@ else()
 
         target_link_libraries(irohalib_${example}_example
             iroha_lib_examples
-            iroha_lib_model
+            iroha_lib
             logger_manager
         )
 

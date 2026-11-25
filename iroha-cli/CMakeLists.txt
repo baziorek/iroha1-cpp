@@ -48,7 +48,7 @@ add_executable(iroha-cli
     )
 target_link_libraries(iroha-cli
     interactive_cli
-    iroha_lib_model
+    iroha_lib
     model_crypto_provider
     client
     cli-flags_validators
