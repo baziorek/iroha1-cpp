@@ -1,10 +1,11 @@
-Javascript library
-------------------
+Javascript library (unmaintained)
+---------------------------------
 
 .. note::
    This page describes the upstream ``iroha-helpers`` npm package, which
-   is **unmaintained** — it still works with Iroha 1 nodes but receives
-   no updates. For new projects prefer the actively maintained
+   is **unmaintained since February 2024** (last commit on the
+   ``iroha1-main`` branch) — it still works with Iroha 1 nodes but
+   receives no updates. For new projects prefer the actively maintained
    :doc:`cpp` or :doc:`python` libraries of this fork.
 
 .. image:: https://img.shields.io/npm/v/iroha-helpers.svg
@@ -24,6 +25,10 @@ Via yarn
 .. code:: sh
 
     $ yarn add iroha-helpers
+
+The source lives in the `iroha-javascript repository
+<https://github.com/hyperledger-iroha/iroha-javascript/tree/iroha1-main>`__
+(Iroha 1 code on the ``iroha1-main`` branch; ``main`` is Iroha 2).
 
 Commands
 ^^^^^^^^
