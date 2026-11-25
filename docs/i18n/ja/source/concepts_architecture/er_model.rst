@@ -8,7 +8,7 @@
 のコンポーネントの説明が含まれています。
 
 ER 図
-----
+-----
 
 .. image:: ./../../image_assets/er-model.png
 

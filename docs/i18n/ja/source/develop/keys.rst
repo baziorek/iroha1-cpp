@@ -1,6 +1,6 @@
 ===============
 鍵ペアのフォーマット
-===============
+====================
 
 Iroha はトランザクションに署名するために鍵ペア（.pub と .priv
 鍵）を使用します — すべての `アカウント
@@ -14,8 +14,8 @@ Iroha はトランザクションに署名するために鍵ペア（.pub と .p
 きます。
 
 .. note:: Python ライブラリを使用した鍵ペアの作成方法は `こちら
-<../getting_started/python-guide.html#creating-your-own-key-pairs-with-python-library>`__
-を参照してください。
+   <../getting_started/python-guide.html#creating-your-own-key-pairs-with-python-library>`__
+   を参照してください。
 
 サポートされる暗号アルゴリズム
 ===============================
@@ -46,7 +46,7 @@ Iroha バージョンでサポートされています。しかし皆さんご�
 
 
 .. note:: multihash では、varint は最上位ビットの符号なし
-varint（base-128 varint とも呼ばれる）です。
+   varint（base-128 varint とも呼ばれる）です。
 
 
 Iroha が 32 バイトの標準公開鍵を受け取ると、それをネイティブの
