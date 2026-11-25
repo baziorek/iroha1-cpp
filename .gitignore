@@ -39,3 +39,9 @@ cmake-build*
 /.gtm/
 
 *.deb
+
+# docs build output
+docs/_build/
+
+# local clone of the python client fork (reference only)
+iroha-python-fork/
