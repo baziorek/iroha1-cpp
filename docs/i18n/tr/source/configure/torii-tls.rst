@@ -1,5 +1,5 @@
 Kullanıcı-eş iletişimi için TLS yapılandırmak (torii)
-=====================================================
+==========================================================
 Varsayılan olarak kullanıcı-eş iletişimi şifreli değildir.
 Etkinleştirmek için şunları yapmanız lazım:
 

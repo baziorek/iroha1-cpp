@@ -15,7 +15,7 @@ Artık Iroha konteynerinin etkileşimli kabuğundasınız.
 ----------
 
 .. note:: Kütüphane yalnızca Python 3 ortamında çalışır (Python 2
-desteklenmez).
+  desteklenmez).
 
 Iroha Python kütüphanesini kullanmak için onu `depodan
 <https://github.com/baziorek/iroha1-python>`_ (`iroha-python

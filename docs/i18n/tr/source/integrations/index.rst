@@ -15,8 +15,8 @@ nelerle çalışabileceği hakkında daha fazla anlatmak istiyoruz.
 .. note::
 	Aşağıda listelenen tüm entegrasyonlar **arşivlenmiştir**:
 	karşı taraf projeler ya End of Life'a ulaştı ya da Iroha 1
-desteğini geri çekti. Bilgi, tarihsel referans ve eski dağıtımları
-    sürdürenler için saklanmaktadır.
+	desteğini geri çekti. Bilgi, tarihsel referans ve eski dağıtımları
+	sürdürenler için saklanmaktadır.
 
 Arşivlenmiş entegrasyonlar
 ==========================
