@@ -293,4 +293,4 @@ An argument of type string, a dynamic type, is encoded in the following way:
 First we provide the location part of the argument measured in bytes from the start of the arguments block which is then, left padded to 32 bytes. The data part of the argument starts with the length of the byte array in elements, also left padded to 32 bytes. Then UTF-8 encoding of the string, padded on the right to 32 bytes.
 This can be achieved with the help of functions in the example.
 
-For more examples and how the code works, you can visit `here  <https://github.com/hyperledger/iroha/tree/main/example/burrow_integration>`_ .
+For more examples and how the code works, you can visit `here  <https://github.com/baziorek/iroha1-cpp/tree/iroha1-main/example/burrow_integration>`_ .

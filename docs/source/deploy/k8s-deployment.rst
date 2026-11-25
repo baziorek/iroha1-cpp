@@ -1,8 +1,13 @@
 =====================================
 Deploying Iroha on Kubernetes cluster
 =====================================
-.. TODO: Update the guide. https://soramitsu.atlassian.net/browse/DOPS-391
-.. warning:: Some parts of this guide are deprecated. Proceed at your own discretion.
+.. warning:: **This guide is deprecated and cannot be followed as written.**
+  The ``deploy/`` directory it references (Terraform modules, Ansible
+  playbooks, Kubespray submodule, k8s manifests) is **not part of this
+  repository** — it was removed from the Iroha 1 sources. The page is
+  kept for historical reference only. For Kubernetes deployments,
+  consider deploying the ``irohad`` binary or a container image
+  yourself (see :ref:`deploy-guide`).
 
 By following this guide you will be able to deploy a Kubernetes cluster from scratch on AWS cloud using Terraform and Kubespray, and deploy a network of Iroha nodes on it.
 
@@ -38,7 +43,7 @@ Checkout the source tree from Github:
 
 .. code-block:: shell
 
-    git clone https://github.com/hyperledger/iroha && cd iroha
+    git clone https://github.com/baziorek/iroha1-cpp.git && cd iroha1-cpp
 
 Setting up cloud infrastructure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

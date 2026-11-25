@@ -84,9 +84,11 @@ In order to run Iroha peer as a single instance in Docker, you should pull the i
 
 .. code-block:: shell
 
-    docker pull hyperledger/iroha:latest
+    docker pull hyperledger/iroha:1.6.0
 
-.. Hint:: Use *latest* tag for latest stable release, and *develop* for latest development version
+.. note:: ``hyperledger/iroha:1.6.0`` is the last official upstream
+  Iroha 1 image — do **not** use ``:latest`` (a stale 2022 build) or
+  ``:develop``/``:main`` tags (they now point at Iroha 2 builds).
 
 Then, you have to create an environment for the image to run without problems:
 

@@ -147,7 +147,7 @@ Let's look in details what this command does:
 - ``-e KEY='node0' \`` - here please indicate a key name that will identify the node allowing it to confirm operations.
   The keys should be placed in the directory with configuration files mentioned above.
 - ``hyperledger/iroha:1.6.0`` is a reference to the image pointing to the
-  last `Iroha 1 release <https://github.com/hyperledger/iroha/releases>`__
+  last upstream Iroha 1 release (1.6.0)
 
 You can check the logs by running ``docker logs iroha``.
 

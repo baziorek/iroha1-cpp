@@ -9,7 +9,7 @@ Dealing with troubles
 Do not have Iroha daemon binary
 -------------------------------
 
-You can build Iroha daemon binary from sources. You can get binaries `here <https://github.com/hyperledger/iroha/releases>`__
+You can build Iroha daemon binary from sources. You can get binaries `here <https://github.com/baziorek/iroha1-cpp/releases>`__
 
 Do not have a config file
 -------------------------
@@ -19,7 +19,7 @@ Check how to create a configuration file by following this `link <../configure/i
 Do not have a genesis block
 ---------------------------
 
-Create genesis block by generating it via `iroha-cli` or manually, using the `example <https://github.com/hyperledger/iroha/blob/master/example/genesis.block>`__ and checking out `permissions <../develop/api/permissions.html>`__
+Create genesis block by generating it via `iroha-cli` or manually, using the `example <https://github.com/baziorek/iroha1-cpp/blob/iroha1-main/example/genesis.block>`__ and checking out `permissions <../develop/api/permissions.html>`__
 
 Do not have a keypair for a peer
 --------------------------------

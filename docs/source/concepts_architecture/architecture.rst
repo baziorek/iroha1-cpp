@@ -80,7 +80,7 @@ Block Creator
 
 System component that forms a block from a set of transactions that have passed `stateless <glossary.html#stateless-validation>`__ and `stateful <glossary.html#stateful-validation>`__ validation for further propagation to `consensus <#consensus>`__.
 
-Block creator, together with the `Verified Proposal Creator <#verified-proposal-creator>`_ form a component called `Simulator <https://github.com/hyperledger/iroha/tree/master/irohad/simulator>`_.
+Block creator, together with the `Verified Proposal Creator <#verified-proposal-creator>`_ form a component called `Simulator <https://github.com/baziorek/iroha1-cpp/tree/iroha1-main/irohad/simulator>`_.
 
 Block Consensus (YAC)
 ---------------------

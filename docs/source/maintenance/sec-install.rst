@@ -12,7 +12,7 @@ Make sure the bootloader is password protected if there is such a functionality.
 
 Deployment
 ^^^^^^^^^^
-First, verify that official repository is used for downloading `source code <https://github.com/hyperledger/iroha>`__ and `Docker images <https://hub.docker.com/r/hyperledger/iroha>`__.
+First, verify that official repository is used for downloading `source code <https://github.com/baziorek/iroha1-cpp>`__ (community fork of `hyperledger-iroha/iroha <https://github.com/hyperledger-iroha/iroha/tree/iroha1-main>`__) and `Docker images <https://hub.docker.com/r/hyperledger/iroha>`__.
 Change any default passwords that are used during installation, e.g., password for connecting to postgres.
 Iroha repository contains examples of private and public keys - never use it in production.
 Moreover, verify that new keypairs are generated in a safe environment and only administrator has access to those keypairs (or at least minimise the number of people).
