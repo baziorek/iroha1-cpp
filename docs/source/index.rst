@@ -15,7 +15,7 @@ Hyperledger Iroha documentation
 
 Welcome! Hyperledger Iroha 1 is a simple blockchain platform you can use to make trusted, secure, and fast applications by bringing the power of permission-based blockchain with Crash fault-tolerant consensus. It's free, open-source, and works on Linux and Mac OS, with a variety of mobile and desktop libraries.
 
-You can download the source code of Hyperledger Iroha 1 and latest releases from the `iroha1-cpp community fork <https://github.com/baziorek/iroha1-cpp>`_ (the C++ sources also live on the upstream `iroha1-main` branch of `hyperledger-iroha/iroha <https://github.com/hyperledger-iroha/iroha/tree/iroha1-main>`_).
+You can download the source code of Hyperledger Iroha 1 and latest releases from the `iroha1-cpp community fork <https://github.com/baziorek/iroha1-cpp>`_ GitHub page (`releases <https://github.com/baziorek/iroha1-cpp/releases>`_ include prebuilt binaries, ``.deb`` packages and AppImages; the C++ sources also live on the upstream ``iroha1-main`` branch of `hyperledger-iroha/iroha <https://github.com/hyperledger-iroha/iroha/tree/iroha1-main>`_).
 
 This documentation will guide you through the installation, deployment, and launch of Iroha network, and explain to you how to write an application for it. We will also see which use case scenarios are feasible now, and are going to be implemented in the future.
 

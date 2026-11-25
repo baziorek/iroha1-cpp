@@ -1,6 +1,12 @@
 Javascript library
 ------------------
 
+.. note::
+   This page describes the upstream ``iroha-helpers`` npm package, which
+   is **unmaintained** — it still works with Iroha 1 nodes but receives
+   no updates. For new projects prefer the actively maintained
+   :doc:`cpp` or :doc:`python` libraries of this fork.
+
 .. image:: https://img.shields.io/npm/v/iroha-helpers.svg
 
 This library provides functions which will help you to interact with Hyperledger Iroha from your JS program.

@@ -25,6 +25,7 @@ node, then how to talk to it.
 
    node-docker.rst
    node-appimage.rst
+   node-deb.rst
    node-build.rst
 
 .. toctree::

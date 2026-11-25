@@ -367,7 +367,7 @@ Packaging Specific Parameters
 
 Running Tests (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^
-First of all, please make sure you `built Iroha correctly <#id8>`_ for the tests.
+First of all, please make sure you `built Iroha correctly <#build-process>`_ for the tests.
 
 After building Iroha, it is a good idea to run tests to check the operability
 of the daemon. You can run tests with this code:

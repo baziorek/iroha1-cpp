@@ -18,5 +18,8 @@ Automated
 
 `iroha-swarm <https://github.com/kuvaldini/iroha-swarm>`_ produces configuration files for docker-compose to spawn a number of Iroha nodes in a one command-line. You can select database type -- RocksDB or Postgres, -- provide peer keys or use pregenerated ones. Very convenient for basic/first config file generation and for regularly changed environment (different sets of nodes).
 
+.. note:: ``iroha-swarm`` is a community tool, unmaintained since ~2019 —
+  review it carefully before use; it may reference image tags that no
+  longer exist (e.g. ``:latest``).
 
-Here is also `a guide <https://github.com/hyperledger/iroha-deploy/blob/master/ansible/roles/iroha-docker/README.md>`__ that might be outdated but could provide some helpful information.
+Here is also `a guide <https://github.com/hyperledger/iroha-deploy/blob/master/ansible/roles/iroha-docker/README.md>`__ (archived repository) that might be outdated but could provide some helpful information.

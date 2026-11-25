@@ -1,6 +1,12 @@
 iOS Swift Library
 -----------------
 
+.. note::
+   This page describes the upstream ``iroha-ios`` library, which is
+   **archived and unmaintained** — it still works with Iroha 1 nodes but
+   receives no updates. For new projects prefer the actively maintained
+   :doc:`cpp` or :doc:`python` libraries of this fork.
+
 The library was created to provide convenient interface for iOS applications to communicate with Iroha blockchain including sending transactions/query, streaming transaction statuses and block commits.
 
 Where to get

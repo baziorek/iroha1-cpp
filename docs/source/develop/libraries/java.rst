@@ -1,6 +1,12 @@
 Java Library
 ------------
 
+.. note::
+   This page describes the upstream ``iroha-java`` library, which is
+   **archived and unmaintained** — it still works with Iroha 1 nodes but
+   receives no updates. For new projects prefer the actively maintained
+   :doc:`cpp` or :doc:`python` libraries of this fork.
+
 Client library of Iroha written completely in Java 8, which includes:
 
 - SDK to work with Iroha API
