@@ -6,7 +6,7 @@ Shepherd to narzędzie wiersza poleceń, które pomaga wykonywać
 zadania konserwacyjne na działającym demonie irohad.
 
 Wymagania wstępne
-================
+=================
 
 Aby uzyskać dostęp do demona irohad, musi być w nim
 skonfigurowana ``utility service``.

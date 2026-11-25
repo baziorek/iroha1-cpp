@@ -18,12 +18,12 @@ W tym celu ``hash`` górnego bloku i ``height`` blockstorage są
 zawarte w WSV.
 
 .. warning::
-	To na administratorach węzła spoczywa obowiązek upewnienia
-	się, że WSV nie jest edytowane ręcznie – tylko przez Irohę
-	lub `skrypt migracyjny <#changing-iroha-version-migration>`__.
-	Ręczna edycja lub edycja skryptu migracyjnego niezgodna z
-	wiarygodnymi wytycznymi może prowadzić do niespójnej sieci.
-	Rób to na własne ryzyko (ostrzegaliśmy).
+   To na administratorach węzła spoczywa obowiązek upewnienia
+   się, że WSV nie jest edytowane ręcznie – tylko przez Irohę
+   lub `skrypt migracyjny <#changing-iroha-version-migration>`__.
+   Ręczna edycja lub edycja skryptu migracyjnego niezgodna z
+   wiarygodnymi wytycznymi może prowadzić do niespójnej sieci.
+   Rób to na własne ryzyko (ostrzegaliśmy).
 
 Choć może to być świetny pomysł w niektórych przypadkach,
 proszę wziąć pod uwagę, że istnieją pewne specyfiki ponownego
@@ -52,11 +52,11 @@ użycia WSV w porównaniu z jego odtworzeniem z blockstorage:
   tym dłużej trwa jego odtworzenie i rozpoczęcie działania.
 
 .. note:: Jeśli lokalny ledger, który się wyłączył, ma więcej
-bloków niż powinien, a poprawny WSV jest wśród nich — to w
-porządku, Iroha weźmie WSV poprawnego bloku.
-	Jeśli bloków jest mniej niż powinno — opcja ponownego
-	użycia WSV ci nie zadziała.
-	Proszę odtwórz je z bloków.
+   bloków niż powinien, a poprawny WSV jest wśród nich — to w
+   porządku, Iroha weźmie WSV poprawnego bloku.
+   Jeśli bloków jest mniej niż powinno — opcja ponownego
+   użycia WSV ci nie zadziała.
+   Proszę odtwórz je z bloków.
 
 
 Porzucanie WSV
@@ -97,7 +97,7 @@ Twojego schematu.
   (podczas następnej migracji).
 
 Zmiana wersji Iroha. Migracja.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 W przypadku chęci zmiany wersji Iroha z zachowaniem WSV,
 zachęcamy do przeprowadzenia migracji.
 Choć może być to niepotrzebne (Iroha odmówi uruchomienia, jeśli
@@ -118,14 +118,14 @@ Następnie znajdzie wszystkie ścieżki migracji, które przeprowadzą
 Twoją bazę do żądanej wersji, i poprosi Cię o wybranie jednej.
 
 .. seealso::
-	`Tutaj
-	<https://github.com/hyperledger-iroha-state-migration-tool/blob/master/README.md>`__
-	znajdują się szczegóły o różnych przypadkach migracji i
-	przykłady, które możesz sprawdzić, aby przeprowadzić
-	migrację
+   `Tutaj
+   <https://github.com/hyperledger-iroha-state-migration-tool/blob/master/README.md>`__
+   znajdują się szczegóły o różnych przypadkach migracji i
+   przykłady, które możesz sprawdzić, aby przeprowadzić
+   migrację
 
 Tryb synchronizacji WSV.
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Określ opcje ``--wait_for_new_blocks`` dla trybu synchronizacji
 WSV. Iroha odtwarza WSV z blockstore i czeka na dodanie nowych

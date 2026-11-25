@@ -1,6 +1,6 @@
 ===============
 Format pary kluczy
-===============
+==================
 
 Iroha używa par kluczy (.pub i .priv) do podpisywania
 transakcji – każde `konto
@@ -15,8 +15,8 @@ Algorytmy kryptograficzne używają tych kluczy – a w Iroha
 oferujemy Ci wybór – których algorytmów używać.
 
 .. note:: Zobacz, jak tworzyć pary kluczy za pomocą biblioteki
-Python `tutaj
-<../getting_started/python-guide.html#creating-your-own-key-pairs-with-python-library>`__.
+   Python `tutaj
+   <../getting_started/python-guide.html#creating-your-own-key-pairs-with-python-library>`__.
 
 Obsługiwane algorytmy kryptograficzne
 =====================================
@@ -50,7 +50,7 @@ SHA-3, będziesz musiał doprowadzić je do tego formatu:
 
 
 .. note:: W multihash varinty to bezsignowe varinty
-najbardziej znaczącego bitu (zwane też varintami base-128).
+   najbardziej znaczącego bitu (zwane też varintami base-128).
 
 
 Jeśli Iroha otrzyma standardowy klucz publiczny 32-bajtowy,
@@ -61,11 +61,11 @@ zgodnie z tabelą poniżej.
 
 Obecnie Iroha "rozumie" tylko jeden format klucza multihash:
 
-+------------+-----------+----------+------------------+
-|Nazwa       |Tag        |Kod       |Opis              |
-+============+===========+==========+==================+
-|ed25519-pub |key        |0xed	    |Klucz publiczny Ed25519|
-+------------+-----------+----------+------------------+
++-------------+-----+------+-------------------------+
+| Nazwa       | Tag | Kod  | Opis                    |
++=============+=====+======+=========================+
+| ed25519-pub | key | 0xed | Klucz publiczny Ed25519 |
++-------------+-----+------+-------------------------+
 
 Przykłady kluczy publicznych w Iroha:
 

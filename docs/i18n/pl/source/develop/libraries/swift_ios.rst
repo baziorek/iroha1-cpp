@@ -1,5 +1,5 @@
 Biblioteka iOS Swift (nieutrzymywana)
-------------------------------------
+-------------------------------------
 
 .. note::
    Ta strona opisuje upstreamową bibliotekę ``iroha-ios``, która
