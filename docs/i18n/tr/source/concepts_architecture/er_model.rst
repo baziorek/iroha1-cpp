@@ -1,80 +1,99 @@
 Varlık-ilişki modeli
 ====================
 
-Her Hyperledger Iroha eşi varlıklar kümesi ve bu kümeler arasındaki ilişki ile temsil edilen "World State View" adı verilen bir duruma sahiptir.
-hangi varlıkların sistemde varolduğunu ve ilişkilerinin ne olduğu açıklamak için, bu bölüm ER diyagram ve bileşenlerinin açıklamasını içerir.
+Her Hyperledger Iroha eşi, "World State View" olarak adlandırılan
+bir duruma sahiptir; bu, varlıkların ve aralarındaki ilişkilerin
+bir kümesiyle temsil edilir. Sistemde hangi varlıkların bulunduğunu
+ve aralarında hangi ilişkilerin olduğunu açıklamak için bu bölüm ER
+diyagramını ve bileşenlerinin açıklamasını içerir.
 
-ER diyagram
+ER diyagramı
 -----------
 
 .. image:: ./../../image_assets/er-model.png
 
-Eş
+Peer
 ----
 
- - address — ağ adresi ve dahili bağlantı noktası, senkronizasyon için kullanılır, konsensüs, ordering service ve ile iletişim 
- - public_key — anahtar, konsensüs süreci boyunca blokları imzalamak için kullanılacak
+ - address — ağ adresi ve dahili port; senkronizasyon, konsensüs
+   ve ordering servisiyle iletişim için kullanılır
+ - public_key — konsensüs süreci sırasında blokları imzalamak için
+   kullanılacak anahtar
 
-Varlık
+Asset
+-----
+
+ - asset_id — varlığın tanımlayıcısı, asset_name#domain_id
+   biçiminde
+ - domain_id — varlığın oluşturulduğu alanın tanımlayıcısı,
+   mevcut bir alana referans
+ - precision — kesirli kısmın boyutu
+
+Signatory
+---------
+
+ - public_key — açık anahtar
+
+Domain
 ------
 
- - asset_id — varlık tanımlayıcı, asset_name#domain_id olarak biçimlendirilmiş
- - domain_id — alan adı tanımlayıcı, varlık nerede tanımlandı, var olan alan adını referans gösterir
- - precision — kesirli parçanın boyutu
+ - domain_id — alanın tanımlayıcısı
+ - default_role — alanda oluşturulan kullanıcı başına varsayılan
+   rol; mevcut bir role referans
 
-İmza sahibi
------------
+Role
+----
 
- - public_key — genel anahtar
-
-Alan adı
---------
-
- - domain_id — alan adı tanımlayıcı
- - default_role — alanda yaratılan her kullanıcının varsayılan rolü, var olan rolleri referans gösterir
-
-Rol
----
-
- - role_id — rol tanımlayıcı
+ - role_id — rolün tanımlayıcısı
 
 RoleHasPermissions
 ^^^^^^^^^^^^^^^^^^
 
- - role_id — rol tanımlayıcı, var olan rolleri referans gösterir
- - permission_id — izin tanımlayıcı
+ - role_id — rolün tanımlayıcısı; mevcut bir role referans
+ - permission_id — iznin tanımlayıcısı
 
-Hesap
------
+Account
+-------
 
- - account_id — hesap tanımlayıcı, account_name@domain_id olarak biçimlendirilmiş
- - domain_id — hesabın yaratıldığı alanın tanımlayıcısı, var olan alanı referans gösterir 
- - quorum — bu hesaptan geçerli işlem yaratmak için gereken imzaların sayısı
- - transaction_count – hesap tarafından yaratılan işlemlerin sayacı
- - data — hesap ile ilişkili herhangi bir bilgi için anahtar-değer depolama alanı. Boyut 268435455 bytes (0x0FFFFFFF) ile sınırlandırılmıştır (PostgreSQL JSONB alanı).
+ - account_id — hesabın tanımlayıcısı, account_name@domain_id
+   biçiminde
+ - domain_id — hesabın oluşturulduğu alanın tanımlayıcısı,
+   mevcut bir alana referans
+ - quorum — bu hesaptan geçerli bir transaction oluşturmak için
+   gereken imzalayan sayısı
+ - transaction_count – bu hesap tarafından oluşturulan
+   transaction'ların sayacı
+ - data — hesapla ilgili herhangi bir bilgi için anahtar-değer
+   deposu. Boyut 268435455 bayt (0x0FFFFFFF) ile sınırlıdır
+   (PostgreSQL JSONB alanı).
 
 AccountHasSignatory
 ^^^^^^^^^^^^^^^^^^^
 
- - account_id — hesap tanımlayıcı, var olan hesapları referans gösterir 
- - public_key — genel anahtar (ayrıca imza sahibi olarak isimlendirilir), var olan imza sahiplerini referans gösterir 
+ - account_id — hesabın tanımlayıcısı; mevcut bir hesaba referans
+ - public_key — açık anahtar (imzalayan olarak da adlandırılır);
+   mevcut bir imzalayana referans
 
 AccountHasAsset
 ^^^^^^^^^^^^^^^
 
- - account_id — hesap tanımlayıcı, var olan hesapları referans gösterir
- - asset_id — varlık tanımlayıcı, var olan varlıkları referans gösterir
- - amount — varlıkların miktarı, hesaba ait olanlar
+ - account_id — hesabın tanımlayıcısı; mevcut bir hesaba referans
+ - asset_id — varlığın tanımlayıcısı; mevcut bir varlığa referans
+ - amount — hesaba ait varlık miktarı
 
 AccountHasRoles
 ^^^^^^^^^^^^^^^
 
- - account_id — hesap tanımlayıcı, var olan hesapları referans gösterir
- - role_id — rol tanımlayıcı,  var olan rolleri referans gösterir
+ - account_id — hesabın tanımlayıcısı; mevcut bir hesaba referans
+ - role_id — rolün tanımlayıcısı; mevcut bir role referans
 
 AccountHasGrantablePermissions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- - account_id — hesap tanımlayıcı, var olan hesapları referans gösterir. Bu hesap izin belgesine kendi başına işlem gerçekleştirme izni verir.
- - permittee_account_id — hesap tanımlayıcı, var olan hesapları referans gösterir. Bu hesaba account_id üzerinden işlem yapma izni verildi.
- - permission_id — grantable_permission tanımlayıcı
+ - account_id — hesabın tanımlayıcısı; mevcut bir hesaba referans.
+   Bu hesap, izin verilen kişiye kendisi üzerinde işlem yapma
+   yetkisi veren bir izin verir.
+ - permittee_account_id — hesabın tanımlayıcısı; mevcut bir hesaba
+   referans. Bu hesaba account_id üzerinde işlem yapma izni
+   verilir.
+ - permission_id — grantable_permission tanımlayıcısı
