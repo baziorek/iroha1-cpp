@@ -15,6 +15,9 @@ Torii
 
 ⛩
 
+*Torii* () is a traditional Japanese gate marking the entrance to a
+shrine — an apt name for Iroha's single entry point.
+
 Entry point for `clients <glossary.html#client>`__.
 Uses gRPC as a transport.
 In order to interact with Iroha anyone can use gRPC endpoints, described in `Commands <../develop/api/commands.html>`__ and `Queries <../develop/api/queries.html>`__ sections, or use `client libraries <../develop/libraries.html>`__.
@@ -26,6 +29,13 @@ MST Processor
 
 It is an internal gRPC service that sends and receives messages from other peers through `Gossip protocol <https://en.wikipedia.org/wiki/Gossip_protocol>`_.
 Its mission is to send out `multisignature transactions <glossary.html#multisignature-transactions>`_ that have not received enough signatures to reach the `quorum <glossary.html#quorum>`_ until it is reached.
+
+.. note::
+    Multisignature (MST) transaction propagation between peers only works
+    when ``mst_enable`` is set to ``true`` in the node configuration
+    (see :ref:`configuration`). With the flag off, MST transactions still
+    work locally on each peer, but peers do not exchange pending MST
+    transactions with each other.
 
 Peer Communication Service
 --------------------------
@@ -70,7 +80,7 @@ Block Creator
 
 System component that forms a block from a set of transactions that have passed `stateless <glossary.html#stateless-validation>`__ and `stateful <glossary.html#stateful-validation>`__ validation for further propagation to `consensus <#consensus>`__.
 
-Block creator, together with the `Verified Proposal Creator <#verified-proposal-creator>`_ form a component called `Simulator <https://github.com/hyperledger/iroha/tree/master/irohad/simulator>`_.
+Block creator, together with the `Verified Proposal Creator <#verified-proposal-creator>`_ form a component called `Simulator <https://github.com/baziorek/iroha1-cpp/tree/iroha1-main/irohad/simulator>`_.
 
 Block Consensus (YAC)
 ---------------------
@@ -101,7 +111,9 @@ Adds missing blocks to `peers' <glossary.html#peer>`__ chains (downloads them fr
 Ametsuchi Blockstore
 --------------------
 
-Iroha storage component, which stores blocks and a state generated from blocks, called `World State View <#world-state-view>`__.
+*Ametsuchi* () is the storehouse of heavenly treasures in Japanese
+mythology — here, Iroha's storage component, which stores blocks and a
+state generated from blocks, called `World State View <#world-state-view>`__.
 There is no way for the `client <glossary.html#client>`__ to directly interact with Ametsuchi.
 
 

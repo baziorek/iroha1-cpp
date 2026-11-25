@@ -16,6 +16,7 @@ Older Iroha 1 releases bundled a gRPC version affected by `grpc/grpc#20418 <http
       :maxdepth: 1
 
       single.rst
+      syncing-node.rst
       flags.rst
       multiple.rst
       k8s-deployment.rst

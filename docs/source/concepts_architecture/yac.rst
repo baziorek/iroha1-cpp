@@ -59,6 +59,11 @@ Peers and ordering
 Every peer has a stable identity (its ``Peer`` record: address, public
 key, optional TLS certificate) maintained in the world state view.
 
+Peers registered as **syncing peers** are kept in a separate ``sync_peer``
+table: they do not join the cluster ordering, do not propose or vote, but
+receive the consensus state directly so they can follow the ledger —
+useful for backup and audit nodes.
+
 For each round, peers are arranged into a *cluster ordering* — a
 sequence derived from the ledger peer list in which every peer appears
 exactly once. The **leader** of a round is the first peer in that
@@ -157,9 +162,13 @@ YAC behaviour is tuned through the node configuration
 - ``vote_delay`` — how long a peer waits before voting, giving slow
   peers time to respond. Too small a value slows block production on
   networks with unreachable peers.
-- ``proposal_creation_timeout`` (formerly ``max_rounds_delay``) —
-  maximum delay between consensus rounds; also bounds how long peers
-  wait for a proposal before rejecting the round.
+- ``proposal_creation_timeout`` — the maximum time the ordering service
+  waits while assembling a proposal (transactions accumulating up to
+  ``max_proposal_size``) before answering a proposal request; default
+  3000 ms. It was previously named ``max_rounds_delay``. A second,
+  derived timeout — the network deadline for ``RequestProposal`` RPCs —
+  is computed automatically as ``2 × proposal_creation_timeout`` and is
+  not separately configurable.
 - ``max_proposal_size`` — maximum number of transactions per proposal,
   i.e. the maximum block size.
 

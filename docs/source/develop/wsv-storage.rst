@@ -124,6 +124,16 @@ Both backends implement the same ``CommandExecutor`` /
 ``QueryExecutor`` interfaces, so the choice is transparent to the rest
 of the node — only the on-disk/on-wire inspection differs.
 
+Comparing WSV contents across nodes
+-----------------------------------
+
+The repository ships a small tool,
+``test/tool/test_tool_iroha_wsv_diff.sh``, that compares the world state
+view of two Iroha instances — useful for checking that peers converged
+to the same state after sync or migration. It requires ``jq`` and
+``psql`` (``postgresql-client``) on the machine running it, and works
+with the PostgreSQL backend.
+
 Related
 -------
 

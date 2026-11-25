@@ -1,5 +1,11 @@
-Java Library
-------------
+Java Library (unmaintained)
+---------------------------
+
+.. note::
+   This page describes the upstream ``iroha-java`` library, which is
+   **unmaintained since March 2023** (last commit on the ``iroha1-main``
+   branch) — it still works with Iroha 1 nodes but receives no updates. For new projects prefer the actively maintained
+   :doc:`cpp` or :doc:`python` libraries of this fork.
 
 Client library of Iroha written completely in Java 8, which includes:
 
@@ -12,13 +18,13 @@ Client library of Iroha written completely in Java 8, which includes:
 - examples in Java and Groovy
 
 Both options are described in the following sections.
-Please check readme file in `project's repo <https://github.com/hyperledger/iroha-java>`__.
+Please check readme file in `project's repo <https://github.com/hyperledger-iroha/iroha-java/tree/iroha1-main>`__.
 
 How to use
 ^^^^^^^^^^
 
-- `JitPack <https://jitpack.io/#hyperledger/iroha-java>`__
-- `GitHub <https://github.com/hyperledger/iroha-java>`__
+- `JitPack <https://jitpack.io/#hyperledger-iroha/iroha-java>`__
+- `GitHub <https://github.com/hyperledger-iroha/iroha-java/tree/iroha1-main>`__
 
 Example code
 ^^^^^^^^^^^^

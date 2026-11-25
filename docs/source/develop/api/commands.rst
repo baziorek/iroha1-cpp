@@ -14,9 +14,152 @@ codes ``>= 3`` are command-specific.
 
 The canonical definitions live in ``shared_model/interfaces/command_error_codes.hpp``,
 which is shared by the command executors (Postgres and RocksDB backends)
-and by client libraries. The per-command tables below document the
-meanings of those codes; if a table and the header ever disagree,
-the header is the source of truth.
+and by client libraries. The table below summarises the per-command codes for quick
+reference; the full header is reproduced after it. If a table and
+the header ever disagree, **the header is the source of truth** — it is
+what the executors actually emit.
+
+.. list-table:: Command error codes (``error_code`` in transaction status)
+   :header-rows: 1
+   :widths: 30 10 60
+
+   * - Command
+     - Code
+     - Meaning
+   * - *any command*
+     - 0
+     - success
+   * - *any command*
+     - 1
+     - internal error
+   * - *any command*
+     - 2
+     - no permissions
+   * - Add asset quantity
+     - 3
+     - no such asset (or precision too low)
+   * - Add asset quantity
+     - 4
+     - resulting quantity overflow
+   * - Add signatory
+     - 3
+     - no such account
+   * - Add signatory
+     - 4
+     - signatory already exists
+   * - Append role
+     - 3
+     - no such account
+   * - Append role
+     - 4
+     - no such role
+   * - Call engine
+     - 3
+     - contract engine call failed
+   * - Compare and set account detail
+     - 3
+     - no such account
+   * - Compare and set account detail
+     - 4
+     - expected value does not match
+   * - Create account
+     - 3
+     - no such domain (no default role)
+   * - Create account
+     - 4
+     - account already exists
+   * - Create asset
+     - 3
+     - no such domain
+   * - Create asset
+     - 4
+     - asset already exists
+   * - Create domain
+     - 3
+     - domain already exists
+   * - Create domain
+     - 4
+     - no default role
+   * - Create role
+     - 3
+     - role already exists
+   * - Detach role
+     - 3
+     - no such account
+   * - Detach role
+     - 4
+     - role not attached to account
+   * - Detach role
+     - 5
+     - role does not exist
+   * - Grant permission
+     - 3
+     - no such account
+   * - Remove peer
+     - 3
+     - no such peer
+   * - Remove peer
+     - 4
+     - removal would leave no peers
+   * - Remove signatory
+     - 3
+     - no such account
+   * - Remove signatory
+     - 4
+     - public key is not a signatory
+   * - Remove signatory
+     - 5
+     - removal would violate quorum
+   * - Revoke permission
+     - 3
+     - no such account
+   * - Set account detail
+     - 3
+     - no such account
+   * - Set account quorum
+     - 3
+     - no such account
+   * - Set account quorum
+     - 4
+     - account has no signatories
+   * - Set account quorum
+     - 5
+     - quorum exceeds signatory count
+   * - Subtract asset quantity
+     - 3
+     - no such asset on account
+   * - Subtract asset quantity
+     - 4
+     - subtraction would make quantity negative
+   * - Transfer asset
+     - 3
+     - no such source account
+   * - Transfer asset
+     - 4
+     - no such destination account
+   * - Transfer asset
+     - 5
+     - no such asset
+   * - Transfer asset
+     - 6
+     - not enough balance
+   * - Transfer asset
+     - 7
+     - quantity overflow
+   * - Transfer asset
+     - 8
+     - description too long
+
+Commands not listed above (``AddPeer``, ``SetSettingValue``,
+``AddSyncPeer``, ``RemoveSyncPeer``) emit only the universal codes
+``0``–``2``. ``AddSyncPeer``/``RemoveSyncPeer`` error namespaces exist in
+the header for the syncing-peer feature but no client-facing commands
+emit them yet.
+
+Codes ``1007`` and ``1008`` are emitted only by the RocksDB command
+executor (test backend): ``1007`` = permission already set
+(``grant_permission``), ``1008`` = empty public key (``remove_peer``).
+The Postgres backend has no equivalent codes.
 
 .. literalinclude:: ../../../../shared_model/interfaces/command_error_codes.hpp
    :language: cpp

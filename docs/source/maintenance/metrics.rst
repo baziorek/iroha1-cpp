@@ -41,3 +41,22 @@ will give you results like:
   # HELP number_of_signatures_in_last_block Number of signatures in last block
   # TYPE number_of_signatures_in_last_block gauge
   number_of_signatures_in_last_block 5
+
+Multisignature transaction (MST) metrics
+========================================
+
+When multisignature transactions are in use, the endpoint additionally
+exposes counters for MSTs waiting for signatures:
+
+.. code-block:: shell
+
+  # HELP number_of_pending_mst_batches Number of pending MST batches
+  # TYPE number_of_pending_mst_batches gauge
+  number_of_pending_mst_batches 0
+  # HELP number_of_pending_mst_transactions Number of pending MST transactions
+  # TYPE number_of_pending_mst_transactions gauge
+  number_of_pending_mst_transactions 0
+
+These gauges reflect the local pending-MST cache — they are most useful
+on peers with ``mst_enable`` set to ``true`` in the configuration (see
+:ref:`configuration`), where MST state is shared between peers.

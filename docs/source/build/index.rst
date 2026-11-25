@@ -68,7 +68,7 @@ You can find all the Iroha Docker Images by `searching the Docker Hub <https://h
 
 There are currently the following images:
 
-- ``iroha`` -- general build of Iroha 1.x; 
+- ``iroha`` -- general build of Iroha 1.x (upstream artifact on Docker Hub);
 - ``iroha-burrow`` -- build that has Iroha 1.x with `Burrow integration <../integrations/index.html#hyperledger-burrow>`_ (deprecated: Burrow is EOL);
 - ``iroha-ursa`` -- build that has Iroha 1.x with `Ursa integration <../integrations/index.html#hyperledger-ursa>`_ (deprecated: Ursa is EOL);
 - ``iroha2`` -- Iroha 2 build;
@@ -79,11 +79,34 @@ There are currently the following images:
 Each image can be used with a respective tag indicating a branch from which the image is built.
 All the available tags can be found on Docker Hub. `Here are all the tags <https://hub.docker.com/r/hyperledger/iroha/tags>`_ for ``iroha`` image.
 
-For example, you can use ``iroha:develop`` for the development version of Iroha, or ``iroha:main`` for the release version. The same works with all the other images, too. 
+For example, ``iroha:1.6.0`` is the last Iroha 1 build. Do **not** use the ``latest``, ``develop`` or ``main`` tags — they now point at Iroha 2 (Rust) builds or stale 2022 artifacts. 
+
+Community-fork images on GHCR
+"""""""""""""""""""""""""""""
+
+The ``baziorek/iroha1-cpp`` fork's CI additionally publishes images to
+**GitHub Container Registry** under ``ghcr.io/baziorek/iroha1-cpp``.
+Currently only the **builder** image is published (the runtime
+``docker/release`` image jobs are disabled in the workflow), with tags
+matching branch names — e.g. ``iroha1-main`` — and release tags:
+
+.. code-block:: shell
+
+  docker pull ghcr.io/baziorek/iroha1-cpp:iroha1-main
+
+Use it exactly like ``hyperledger/iroha-builder`` below, but note it is
+built from the current fork sources, so its toolchain matches what the
+repository needs today.
 
 
 Iroha Builder
 """""""""""""
+
+.. note:: The ``hyperledger/iroha-builder`` image is an upstream artifact
+  that has not been rebuilt since Iroha 1 was deprecated upstream; its
+  toolchain may be too old for the current sources. Prefer building
+  natively or in your own container — the steps below still work if the
+  image happens to be new enough.
 
 Iroha builder allows you to build Iroha with `any of the parameters available <#cmake-parameters>`_ for any other platform but to do it conveniently and securely in Docker. 
 
@@ -101,13 +124,13 @@ On this step you will start and run the image in a container in an interactive m
 
 .. code-block:: shell
 
-  git clone https://github.com/hyperledger/iroha.git
+  git clone https://github.com/baziorek/iroha1-cpp.git
 
 3. When Iroha is cloned, go into Iroha folder: 
 
 .. code-block:: shell
 
-  cd iroha
+  cd iroha1-cpp
 
 4. Then run the script that will build all the necessary dependencies via vcpkg: 
 
@@ -245,7 +268,7 @@ Run in terminal:
 
 .. code-block:: shell
 
-  git clone https://github.com/hyperledger/iroha.git
+  git clone https://github.com/baziorek/iroha1-cpp.git
   cd iroha
   ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build
 
@@ -258,7 +281,7 @@ Execute from Power Shell:
 
 .. code-block:: shell
 
-  git clone https://github.com/hyperledger/iroha.git
+  git clone https://github.com/baziorek/iroha1-cpp.git
   cd iroha
   powershell -ExecutionPolicy ByPass -File .\.packer\win\scripts\vcpkg.ps1 .\vcpkg .\iroha\vcpkg
 
@@ -361,7 +384,7 @@ Packaging Specific Parameters
 
 Running Tests (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^
-First of all, please make sure you `built Iroha correctly <#id8>`_ for the tests.
+First of all, please make sure you `built Iroha correctly <#build-process>`_ for the tests.
 
 After building Iroha, it is a good idea to run tests to check the operability
 of the daemon. You can run tests with this code:

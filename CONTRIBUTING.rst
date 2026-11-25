@@ -31,9 +31,9 @@ Reporting Bugs
 to produce an incorrect or unexpected result, or to behave in unintended
 ways.
 
-Bugs are tracked as `GitHub issues <https://github.com/hyperledger/iroha/issues>`_.
+Bugs are tracked as `GitHub issues <https://github.com/hyperledger-iroha/iroha/issues>`_.
 
-To submit a bug, `create new issue <https://github.com/hyperledger/iroha/issues/new>`_ and
+To submit a bug, `create new issue <https://github.com/hyperledger-iroha/iroha/issues/new>`_ and
 include these details in the issue template: a summary of the problem,
 reproduction steps, and any relevant logs. Please also provide your
 environment details (OS, device specs, Iroha version etc.).
@@ -65,9 +65,9 @@ Suggesting Improvements
 An *improvement* is a code or idea, which makes **existing** code or
 design faster, more stable, portable, secure or better in any other way.
 
-Improvements are tracked as `GitHub issues <https://github.com/hyperledger/iroha/issues>`_.
+Improvements are tracked as `GitHub issues <https://github.com/hyperledger-iroha/iroha/issues>`_.
 
-To submit a new improvement, `create new issue <https://github.com/hyperledger/iroha/issues/new>`_ and
+To submit a new improvement, `create new issue <https://github.com/hyperledger-iroha/iroha/issues/new>`_ and
 describe the idea: what it improves and why it is valuable. If you
 have any code suggestions, you are welcome to include them.
 
@@ -85,15 +85,15 @@ community could help you. You can also help others!
 Your First Code Contribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Read our `C++ Style Guide <#c-style-guide>`__ and start with checking out `the GitHub board <https://github.com/hyperledger/iroha/projects/1>`_ or issues with the
-`good-first-issue label <https://github.com/hyperledger/iroha/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-issue>`_.
+Read our `C++ Style Guide <#c-style-guide>`__ and start with checking out `the GitHub board <https://github.com/hyperledger-iroha/iroha/projects/1>`_ or issues with the
+`good-first-issue label <https://github.com/hyperledger-iroha/iroha/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-issue>`_.
 Indicate somehow that you are working on this task: get in touch with
 maintainers team, community or simply assign this issue to yourself.
 
 Pull Requests
 ~~~~~~~~~~~~~
 
--  Fill in `the required template <https://github.com/hyperledger/iroha/blob/master/.github/PULL_REQUEST_TEMPLATE.md>`_
+-  Fill in `the required template <https://github.com/hyperledger-iroha/iroha/blob/iroha1-main/.github/PULL_REQUEST_TEMPLATE.md>`_
 
 -  End all files with a newline
 
@@ -103,7 +103,7 @@ Pull Requests
 -  Every pull request should be reviewed and **get at least two
    approvals from maintainers team**. Check who is a current maintainer
    in
-   `MAINTAINERS.md <https://github.com/hyperledger/iroha/blob/master/MAINTAINERS.md>`_
+   `MAINTAINERS.md <https://github.com/hyperledger-iroha/iroha/blob/iroha1-main/MAINTAINERS.md>`_
    file
 
 -  When you've finished work make sure that you've got all passing CI
@@ -142,7 +142,7 @@ C++ Style Guide
 ~~~~~~~~~~~~~~~
 
 -  Use clang-format
-   `settings <https://github.com/hyperledger/iroha/blob/master/.clang-format>`_
+   `settings <https://github.com/hyperledger-iroha/iroha/blob/iroha1-main/.clang-format>`_
    file. There are guides available on the internet (e.g. `Kratos
    wiki <https://github.com/KratosMultiphysics/Kratos/wiki/How-to-configure-clang%E2%80%90format>`_)
 -  Follow
@@ -174,9 +174,7 @@ Our community members are active at:
 +----------------+-------------------------------------------------------------------------------------------------------+
 | Service        | Link                                                                                                  |
 +----------------+-------------------------------------------------------------------------------------------------------+
-| Discord        | https://discord.com/channels/905194001349627914/905205848547155968                                    |
-+----------------+-------------------------------------------------------------------------------------------------------+
-|                | **(recommended)**                                                                                     |
+| Discord        | https://discord.com/channels/905194001349627914/905205848547155968 **(recommended)**                  |
 +----------------+-------------------------------------------------------------------------------------------------------+
 | RocketChat     | :strikelink:`Rocket.Chat <https://chat.hyperledger.org/channel/iroha>`                                |
 +----------------+-------------------------------------------------------------------------------------------------------+
@@ -186,7 +184,7 @@ Our community members are active at:
 +----------------+-------------------------------------------------------------------------------------------------------+
 | Mailing List   | hyperledger-iroha@lists.hyperledger.org                                                               |
 +----------------+-------------------------------------------------------------------------------------------------------+
-| Gitter         | https://gitter.im/hyperledger-iroha/Lobby                                                             |
+| Gitter         | https://gitter.im/hyperledger-iroha/Lobby (defunct since 2023)                                        |
 +----------------+-------------------------------------------------------------------------------------------------------+
 | Telegram       | https://t.me/hl\_iroha                                                                                |
 +----------------+-------------------------------------------------------------------------------------------------------+

@@ -67,6 +67,10 @@ gettext_compact = False
 #
 html_theme = "sphinx_rtd_theme"
 
+# Canonical site URL (GitHub Pages project site); also used by
+# _static/lang-switcher.js to compute cross-language links.
+html_baseurl = "https://baziorek.github.io/iroha1-cpp/"
+
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
@@ -184,6 +188,7 @@ def strikelink_role(name, rawtext, text, lineno, inliner, options={}, content=[]
 def setup(app):
     # override wide tables in RTD theme
     app.add_css_file('theme_overrides.css')
+    app.add_js_file('lang-switcher.js', loading_method='defer')
     # :strike:`text` renders text with a line-through (for dead links)
     app.add_role('strike', strike_role)
     # :strikelink:`label <url>` renders a struck-through hyperlink

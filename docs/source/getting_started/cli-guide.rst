@@ -1,6 +1,10 @@
 CLI guide: sending your first transactions and queries
 ======================================================
 
+.. note:: This page assumes ``iroha-cli`` is already available — it
+  ships inside the node distribution. See :doc:`cli` for how to obtain
+  it via Docker, AppImage or a source build.
+
 You can interact with Iroha using various ways.
 You can use our client libraries
 to write code in various programming languages (e.g. Java, Python, Javascript,
@@ -76,7 +80,7 @@ Enter peer address (in our case ``localhost``) and port (``50051``).
 Now your transaction is submitted and you can see your transaction hash.
 You can use it to check transaction's status.
 
-Go back to a terminal where ``irohad`` is running.
+Go back to the terminal where ``irohad`` is running.
 You can see logs of your transaction.
 
 Yay! You have submitted your first transaction to Iroha.
@@ -134,3 +138,55 @@ It replies with:
 Apparently no.
 Our transaction was not accepted because it did not pass stateful validation and ``coolcoins`` were not transferred.
 You can check the status of ``admin@test`` and ``test@test`` with queries to be sure (like we did earlier).
+
+``iroha-cli`` options
+---------------------
+
+Besides the interactive mode shown above, ``iroha-cli`` accepts command
+line flags for non-interactive and scripted usage:
+
++==========================+==============================================================+
+| Flag                     | Description                                                  |
++==========================+==============================================================+
+| ``-account_name``        | account ID to operate as (e.g. ``admin@test``)               |
++--------------------------+--------------------------------------------------------------+
+| ``-new_account``         | create the account keypair on first run                      |
++--------------------------+--------------------------------------------------------------+
+| ``-key_path``            | directory containing ``<name>.pub``/``<name>.priv`` keys     |
++--------------------------+--------------------------------------------------------------+
+| ``-pass_phrase``         | passphrase for encrypted private keys                        |
++--------------------------+--------------------------------------------------------------+
+| ``-peer_ip``             | Iroha node address (default ``127.0.0.1``)                   |
++--------------------------+--------------------------------------------------------------+
+| ``-torii_port``          | Torii port of the node (default ``50051``)                   |
++--------------------------+--------------------------------------------------------------+
+| ``-tls_root_cert``       | path to a PEM root certificate; enables TLS transport        |
++--------------------------+--------------------------------------------------------------+
+| ``-json_transaction``    | send a transaction described as JSON instead of interactive  |
++--------------------------+--------------------------------------------------------------+
+| ``-json_query``          | send a query described as JSON instead of interactive        |
++--------------------------+--------------------------------------------------------------+
+| ``-genesis_block``       | generate a genesis block file and exit                       |
++--------------------------+--------------------------------------------------------------+
+| ``-genesis_transaction`` | transaction used when generating the genesis block           |
++--------------------------+--------------------------------------------------------------+
+| ``-peers_address``       | peers list used in the generated genesis block               |
++--------------------------+--------------------------------------------------------------+
+| ``-interactive``         | run the interactive shell (default ``true``; set ``false`` for|
++--------------------------+--------------------------------------------------------------+
+|                          | one-shot JSON mode)                                          |
++--------------------------+--------------------------------------------------------------+
+
+For example, to send a pre-built JSON transaction without the interactive
+shell:
+
+.. code-block:: shell
+
+  iroha-cli -account_name admin@test \
+            -peer_ip 127.0.0.1 -torii_port 50051 \
+            -json_transaction tx.json -interactive=false
+
+When the node's Torii endpoint has TLS enabled (see
+:doc:`../configure/torii-tls`), point ``-tls_root_cert`` at the PEM
+certificate of the node — the same flag is honoured by the interactive
+mode as well.

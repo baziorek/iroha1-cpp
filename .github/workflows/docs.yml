@@ -42,6 +42,10 @@ jobs:
         ## hyperledger-iroha/iroha-docs-l10n repo; output lands in
         ## docs/_build/html/<lang>/ next to the English version
         run: docs/i18n/build.sh docs/_build/html tr
+      - name: Build local translations
+        ## Translations maintained in this repo under docs/i18n/<lang>/;
+        ## untranslated pages fall back to the current English docs
+        run: docs/i18n/build-local.sh docs/_build/html pl ru ja
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
