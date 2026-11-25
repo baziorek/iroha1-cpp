@@ -1,6 +1,6 @@
 ===============
 Anahtar çifti biçimi
-===============
+====================
 
 Iroha, işlemleri imzalamak için anahtar çiftleri (.pub ve .priv
 anahtarları) kullanır – her `hesabın
@@ -14,9 +14,9 @@ algoritmalar bu anahtarları kullanır – ve Iroha'da hangi
 algoritmaların kullanılacağını seçme imkânı sunuyoruz.
 
 .. note:: Python kütüphanesi kullanarak anahtar çiftlerinin nasıl
-oluşturulacağını `burada
-<../getting_started/python-guide.html#creating-your-own-key-pairs-with-python-library>`__
-görebilirsiniz.
+   oluşturulacağını `burada
+   <../getting_started/python-guide.html#creating-your-own-key-pairs-with-python-library>`__
+   görebilirsiniz.
 
 Desteklenen kripto algoritmaları
 ================================
@@ -50,7 +50,7 @@ kullanmak için bunları bu biçime dönüştürmeniz gerekir:
 
 
 .. note:: Multihash'te varint'ler, En Anlamlı Bit işaretsiz
-varint'leridir (base-128 varint olarak da adlandırılır).
+   varint'leridir (base-128 varint olarak da adlandırılır).
 
 
 Iroha 32 baytlık standart bir açık anahtar alırsa, bunu yerel
@@ -60,11 +60,11 @@ alırsa, aşağıdaki tabloya göre işler.
 
 Şu anda Iroha yalnızca bir multihash anahtar biçimini "anlar":
 
-+------------+-----------+----------+------------------+
-|Ad          |Etiket     |Kod       |Açıklama          |
-+============+===========+==========+==================+
-|ed25519-pub |key        |0xed	    |Ed25519 açık anahtar|
-+------------+-----------+----------+------------------+
++-------------+--------+------+----------------------+
+| Ad          | Etiket | Kod  | Açıklama             |
++=============+========+======+======================+
+| ed25519-pub | key    | 0xed | Ed25519 açık anahtar |
++-------------+--------+------+----------------------+
 
 Iroha'daki açık anahtarlara örnekler:
 

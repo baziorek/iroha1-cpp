@@ -8,7 +8,7 @@ ve aralarında hangi ilişkilerin olduğunu açıklamak için bu bölüm ER
 diyagramını ve bileşenlerinin açıklamasını içerir.
 
 ER diyagramı
------------
+------------
 
 .. image:: ./../../image_assets/er-model.png
 

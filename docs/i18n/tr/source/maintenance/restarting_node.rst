@@ -5,7 +5,7 @@
 .. role:: red
 
 Mevcut WSV ile Iroha düğümünü yeniden başlatma
-=============================================
+==============================================
 
 Önceden, bir düğümü güncellemeniz gerektiğinde veya herhangi bir
 nedenden kapandığında, tutarlı bir `world state view (WSV olarak
@@ -18,12 +18,12 @@ için üst bloğun ``hash``'i ve blockstorage'ın ``height``'i WSV'ye
 dahil edilmiştir.
 
 .. warning::
-	WSV'nin manuel olarak düzenlenmediğinden emin olmak düğüm
-yöneticilerinin sorumluluğundadır – yalnızca Iroha veya `göç
-betiği <#changing-iroha-version-migration>`__ tarafından
-düzenlenmelidir. Manuel düzenleme veya güvenilir yönergelere
-uymayan göç betiği düzenlemesi tutarsız bir ağa yol açabilir.
-Bunu kendi sorumluluğunuzda yapın (uyardık).
+   WSV'nin manuel olarak düzenlenmediğinden emin olmak düğüm
+   yöneticilerinin sorumluluğundadır – yalnızca Iroha veya `göç
+   betiği <#changing-iroha-version-migration>`__ tarafından
+   düzenlenmelidir. Manuel düzenleme veya güvenilir yönergelere
+   uymayan göç betiği düzenlemesi tutarsız bir ağa yol açabilir.
+   Bunu kendi sorumluluğunuzda yapın (uyardık).
 
 Bazı durumlar için harika bir fikir olabilir, ancak blockstorage'dan
 WSV'yi geri yüklemeye kıyasla WSV'yi yeniden kullanmanın belirli
@@ -53,11 +53,11 @@ WSV'yi geri yüklemeye kıyasla WSV'yi yeniden kullanmanın belirli
   uzun sürer.
 
 .. note:: Kapanan yerel defter olması gerekenden daha fazla
-bloğa sahipse ve doğru WSV aralarındaysa — sorun yok, Iroha doğru
-bloğun WSV'sini alacaktır.
-	Bloklar olması gerekenden azsa – WSV'yi yeniden kullanma
-	seçeneği size işe yaramayacaktır.
-	Lütfen bloklardan geri yükleyin.
+   bloğa sahipse ve doğru WSV aralarındaysa — sorun yok, Iroha doğru
+   bloğun WSV'sini alacaktır.
+   Bloklar olması gerekenden azsa – WSV'yi yeniden kullanma
+   seçeneği size işe yaramayacaktır.
+   Lütfen bloklardan geri yükleyin.
 
 
 WSV'yi düşürme
@@ -70,7 +70,7 @@ isterseniz Iroha'yı ``--drop_state`` bayrağıyla başlatın. Bu bayrak
 verildiğinde Iroha durum veritabanını sıfırlar ve üzerine yazar.
 
 Durum veritabanı şema sürümü
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Mevcut WSV yeniden kullanılırken Iroha bir şema sürümü uyumluluk
 kontrolü gerçekleştirir. Şeması kullanılan Iroha ile uyumlu değilse
@@ -87,14 +87,14 @@ betiği `--force_schema_version` bayrağıyla başlatın ve şemanızı
 oluşturmak için kullanılan Iroha binary'sinin sürümünü geçirin.
 
 .. warning::
-  Şema sürüm numaralarını zorla yazmadan önce, şemayı oluşturan
-  irohad sürümünü iki kez kontrol edin.
-  Şema numaralarını zorladığınızda hiçbir kontrol yapılmaz; bu
-  nedenle gelecekte (bir sonraki göç sırasında) durum
-  veritabanını bozmak kolaydır.
+     Şema sürüm numaralarını zorla yazmadan önce, şemayı oluşturan
+     irohad sürümünü iki kez kontrol edin.
+     Şema numaralarını zorladığınızda hiçbir kontrol yapılmaz; bu
+     nedenle gelecekte (bir sonraki göç sırasında) durum
+     veritabanını bozmak kolaydır.
 
 Iroha sürümünü değiştirme. Göç.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 WSV'yi koruyarak Iroha sürümünü değiştirmek istiyorsanız göç
 yapmanızı öneririz. Şema uyumsuzsa Iroha başlatmayı reddedeceği
 için gereksiz olabilir, ancak genel kural olarak her sürümle
@@ -114,13 +114,13 @@ veritabanınızı istenen sürüme taşıyacak tüm göç yollarını bulacak
 ve birini seçmenizi isteyecektir.
 
 .. seealso::
-	`Burada
-	<https://github.com/hyperledger-iroha-state-migration-tool/blob/master/README.md>`__
-	farklı göç durumları hakkında ayrıntılar ve göçü gerçekleştirmek
-için inceleyebileceğiniz örnekler var
+   `Burada
+   <https://github.com/hyperledger-iroha-state-migration-tool/blob/master/README.md>`__
+   farklı göç durumları hakkında ayrıntılar ve göçü gerçekleştirmek
+   için inceleyebileceğiniz örnekler var
 
 WSV senkronizasyon modu.
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 WSV senkronizasyon modu için ``--wait_for_new_blocks``
 seçeneklerini belirtin. Iroha, WSV'yi blockstore'dan geri yükler
