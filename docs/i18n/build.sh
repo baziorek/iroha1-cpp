@@ -66,6 +66,16 @@ for lang in $LANGS; do
             | tar --null -cf - --files-from=-) \
             | (cd "$DEST/source" && tar xf -)
     fi
+
+    # Local overlay: docs/i18n/<lang>/source in THIS repo takes precedence
+    # over the l10n repo — used for pages added/changed after the l10n
+    # snapshot (and for languages maintained locally, see build-local.sh)
+    LOCAL_SRC="$REPO_ROOT/docs/i18n/$lang/source"
+    if [ -d "$LOCAL_SRC" ]; then
+        (cd "$LOCAL_SRC" && find . -type f -print0 \
+            | tar --null -cf - --files-from=-) \
+            | (cd "$DEST/source" && tar xf -)
+    fi
     if [ -d "$L10N_SRC/image_assets" ]; then
         (cd "$L10N_SRC/image_assets" && find . -type f -print0 \
             | tar --null -cf - --files-from=-) \

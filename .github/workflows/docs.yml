@@ -45,7 +45,7 @@ jobs:
       - name: Build local translations
         ## Translations maintained in this repo under docs/i18n/<lang>/;
         ## untranslated pages fall back to the current English docs
-        run: docs/i18n/build-local.sh docs/_build/html pl
+        run: docs/i18n/build-local.sh docs/_build/html pl ru ja
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:

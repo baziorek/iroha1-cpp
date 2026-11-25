@@ -5,6 +5,8 @@
  *   /iroha1-cpp/        -> English (default)
  *   /iroha1-cpp/pl/     -> Polski
  *   /iroha1-cpp/tr/     -> Türkçe
+ *   /iroha1-cpp/ru/     -> Русский
+ *   /iroha1-cpp/ja/     -> 日本語
  *
  * Keep BASE in sync with html_baseurl in conf.py and the list of
  * languages with the directories produced by docs/i18n/build*.sh.
@@ -16,8 +18,9 @@
   var LANGS = {
     en: 'English',
     pl: 'Polski',
-    tr: 'Türkçe'
-    // ru: 'Русский'  -- enable together with docs/i18n/ru/
+    tr: 'Türkçe',
+    ru: 'Русский',
+    ja: '日本語'
   };
 
   var basePath = '/iroha1-cpp/';
