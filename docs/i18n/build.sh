@@ -4,8 +4,9 @@
 #
 # Translations are taken from the archived hyperledger-iroha/iroha-docs-l10n
 # repository (per-language Sphinx source trees). Each locale directory is
-# overlaid on top of the matching Iroha 1.x English docs snapshot, so pages
-# without a translation fall back to English automatically.
+# overlaid on top of the CURRENT docs/source tree in this repository, so
+# pages without a translation — including pages added after the l10n
+# snapshot was made — fall back to the current English version.
 #
 # To add a new language: make sure docs/locale/<lang>/ exists in the l10n
 # repo at L10N_REF and pass the language code as an argument.
@@ -21,8 +22,6 @@ LANGS=${@:-tr}
 
 L10N_REPO="hyperledger-iroha/iroha-docs-l10n"
 L10N_REF="1.2.0"
-EN_REPO="hyperledger/iroha"
-EN_REF="f2099d499fbf7a0ec8c8df2a4dce100b0bb4349b"  # docs snapshot the l10n repo was made against
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
@@ -41,10 +40,6 @@ curl -fsSL "https://github.com/$L10N_REPO/archive/$L10N_REF.tar.gz" \
     | tar xz -C "$WORK"
 L10N_ROOT=$(find "$WORK" -maxdepth 1 -type d -name 'iroha-docs-l10n-*' | head -1)
 
-echo ">> Downloading $EN_REPO@$EN_REF (docs only needed, full snapshot fetched)"
-curl -fsSL "https://github.com/$EN_REPO/archive/$EN_REF.tar.gz" \
-    | tar xz -C "$WORK"
-EN_ROOT=$(find "$WORK" -maxdepth 1 -type d -name 'iroha-*' ! -name 'iroha-docs-l10n-*' | head -1)
 
 for lang in $LANGS; do
     echo ">> Building '$lang' documentation"
@@ -57,10 +52,11 @@ for lang in $LANGS; do
     DEST="$WORK/$lang/docs"
     mkdir -p "$DEST"
 
-    # Base: English docs snapshot (complete tree; untranslated pages stay English)
-    cp -r "$EN_ROOT/docs/source" "$DEST/source"
+    # Base: the CURRENT English docs (complete tree; untranslated pages
+    # — including ones added after the l10n snapshot — stay English)
+    cp -r "$SRC_DOCS" "$DEST/source"
     mkdir -p "$DEST/image_assets"
-    [ -d "$EN_ROOT/docs/image_assets" ] && cp -r "$EN_ROOT/docs/image_assets/." "$DEST/image_assets/"
+    [ -d "$REPO_ROOT/docs/image_assets" ] && cp -r "$REPO_ROOT/docs/image_assets/." "$DEST/image_assets/"
 
     # Overlay: translated files only (regular files; symlinks in the l10n repo
     # point into the 'iroha' submodule and are intentionally skipped — the
@@ -108,9 +104,16 @@ for lang in $LANGS; do
     sed -i "s/^language:.*/language: \"$lang\"/" "$DEST/source/locale.yaml" 2>/dev/null || \
         printf 'language: "%s"\n' "$lang" > "$DEST/source/locale.yaml"
 
+    # Repo files referenced by literalinclude/include directives
+    # (paths like ../../../vcpkg/... resolve two levels above source/,
+    # i.e. to the build root $WORK/$lang/). Symlink them so translated
+    # builds see the same files as the English one.
+    mkdir -p "$WORK/$lang"
+    for p in vcpkg example shared_model iroha-lib libs irohad; do
+        [ -e "$REPO_ROOT/$p" ] && ln -sfn "$REPO_ROOT/$p" "$WORK/$lang/$p"
+    done
     # example/python is referenced by the iroha_permissions extension for
     # code excerpts (paths are resolved two levels above source/)
-    mkdir -p "$WORK/$lang"
     [ -d "$REPO_ROOT/example/python" ] && cp -r "$REPO_ROOT/example/python" "$WORK/$lang/"
 
     # Locale-level files referenced via relative includes
@@ -122,6 +125,11 @@ for lang in $LANGS; do
             | tar --null -cf - --files-from=-) \
             | (cd "$WORK/$lang" && tar xf -)
     fi
+    # Fallback: locale-level files without a translation (e.g.
+    # CONTRIBUTING.rst) come from this repo so relative includes resolve
+    for f in CONTRIBUTING.rst; do
+        [ -f "$WORK/$lang/$f" ] || ln -sfn "$REPO_ROOT/$f" "$WORK/$lang/$f"
+    done
 
     mkdir -p "$OUT_DIR/$lang"
     (cd "$DEST/source" && sphinx-build -b html . "$OUT_DIR/$lang")

@@ -124,9 +124,12 @@ Let's start Iroha node in Docker container with the following command:
 
 .. note:: The ``hyperledger/iroha:1.6.0`` image is the last official
   upstream Iroha 1 build. Do **not** use the ``:latest`` tag — it is a
-  stale 2022 image. This fork does not publish its own Docker image;
-  for a fork build use the release packages (deb/rpm/AppImage) or build
-  from source (see :ref:`build-guide`).
+  stale 2022 image. This fork does not publish its own runtime Docker
+  image; for a fork build use the release packages (deb/rpm/AppImage) or
+  build from source (see :ref:`build-guide`). The fork's CI does publish
+  a **builder** image at
+  ``ghcr.io/baziorek/iroha1-cpp:iroha1-main`` for compiling Iroha inside
+  Docker — see :ref:`build-guide`.
 
 .. note:: If you are using Iroha with RocksDB, please add ``--entrypoint irohad`` to these parameters, to skip the PostgreSQL container check.
 .. note:: To use `metrics <../maintenance/metrics.html>`_ with Docker please also set up the port ``-p7001:7001`` and edit the ``config.docker`` file with ``0.0.0.0:7001``.

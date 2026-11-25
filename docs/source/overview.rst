@@ -75,3 +75,33 @@ A good start is to check `Concepts and Architecture section <concepts_architectu
 
 We also have several client libraries which provide tools for developers to form building blocks, such as signatures, commands,
 send messages to Iroha peers and check the status.
+Known limitations and project status
+-------------------------------------
+
+Before building on Iroha 1 it is worth knowing the current state of the
+project — several limitations are architectural or historical rather than
+bugs:
+
+- **Lifecycle**: upstream Hyperledger Iroha 1 is end-of-life; this
+  documentation describes the ``baziorek/iroha1-cpp`` community fork,
+  which is maintained by a single maintainer (with AI assistance) and
+  carries **no production guarantees** — see the warning on the
+  :doc:`index`.
+- **Consensus model**: Iroha 1 deployments run YAC in **CFT mode**
+  (crash fault tolerance, simple majority) — the consistency model is a
+  compile-time constant and cannot be switched to BFT by configuration,
+  even though the algorithm supports it. See :ref:`yac`.
+- **Client libraries**: only the C++ ``iroha-lib`` and the Python
+  ``iroha1-python`` fork are maintained; the Java, JavaScript and iOS
+  libraries are unmaintained (see :doc:`develop/libraries`).
+- **No runtime container image**: the fork CI publishes release
+  packages (deb/rpm/AppImage) and a builder image, but not a ready-made
+  ``irohad`` Docker image — see :ref:`build-guide`.
+- **Performance**: Iroha 1 has no maintained performance-test suite for
+  the current toolchain; throughput numbers from older releases may not
+  apply.
+- **API surface**: Torii has no built-in rate limiting; put a
+  reverse proxy in front for public endpoints.
+- **Compatibility**: Iroha 1 and Iroha 2 are **wire- and
+  state-incompatible** — there is no in-place migration path; see the
+  note on the :doc:`index`.

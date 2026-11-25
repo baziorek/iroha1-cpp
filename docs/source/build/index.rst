@@ -68,7 +68,7 @@ You can find all the Iroha Docker Images by `searching the Docker Hub <https://h
 
 There are currently the following images:
 
-- ``iroha`` -- general build of Iroha 1.x; 
+- ``iroha`` -- general build of Iroha 1.x (upstream artifact on Docker Hub);
 - ``iroha-burrow`` -- build that has Iroha 1.x with `Burrow integration <../integrations/index.html#hyperledger-burrow>`_ (deprecated: Burrow is EOL);
 - ``iroha-ursa`` -- build that has Iroha 1.x with `Ursa integration <../integrations/index.html#hyperledger-ursa>`_ (deprecated: Ursa is EOL);
 - ``iroha2`` -- Iroha 2 build;
@@ -80,6 +80,23 @@ Each image can be used with a respective tag indicating a branch from which the 
 All the available tags can be found on Docker Hub. `Here are all the tags <https://hub.docker.com/r/hyperledger/iroha/tags>`_ for ``iroha`` image.
 
 For example, ``iroha:1.6.0`` is the last Iroha 1 build. Do **not** use the ``latest``, ``develop`` or ``main`` tags — they now point at Iroha 2 (Rust) builds or stale 2022 artifacts. 
+
+Community-fork images on GHCR
+"""""""""""""""""""""""""""""
+
+The ``baziorek/iroha1-cpp`` fork's CI additionally publishes images to
+**GitHub Container Registry** under ``ghcr.io/baziorek/iroha1-cpp``.
+Currently only the **builder** image is published (the runtime
+``docker/release`` image jobs are disabled in the workflow), with tags
+matching branch names — e.g. ``iroha1-main`` — and release tags:
+
+.. code-block:: shell
+
+  docker pull ghcr.io/baziorek/iroha1-cpp:iroha1-main
+
+Use it exactly like ``hyperledger/iroha-builder`` below, but note it is
+built from the current fork sources, so its toolchain matches what the
+repository needs today.
 
 
 Iroha Builder
