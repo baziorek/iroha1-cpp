@@ -57,22 +57,22 @@ Docker
 Iroha イメージ
 """"""""""""""
 
-すべての Iroha Docker イメージは、`Docker Hub を検索 <https://hub.docker.com/search?q=hyperledger%2Firoha&type=image>`_するか、`GitHub <https://github.com/orgs/hyperledger/packages?repo_name=iroha>`_で見つけることができます。
+すべての Iroha Docker イメージは、`Docker Hub を検索 <https://hub.docker.com/search?q=hyperledger%2Firoha&type=image>`_ するか、`GitHub <https://github.com/orgs/hyperledger/packages?repo_name=iroha>`_ で見つけることができます。
 
 現在、以下のイメージがあります:
 
 - ``iroha`` -- Iroha 1.x の一般ビルド（Docker Hub 上のアップストリーム成果物）;
-- ``iroha-burrow`` -- `Burrow 統合 <../integrations/index.html#hyperledger-burrow>`_を含む Iroha 1.x のビルド（非推奨: Burrow は EOL）;
-- ``iroha-ursa`` -- `Ursa 統合 <../integrations/index.html#hyperledger-ursa>`_を含む Iroha 1.x のビルド（非推奨: Ursa は EOL）;
+- ``iroha-burrow`` -- `Burrow 統合 <../integrations/index.html#hyperledger-burrow>`_ を含む Iroha 1.x のビルド（非推奨: Burrow は EOL）;
+- ``iroha-ursa`` -- `Ursa 統合 <../integrations/index.html#hyperledger-ursa>`_ を含む Iroha 1.x のビルド（非推奨: Ursa は EOL）;
 - ``iroha2`` -- Iroha 2 のビルド;
 - ``iroha-builder`` -- Docker 内で Iroha ビルダーを実行できる特別なイメージ。
 
-.. hint:: イメージの実行については `クイックスタートガイド <../getting_started/index.html>`_でさらに読むことができます。
+.. hint:: イメージの実行については `クイックスタートガイド <../getting_started/index.html>`_ でさらに読むことができます。
 
 各イメージは、イメージがビルドされたブランチを示す対応するタグとともに使用できます。
-利用可能なすべてのタグは Docker Hub で見つけられます。``iroha`` イメージの`すべてのタグはこちら <https://hub.docker.com/r/hyperledger/iroha/tags>`_です。
+利用可能なすべてのタグは Docker Hub で見つけられます。``iroha`` イメージの `すべてのタグはこちら <https://hub.docker.com/r/hyperledger/iroha/tags>`_ です。
 
-例えば、``iroha:1.6.0`` は最後の Iroha 1 ビルドです。``latest`` 、``develop`` 、``main`` タグは**使用しないでください** — これらは現在 Iroha 2（Rust）ビルドまたは古い 2022 年の成果物を指しています。
+例えば、``iroha:1.6.0`` は最後の Iroha 1 ビルドです。``latest`` 、``develop`` 、``main`` タグは **使用しないでください** — これらは現在 Iroha 2（Rust）ビルドまたは古い 2022 年の成果物を指しています。
 
 GHCR のコミュニティフォークイメージ
 """"""""""""""""""""""""""""""""""""""
@@ -92,7 +92,7 @@ Iroha ビルダー
 
 .. note:: ``hyperledger/iroha-builder`` イメージはアップストリームの成果物であり、Iroha 1 がアップストリームで非推奨になって以来再ビルドされていません。そのツールチェーンは現在のソースに対して古すぎる可能性があります。ネイティブまたは独自のコンテナでのビルドを推奨します — イメージがたまたま十分に新しい場合は、以下のステップは引き続き機能します。
 
-Iroha ビルダーを使用すると、他のどのプラットフォームでも利用可能な`任意のパラメーター <CMakeパラメーター_>`__で Iroha をビルドできますが、それを Docker で便利かつ安全に行うことができます。
+Iroha ビルダーを使用すると、他のどのプラットフォームでも利用可能な `任意のパラメーター <CMakeパラメーター_>`__ で Iroha をビルドできますが、それを Docker で便利かつ安全に行うことができます。
 
 手順は次のとおりです:
 
@@ -145,13 +145,13 @@ Debian ベースの Linux ディストリビューションで環境の依存関
 
 .. note:: WSV-diff テストツール ``test/tool/test_tool_iroha_wsv_diff.sh`` は、テストを実行するマシンに ``jq`` と ``postgresql-client`` （``psql`` 用）も追加で必要とします。
 
-.. Important:: `Burrow 統合 <../integrations/burrow.html>`_を使用したい場合は GO も必要です。`公式ウェブサイト <https://golang.org/doc/install>`_の指示に従ってインストールし、次のコマンドを使用してください:
+.. Important:: `Burrow 統合 <../integrations/burrow.html>`_ を使用したい場合は GO も必要です。`公式ウェブサイト <https://golang.org/doc/install>`_ の指示に従ってインストールし、次のコマンドを使用してください:
 
 .. code-block:: shell
 
   go get github.com/golang/protobuf/protoc-gen-go
 
-.. note::  Iroha を積極的に開発し、共有ライブラリをビルドする予定がある場合は、CMake の `最新リリース <https://cmake.org/download/>`_のインストールを検討してください。
+.. note::  Iroha を積極的に開発し、共有ライブラリをビルドする予定がある場合は、CMake の `最新リリース <https://cmake.org/download/>`_ のインストールを検討してください。
 
 RaspberryPi 4
 """""""""""""""""""""""
@@ -160,7 +160,7 @@ Raspberry Pi 4 で Iroha をビルドするには、Linux と同じ手順に従�
 
 **注意**: Iroha には 8GiB の RAM が必要です。ビルドが ``SIGKILL`` で終了する場合は、ホストデバイスにスワップファイルまたはスワップパーティションを作成するか、クロスコンパイルを検討してください。
 
-これで `Iroha の依存関係のインストール <Vcpkg依存関係マネージャーによる依存関係のインストール_>`_の準備ができました。
+これで `Iroha の依存関係のインストール <Vcpkg依存関係マネージャーによる依存関係のインストール_>`_ の準備ができました。
 
 .. _macos-pre:
 
@@ -178,13 +178,13 @@ Iroha をゼロからビルドして積極的に開発したい場合は、Homeb
 
   ``ruby -e "$(curl -fsSL https://raw.githubusercontent.com/homebrew/install/master/install)"``
 
-.. Important:: `Burrow 統合 <../integrations/burrow.html>`_を使用したい場合は GO も必要です。`公式ウェブサイト <https://golang.org/doc/install>`_の指示に従ってインストールし、次のコマンドを使用してください:
+.. Important:: `Burrow 統合 <../integrations/burrow.html>`_ を使用したい場合は GO も必要です。`公式ウェブサイト <https://golang.org/doc/install>`_ の指示に従ってインストールし、次のコマンドを使用してください:
 
 .. code-block:: shell
 
   go get github.com/golang/protobuf/protoc-gen-go
 
-これで `Iroha の依存関係のインストール <Vcpkg依存関係マネージャーによる依存関係のインストール_>`_の準備ができました。
+これで `Iroha の依存関係のインストール <Vcpkg依存関係マネージャーによる依存関係のインストール_>`_ の準備ができました。
 
 .. _windows-pre:
 
@@ -196,7 +196,7 @@ Windows
 Chocolatey パッケージマネージャー
 """"""""""""""""""""""""""""""""""
 
-まず、Chocolatey パッケージマネージャーがインストールされている必要があります。chocolatey のインストールについては `ガイド <https://chocolatey.org/install>`_を参照してください。
+まず、Chocolatey パッケージマネージャーがインストールされている必要があります。chocolatey のインストールについては `ガイド <https://chocolatey.org/install>`_ を参照してください。
 
 ツールセットのビルド
 """"""""""""""""""""""""
@@ -215,7 +215,7 @@ PostgreSQL はビルド依存関係ではありませんが、後のテストの
     choco install postgresql
     # 設定したパスワードを忘れないでください！
 
-これで `Iroha の依存関係のインストール <Vcpkg依存関係マネージャーによる依存関係のインストール_>`_の準備ができました。
+これで `Iroha の依存関係のインストール <Vcpkg依存関係マネージャーによる依存関係のインストール_>`_ の準備ができました。
 
 Vcpkg依存関係マネージャーによる依存関係のインストール
 ======================================================
@@ -223,12 +223,12 @@ Vcpkg依存関係マネージャーによる依存関係のインストール
 現在、すべてのプラットフォーム — Linux、Windows、MacOS — で依存関係マネージャーとして Vcpkg を使用しています。
 必要なパッチが機能することを保証するため、固定バージョンの Vcpkg（``vcpkg/VCPKG_COMMIT_SHA`` に固定）を使用しています。
 
-必要な依存関係の完全なリストは 1 か所 — ``vcpkg/VCPKG_DEPS_LIST`` — で維持されており、以下に再掲します。vcpkg は各ポートを固定された vcpkg ベースラインで利用可能な最新バージョンに解決します。これらは成功するビルドのための**最低サポートバージョン**です:
+必要な依存関係の完全なリストは 1 か所 — ``vcpkg/VCPKG_DEPS_LIST`` — で維持されており、以下に再掲します。vcpkg は各ポートを固定された vcpkg ベースラインで利用可能な最新バージョンに解決します。これらは成功するビルドのための **最低サポートバージョン** です:
 
 .. literalinclude:: ../../../vcpkg/VCPKG_DEPS_LIST
    :language: text
 
-.. note:: vcpkg の外でビルドする場合（例えばシステムパッケージ）、固定された vcpkg ベースラインが提供するものより**古くない**バージョンであることを確認してください。特に、コードは **soci 4.x** （``soci/std-optional.h`` を使用）、**gRPC コード生成付き protobuf** 、**Boost >= 1.73** 、**OpenSSL 3.x** を必要とします。
+.. note:: vcpkg の外でビルドする場合（例えばシステムパッケージ）、固定された vcpkg ベースラインが提供するものより **古くない** バージョンであることを確認してください。特に、コードは **soci 4.x** （``soci/std-optional.h`` を使用）、**gRPC コード生成付き protobuf** 、**Boost >= 1.73** 、**OpenSSL 3.x** を必要とします。
 
 その安定バージョンは Iroha リポジトリ内でのみ見つかるため、Iroha をクローンする必要があります。
 プロセス全体はすべてのプラットフォームで非常に似ていますが、正確なコマンドはわずかに異なります。
@@ -244,7 +244,7 @@ Linux と MacOS
   cd iroha
   ./vcpkg/build_iroha_deps.sh $PWD/vcpkg-build
 
-これで完了です！ `Iroha のビルド <ビルドプロセス_>`_セクションに進むことができます。
+これで完了です！ `Iroha のビルド <ビルドプロセス_>`_ セクションに進むことができます。
 
 Windows
 ^^^^^^^
@@ -258,7 +258,7 @@ PowerShell から実行:
   powershell -ExecutionPolicy ByPass -File .\.packer\win\scripts\vcpkg.ps1 .\vcpkg .\iroha\vcpkg
 
 
-素晴らしい仕事です！ `Iroha のビルド <ビルドプロセス_>`_セクションに進むことができます。
+素晴らしい仕事です！ `Iroha のビルド <ビルドプロセス_>`_ セクションに進むことができます。
 
 .. note:: Iroha の 32 ビットバージョンをビルドする予定がある場合は、上記で言及したすべてのライブラリを ``x64`` の代わりに ``x86`` プレフィックス付きでインストールする必要があります。
 
@@ -274,7 +274,7 @@ Iroha のビルド
 
   cmake -B build -DCMAKE_TOOLCHAIN_FILE=$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake . -DCMAKE_BUILD_TYPE=RELEASE   -GNinja -DUSE_BURROW=OFF -DUSE_LIBURSA=OFF -DTESTING=OFF -DPACKAGE_DEB=OFF
 
-``-DUSE_BURROW=ON`` のような cmake パラメーターは、まさに特別なビルドのために選択できるパラメーターです。これらのパラメーターの完全なリストと説明は`こちら <CMakeパラメーター_>`_で見ることができます。
+``-DUSE_BURROW=ON`` のような cmake パラメーターは、まさに特別なビルドのために選択できるパラメーターです。これらのパラメーターの完全なリストと説明は `こちら <CMakeパラメーター_>`_ で見ることができます。
 
 2. 実行
 
@@ -301,7 +301,7 @@ Iroha のビルド
 
 これで Iroha がビルドされました。ただし、希望する場合は、以下で説明する追加パラメーターでビルドすることもできます。
 
-結果に満足している場合は、次のステップに進んで`Iroha インスタンスを実行 <../deploy/single.html>`_できます。
+結果に満足している場合は、次のステップに進んで `Iroha インスタンスを実行 <../deploy/single.html>`_ できます。
 
 CMakeパラメーター
 ^^^^^^^^^^^^^^^^^^
@@ -345,11 +345,11 @@ CMakeパラメーター
      - OFF
      - HL Burrow EVM 統合を有効にする
 
-.. warning:: ``USE_LIBURSA`` と ``USE_BURROW`` オプションは**非推奨**です。Hyperledger Ursa は 2023 年 4 月 27 日に、Hyperledger Burrow は 2022 年 5 月 12 日に End of Life に達しました。両方の統合は古いデプロイメントとの互換性のためだけに保持されています。
+.. warning:: ``USE_LIBURSA`` と ``USE_BURROW`` オプションは **非推奨** です。Hyperledger Ursa は 2023 年 4 月 27 日に、Hyperledger Burrow は 2022 年 5 月 12 日に End of Life に達しました。両方の統合は古いデプロイメントとの互換性のためだけに保持されています。
 
-.. note:: ビルドに HL Ursa 暗号を使用したい場合は、他の依存関係に加えて `Rust <https://www.rust-lang.org/tools/install>`_もインストールしてください。HL Ursa 統合の詳細は`こちら <../integrations/index.html#hyperledger-ursa>`_を参照してください。
+.. note:: ビルドに HL Ursa 暗号を使用したい場合は、他の依存関係に加えて `Rust <https://www.rust-lang.org/tools/install>`_ もインストールしてください。HL Ursa 統合の詳細は `こちら <../integrations/index.html#hyperledger-ursa>`_ を参照してください。
 
-  HL Burrow 統合を使用したい場合は、まず `Go <https://golang.org/doc/install>`_と `protoc-gen-go <https://developers.google.com/protocol-buffers/docs/reference/go-generated>`_をインストールすることを忘れないでください。`HL Burrow 統合 <../integrations/index.html#hyperledger-burrow>`_の詳細を参照してください。
+  HL Burrow 統合を使用したい場合は、まず `Go <https://golang.org/doc/install>`_ と `protoc-gen-go <https://developers.google.com/protocol-buffers/docs/reference/go-generated>`_ をインストールすることを忘れないでください。`HL Burrow 統合 <../integrations/index.html#hyperledger-burrow>`_ の詳細を参照してください。
 
 パッケージング固有のパラメーター
 """"""""""""""""""""""""""""""""
@@ -381,7 +381,7 @@ CMakeパラメーター
 
 テストの実行（任意）
 ^^^^^^^^^^^^^^^^^^^^
-まず、テストのために Iroha が正しく`ビルドされていることを確認 <ビルドプロセス_>`__してください。
+まず、テストのために Iroha が正しく `ビルドされていることを確認 <ビルドプロセス_>`__ してください。
 
 Iroha をビルドした後、デーモンの動作をチェックするためにテストを実行するのが良いでしょう。次のコードでテストを実行できます:
 
