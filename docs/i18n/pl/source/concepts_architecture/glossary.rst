@@ -176,7 +176,7 @@ Nazwana abstrakcja przechowująca zbiór `uprawnień
 <Uprawnienie_>`__.
 
 Sygnatariusz
-===========
+============
 
 Reprezentuje encję, która może potwierdzać transakcje
 wielopodpisowe dla `konta <Konto_>`__. Może być dołączony
@@ -210,7 +210,7 @@ oprócz podpisów:
 publiczny ed25519 + podpis)
 
 Zredukowany hash transakcji
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Zredukowany hash jest obliczany na podstawie ładunku
 transakcji z wyłączeniem informacji meta partii. Używany w
@@ -236,7 +236,7 @@ transakcji jest taki sam:
     Sprawdź go i daj nam znać, co o tym myślisz w komentarzach!
 
 Zbiór statusów transakcji
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
@@ -277,7 +277,7 @@ Zbiór statusów transakcji
        zapobiegania atakom powtórkowym.
 
 Transakcje oczekujące
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 
 Każda transakcja, która w danym momencie ma mniej podpisów
 niż `kworum`_ konta twórcy transakcji, jest uznawana za

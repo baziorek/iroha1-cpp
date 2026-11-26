@@ -139,7 +139,7 @@ olan rollere sahiptir. Yine de bir istisna vardır — bkz.
 <../develop/api/permissions.html>`_.
 
 Devredilebilir İzin
-------------------
+-------------------
 
 Yalnızca devredilebilir izin doğrudan bir `hesaba
 <Hesap_>`__ verilir. Devredilebilir izne sahip bir
@@ -164,7 +164,7 @@ Hem `durumsuz <Durumsuz Doğrulama_>`__ hem de
 ancak henüz taahhüt edilmemiş işlemlerin kümesi.
 
 Sorgu
-====
+=====
 
 Ağın `durumunu <architecture.html#world-state-view>`__
 **değiştirmeyen** bir Iroha isteği. Bir sorgu
@@ -172,7 +172,7 @@ gerçekleştirerek istemci, durumdan veri isteyebilir; örneğin
 hesabının bakiyesi, işlem geçmişi vb.
 
 Çoğunluk
-=======
+========
 
 İşlem imzalama bağlamında çoğunluk sayısı, bir işlemin
 imzalı sayılması için gereken minimum imza sayısıdır.
@@ -200,7 +200,7 @@ hesaba eklenebilir ve `RemoveSignatory
 kaldırılabilir.
 
 İşlem
-====
+=====
 
 Deftere atomik olarak uygulanan `komutların
 <Komut_>`__ sıralı kümesi. Doğrulama süreci sırasında
