@@ -50,5 +50,5 @@ Depolama ile çalışan araçlar
   hata ayıklarken kullanışlı
 
 .. hint:: Depo ``example/`` dizininde PostgreSQL tablolarını
-tamamlamak için betikler vardır; tam tablo ve alan listesi düğümün
-ilk çalıştırmasında Ametsuchi göçleri tarafından üretilir.
+  tamamlamak için betikler vardır; tam tablo ve alan listesi düğümün
+  ilk çalıştırmasında Ametsuchi göçleri tarafından üretilir.

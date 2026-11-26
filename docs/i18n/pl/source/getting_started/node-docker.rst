@@ -8,7 +8,7 @@ W tym przewodniku utworzymy bardzo podstawową sieć Irohy, uruchomimy ją,
 stworzymy kilka transakcji i sprawdzimy dane zapisane w ledgerze.
 
 Wymagania wstępne
------------------
+-----------------------------------------------------------------------
 Potrzebujesz maszyny z zainstalowanym ``Docker``. Instrukcję instalacji
 znajdziesz na `stronie Dockera <https://docs.docker.com/get-docker/>`_.
 
@@ -25,7 +25,7 @@ Uruchomienie węzła Iroha
   <script id="asciicast-345137" src="https://asciinema.org/a/345137.js" async></script>
 
 Tworzenie sieci Docker
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Do działania Iroha wymaga bazy ``PostgreSQL`` albo ``RocksDB``.
 Jeśli preferujesz ``PostgreSQL``, potrzebujesz kontenera z nią
 uruchomionego obok Irohy.

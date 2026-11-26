@@ -71,9 +71,9 @@ eder — yapılandırma dosyası, genesis block ve anahtar çifti adı:
 
 Paket yapılandırma içermez — depo ``example/`` dizininden örnekleri
 kopyalayın ve ortamınıza uyarlayın (:doc:`configuration`'a bakın);
-düğüm başlamadan önce erişilebilir olması gereken ``database`
+düğüm başlamadan önce erişilebilir olması gerekli ``database``
 bölümünü (PostgreSQL veya RocksDB) içerir.
 
 .. note:: Paketlenmiş düğüm yine de PostgreSQL (veya RocksDB)
-gerektirir ve üretim dağıtımlarında Torii önünde TLS sonlandırması
-gerekir — bkz. :doc:`../configure/torii-tls`.
+  gerektirir ve üretim dağıtımlarında Torii önünde TLS sonlandırması
+  gerekir — bkz. :doc:`../configure/torii-tls`.
