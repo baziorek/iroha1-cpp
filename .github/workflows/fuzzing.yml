@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Add swap space
         ## Linking the fuzz targets pulls in most of the static libs; the
@@ -63,7 +63,7 @@ jobs:
         ## via ExternalProject at configure time, not via vcpkg), and this
         ## job uses the same gcc-14 toolchain, so the cache key must match
         ## theirs. Falls back to this workflow's own older caches.
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: vcpkg-build
           key: ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
