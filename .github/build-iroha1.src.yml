@@ -92,16 +92,15 @@ jobs:
     steps:
       - &step_show_context
         name: Show context
+        env:
+          JSON_github: ${{ toJSON(github) }}
+          JSON_needs: ${{ toJson(needs) }}
         run: |
           echo "::group::GitHub context"
-          cat <<'END'
-          ${{ toJson(github) }}
-          END
+          printf '%s\n' "$JSON_github"
           echo "::endgroup::"
           echo "::group::GitHub needs"
-          cat <<'END'
-          ${{ toJson(needs) }}
-          END
+          printf '%s\n' "$JSON_needs"
           echo "::endgroup::"
 
 
@@ -403,10 +402,9 @@ jobs:
       - *step_show_context
       - &step_show_needs
         name: Show needs
-        run: |
-          cat >/dev/null <<'END'
-            ${{ toJson(needs) }}
-          END
+        env:
+          JSON_needs: ${{ toJson(needs) }}
+        run: printf '%s\n' "$JSON_needs" >/dev/null
       -
         env:
           container: *container_image

@@ -335,10 +335,9 @@ jobs:
       - *step_show_context
       - &step_show_needs
         name: Show needs
-        run: |
-          cat >/dev/null <<'END'
-            ${{ toJson(needs) }}
-          END
+        env:
+          JSON_needs: ${{ toJson(needs) }}
+        run: printf '%s\n' "$JSON_needs" >/dev/null
       -
         env:
           container: *container_image
