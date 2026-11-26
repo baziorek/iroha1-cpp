@@ -135,6 +135,15 @@ for lang in $LANGS; do
             | tar --null -cf - --files-from=-) \
             | (cd "$WORK/$lang" && tar xf -)
     fi
+    # Local locale-level files take precedence over the l10n snapshot
+    # (same convention as build-local.sh: docs/i18n/<lang>/CONTRIBUTING.rst
+    # is used by community/index.rst's relative include)
+    LOCAL_LOCALE="$REPO_ROOT/docs/i18n/$lang"
+    if [ -d "$LOCAL_LOCALE" ]; then
+        for f in CONTRIBUTING.rst; do
+            [ -f "$LOCAL_LOCALE/$f" ] && cp "$LOCAL_LOCALE/$f" "$WORK/$lang/$f"
+        done
+    fi
     # Fallback: locale-level files without a translation (e.g.
     # CONTRIBUTING.rst) come from this repo so relative includes resolve
     for f in CONTRIBUTING.rst; do

@@ -153,7 +153,7 @@ TLS (暗号化トランスポート)
 
     iroha_lib::GrpcClient client("127.0.0.1", 50051, tls);
 
-Iroha Torii TLS エンドポイントは**一方向 TLS** (サーバー認証
+Iroha Torii TLS エンドポイントは **一方向 TLS** (サーバー認証
 のみ) を使用するため、実際には ``pem_root_certs`` のみが
 必要です。同じ認証情報がクライアントのすべての操作 —
 トランザクション、クエリ、両方のストリーミング API — に
