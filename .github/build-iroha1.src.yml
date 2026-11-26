@@ -127,7 +127,7 @@ jobs:
               "PR_REPO="+.head.repo.full_name' >>$GITHUB_ENV
       - &step_checkout
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with: &step_checkout_with
           ref:        ${{env.PR_REF}}  ## not empty on issue_comment, else default value GITHUB_REF
           repository: ${{env.PR_REPO}} ## not empty on issue_comment, else default value github.repository
@@ -274,13 +274,13 @@ jobs:
         name: Login to DockerHub
         if: ${{ env.DOCKERHUB_TOKEN != '' && env.DOCKERHUB_USERNAME != '' }}
         id: docker_login
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - &step_docker_login_ghcr
         name: Log in to the Container registry GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -292,7 +292,7 @@ jobs:
       - &step_docker_meta
         name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with: &step_docker_meta_with
           images: ${{ env.DOCKERHUB_ORG }}/iroha-builder
           tags: |
@@ -317,10 +317,10 @@ jobs:
           images: ghcr.io/${{ github.repository }}
       - &step_docker_buildx
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       # - &step_docker_cache
       #   name: Cache Docker layers
-      #   uses: actions/cache@v5
+      #   uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
       #   with:
       #     path: /tmp/.buildx-cache
       #     key:           ${{ runner.os }}-buildx-${{env.dockertag}}
@@ -328,7 +328,7 @@ jobs:
       - &step_docker_build_and_push
         id: build_and_push
         name: Build and push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: &step_docker_build_and_push_with
           context: docker/iroha-builder/
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -454,7 +454,7 @@ jobs:
           echo >>$GITHUB_ENV HOME=$HOME
       # - &step_restore_ccache
       #   name: Restore cache CCache
-      #   uses: actions/cache@v5
+      #   uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
       #   with:
       #     path: ${{ env._CCACHE_DIR }}
       #     key:          ${{runner.os}}-ccache-${{ github.event.pull_request.head.sha }}
@@ -466,7 +466,7 @@ jobs:
         ## installed ports and binarycache. build_iroha_deps.sh cleans only
         ## ports/, so installed/ survives and `vcpkg install` is a no-op on hit.
         name: Cache vcpkg-build
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: vcpkg-build
           key:          ${{runner.os}}-vcpkg-${{env.CC_NAME}}.${{ hashFiles('vcpkg/**') }}
@@ -665,7 +665,7 @@ jobs:
           echo >>$GITHUB_ENV  _debug_suffix=$(test "$build_type" = dbg && echo -debug || true)
       - &step_artifact_irohad
         name: Upload artifact irohad
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: irohad${{env.ARTIFACT_SUFFIX}}
           path: &step_artifact_irohad_path |
@@ -673,7 +673,7 @@ jobs:
             build/bin/iroha-cli
       - &step_artifact_iroha_deb
         name: Upload artifact iroha-deb
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
           path: &step_artifact_iroha_deb_path |
@@ -681,7 +681,7 @@ jobs:
       - &step_artifact_tests
         if: ${{ false }}  ## Maybe test in another job
         name: Upload artifact tests
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: iroha-tests-ubuntu${{env.ARTIFACT_SUFFIX}}
           path: |
@@ -721,7 +721,7 @@ jobs:
       - *step_show_context
       - *step_checkout
       - name: Cache vcpkg-build
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: vcpkg-build
           key:          ${{runner.os}}-vcpkg-gcc-14.${{ hashFiles('vcpkg/**') }}
@@ -762,7 +762,7 @@ jobs:
       - *step_checkout
       -
         name: Download release binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: irohad-ubuntu-gcc14-rel
           merge-multiple: true
@@ -779,7 +779,7 @@ jobs:
           ls -lh dist/
       -
         name: Upload AppImage artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: iroha-appimage
           path: dist/*.AppImage
@@ -801,7 +801,7 @@ jobs:
       - *step_show_context
       -
         name: Download release artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: |
             iroha-deb-ubuntu-gcc14-rel*
@@ -814,7 +814,7 @@ jobs:
         run: ls -lhR dist || true
       -
         name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: dist/**
           body: |
@@ -867,7 +867,7 @@ jobs:
       - *step_checkout
       - *step_artifact_suffix
       - name: Download artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: iroha-deb${{env.ARTIFACT_SUFFIX}}
       - name: Rename artifact debs

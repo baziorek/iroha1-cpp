@@ -1,0 +1,41 @@
+# OpenSSF Scorecard — https://github.com/ossf/scorecard
+# Scores this repository's security posture on a weekly schedule and
+# publishes results as SARIF to the Security tab + scorecard.dev API
+# (which powers the README badge).
+name: Scorecard supply-chain security
+on:
+  branch_protection_rule: # TODO: change to `main` if/when the default branch is renamed
+    branches: ["iroha1-main"]
+  schedule:
+    - cron: "17 22 * * 2" # Tuesdays 22:17 UTC
+  push:
+    branches: ["iroha1-main"]
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # upload SARIF results
+      id-token: write # publish results to OpenSSF API
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@74c1aea9df7c0f02e9b7bfe4a8935abf2e5e3aa6 # v3
+        with:
+          sarif_file: results.sarif

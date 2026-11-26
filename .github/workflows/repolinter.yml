@@ -11,12 +11,12 @@ jobs:
     container: hyperledger-tools.jfrog.io/repolinter:0.10.0
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Lint Repo
         continue-on-error: true
         run: bundle exec /app/bin/repolinter.js --rulesetUrl https://raw.githubusercontent.com/hyperledger-labs/hyperledger-community-management-tools/master/repo_structure/repolint.json --format markdown > /repolinter-report.md
       - name: Save repolinter-report file
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: repolinter-report
           path: /repolinter-report.md
