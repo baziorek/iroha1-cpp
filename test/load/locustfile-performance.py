@@ -2,7 +2,7 @@ import os
 import time
 import binascii
 
-from locust import Locust, TaskSet, events, task
+from locust import User, TaskSet, events, task, constant
 
 import grpc.experimental.gevent as grpc_gevent
 grpc_gevent.init_gevent()
@@ -53,7 +53,7 @@ class IrohaClient(IrohaGrpc):
             TXS[hex_hash] = start_time
         except grpc.RpcError as e:
             total_time = int((time.time() - start_time) * 1000)
-            events.request_failure.fire(request_type="grpc", name='send_tx_wait', response_time=total_time, exception=e, tx_hash=hex_hash)
+            events.request.fire(request_type="grpc", name='send_tx_wait', response_time=total_time, response_length=0, exception=e, tx_hash=hex_hash)
 
 
 def block_listener(host):
@@ -77,45 +77,45 @@ def block_listener(host):
             del TXS[hash]
             total_time = int((time.time() - start_time) * 1000)
             try:
-                events.request_success.fire(request_type="grpc", name='send_tx_wait', response_time=total_time, response_length=0, tx_hash=hash, sent=start_time, committed=time.time())
+                events.request.fire(request_type="grpc", name='send_tx_wait', response_time=total_time, response_length=0, exception=None, tx_hash=hash, sent=start_time, committed=time.time())
             except Exception as e:
                 print(e)
 
-class IrohaLocust(Locust):
+class IrohaTasks(TaskSet):
     """
-    This is the abstract Locust class which should be subclassed. It provides an Iroha gRPC client
-    that can be used to make gRPC requests that will be tracked in Locust's statistics.
+    Tasks executed by each simulated Iroha user.
     """
-    def __init__(self, *args, **kwargs):
-        super(IrohaLocust, self).__init__(*args, **kwargs)
+    @task
+    def send_tx(self):
+        print("Locust instance (%r) executing my_task" % (self.user))
+        print("""
+        \n
+            Sent: {}
+            Committed: {}
+            Diff: {}
+            Blocks: {}\n
+            """.format(len(SENT), len(COMMITTED), len(SENT) - len(COMMITTED), len(BLOCKS)))
+        iroha = Iroha('admin@test')
+
+        desc = str(random.random())
+        tx = iroha.transaction([iroha.command(
+            'TransferAsset', src_account_id='admin@test', dest_account_id='test@test', asset_id='coin#test',
+            amount='0.01', description=desc
+        )])
+
+        ic.sign_transaction(tx, ADMIN_PRIVATE_KEY)
+        self.user.client.send_tx_wait(tx)
+
+
+class ApiUser(User):
+    """
+    Locust user that owns an Iroha gRPC client and a block listener,
+    so that transactions are tracked in locust's statistics.
+    """
+    host = "127.0.0.1:50051"
+    wait_time = constant(1)
+    tasks = [IrohaTasks]
+
+    def on_start(self):
         self.client = IrohaClient(self.host)
         gevent.spawn(block_listener, self.host)
-
-
-class ApiUser(IrohaLocust):
-
-    host = "127.0.0.1:50051"
-    min_wait = 1000
-    max_wait = 1000
-
-    class task_set(TaskSet):
-        @task
-        def send_tx(self):
-            print("Locust instance (%r) executing my_task" % (self.locust))
-            print("""
-            \n
-                Sent: {}
-                Committed: {}
-                Diff: {}
-                Blocks: {}\n
-                """.format(len(SENT), len(COMMITTED), len(SENT) - len(COMMITTED), len(BLOCKS)))
-            iroha = Iroha('admin@test')
-
-            desc = str(random.random())
-            tx = iroha.transaction([iroha.command(
-                'TransferAsset', src_account_id='admin@test', dest_account_id='test@test', asset_id='coin#test',
-                amount='0.01', description=desc
-            )])
-
-            ic.sign_transaction(tx, ADMIN_PRIVATE_KEY)
-            self.client.send_tx_wait(tx)
