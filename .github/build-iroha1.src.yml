@@ -81,6 +81,13 @@ on:
   # issue_comment:
   #   types: [created, edited]
 
+## Default token permissions for jobs that do not declare their own.
+## Jobs needing more (e.g. packages: write, contents: write for releases)
+## already set job-level permissions which override this block.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
 
   ## This workflow is created for everything except pull requests from forks
