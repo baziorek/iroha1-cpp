@@ -45,6 +45,38 @@ mainline project. Consequences:
   fork carefully, or consider the officially supported Hyperledger
   Iroha v2 instead.
 
+## CI/CD security posture
+
+This repository intentionally keeps some patterns that automated
+security scanners (e.g. OpenSSF Scorecard) flag as "dangerous". They
+are documented here so reviewers know they are deliberate:
+
+- **`build-iroha1-fork.yml`** uses `pull_request_target` together with
+  a checkout of the pull request's head commit. This is the documented
+  GitHub pattern for building pull requests that come from forks: the
+  workflow runs with write-scoped `GITHUB_TOKEN` permissions
+  (`packages: write` for GHCR image pushes) and access to the
+  repository's Docker Hub credentials, so it must run in the trusted
+  `pull_request_target` context — where the workflow definition always
+  comes from the base branch and **cannot be modified by the pull
+  request**.
+
+  Honest risk assessment: this is an accepted-risk pattern, not a
+  safe one. Untrusted fork code is compiled inside containers, but
+  repository scripts executed on the runner could in principle reach
+  CI credentials present in the job environment. We accept this for
+  fork-PR builds because the workflow only publishes build artifacts
+  (no deployment, no main-branch writes), and the alternative —
+  dropping fork CI entirely — was judged worse for a revived
+  community project. Pull requests from forks should be treated as
+  untrusted code regardless of what CI reports.
+- **Write-scoped job permissions** (`contents: write` for the release
+  job, `packages: write` for image pushes) are limited to the single
+  jobs that need them; every other job runs read-only.
+
+If you believe either pattern can be improved without losing fork-PR
+builds or release publishing, please open an issue.
+
 ## Reporting a security issue
 
 For issues in **this fork**, please open a GitHub issue on
