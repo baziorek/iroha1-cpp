@@ -78,9 +78,6 @@ case ${VCPKG_BOOTSTRAP:-usual} in
       case $(uname | tr '[:upper:]' '[:lower:]') in
          windows*|msys*|mingw*)
             bootstrap(){ $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics ; }
-            MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
-            BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
-            INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
             ;;
          *)
             bootstrap(){ $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries ; }
