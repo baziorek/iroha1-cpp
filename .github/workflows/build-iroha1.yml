@@ -174,7 +174,9 @@ jobs:
       - name: Generate matrix for build triggered by chat-ops - comment to PR
         if: github.event.issue.pull_request && github.event.comment
         id: comment_body
-        run: echo "${{github.event.comment.body}}" >/tmp/comment_body
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: echo "$COMMENT_BODY" >/tmp/comment_body
       - name: Generate default matrix for regular builds
         if: ${{ steps.comment_body.outcome == 'skipped' }} ## i.e. not github.event.issue.pull_request
         run: |
