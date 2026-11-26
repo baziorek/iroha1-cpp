@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b
 
 # number of concurrent threads during build
 # usage: docker build --build-arg PARALLELISM=8 -t name/name .
@@ -45,16 +45,31 @@ RUN curl -fL https://golang.org/dl/go1.17.2.linux-$(dpkg --print-architecture).t
 ENV GOPATH=/opt/gopath
 RUN mkdir ${GOPATH}
 ENV PATH=${PATH}:/opt/go/bin:${GOPATH}/bin
-RUN go install github.com/golang/protobuf/protoc-gen-go@latest
-RUN go get github.com/golang/protobuf/protoc-gen-go
+RUN go install github.com/golang/protobuf/protoc-gen-go@v1.5.4
 RUN export PATH="$PATH:$(go env GOPATH)/bin" # according to: https://grpc.io/docs/languages/go/quickstart/
 
 ## Rust-lang stuff for iroha+ursa
 ENV RUSTUP_HOME=/opt/rust
 ENV CARGO_HOME=/opt/rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
-        sh -s -- -y --no-modify-path --profile minimal ; \
-    echo 'source /opt/rust/env' >>/etc/profile ; \
+RUN set -e; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+        amd64)   target=x86_64-unknown-linux-gnu;        sha=6aeece6993e902708983b209d04c0d1dbb14ebb405ddb87def578d41f920f56d ;; \
+        arm64)   target=aarch64-unknown-linux-gnu;      sha=1cffbf51e63e634c746f741de50649bbbcbd9dbe1de363c9ecef64e278dba2b2 ;; \
+        armhf)   target=armv7-unknown-linux-gnueabihf;  sha=3c4114923305f1cd3b96ce3454e9e549ad4aa7c07c03aec73d1a785e98388bed ;; \
+        i386)    target=i686-unknown-linux-gnu;         sha=0a6bed6e9f21192a51f83977716466895706059afb880500ff1d0e751ada5237 ;; \
+        ppc64el) target=powerpc64le-unknown-linux-gnu;  sha=079430f58ad4da1d1f4f5f2f0bd321422373213246a93b3ddb53dad627f5aa38 ;; \
+        s390x)   target=s390x-unknown-linux-gnu;        sha=e7f89da453c8ce5771c28279d1a01d5e83541d420695c74ec81a7ec5d287c51c ;; \
+        riscv64) target=riscv64gc-unknown-linux-gnu;     sha=98034d7a478de8cdb9ecacb0330c943205dae867765287bc334abe3959913f21 ;; \
+        *) echo "unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/rustup-init \
+        "https://static.rust-lang.org/rustup/archive/1.27.1/${target}/rustup-init"; \
+    echo "${sha}  /tmp/rustup-init" | sha256sum -c -; \
+    chmod +x /tmp/rustup-init; \
+    /tmp/rustup-init -y --no-modify-path --profile minimal; \
+    rm -f /tmp/rustup-init; \
+    echo 'source /opt/rust/env' >>/etc/profile; \
     echo 'source /opt/rust/env' >>/etc/bash.bashrc
 
 ## Allow access to database, trust local connections

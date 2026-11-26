@@ -30,9 +30,9 @@ jobs:
           python-version: '3.11'
           cache: pip
       - name: Install dependencies
-        run: |
-          pip install "setuptools<81"  ## m2r2 requires pkg_resources, removed in setuptools>=81
-          pip install -r docs/source/requirements.txt
+        ## hash-locked requirements (incl. setuptools==80.9.0 for m2r2's
+        ## pkg_resources) — see docs/requirements-hashes.txt header
+        run: pip install --require-hashes -r docs/requirements-hashes.txt
       - name: Build documentation
         ## sphinx extensions resolve paths relative to docs/source
         ## (e.g. 'concepts_architecture/glossary.rst'), so build from there
