@@ -1,38 +1,81 @@
 # Welcome!
 
+**Languages:** English · [Polski](docs/i18n/pl/README.md) · [Русский](docs/i18n/ru/README.md) · [日本語](docs/i18n/ja/README.md) · [Türkçe](docs/i18n/tr/README.md)
+
 ## About this repository
 
-This is a community fork of **Hyperledger Iroha 1** (the C++ implementation),
-maintained upstream at [hyperledger/iroha](https://github.com/hyperledger/iroha)
-on the `iroha1-main` branch. Upstream development has effectively stopped —
-the last public commit dates back to **May 2024** — yet Iroha 1 is still
-intensively used in production by several initiatives, including the
-**National Bank of Cambodia**.
+This is a community fork of **Hyperledger Iroha 1** (the C++ implementation).
+Upstream development has effectively stopped — the last public commit dates
+back to **May 2024** — yet Iroha 1 is still intensively used in production
+by several initiatives, including the **National Bank of Cambodia**
+(Bakong payment system).
 
-The goal of this fork is to keep Iroha 1 buildable and maintainable with
-modern toolchains. The first stage of modernization is done:
+The goal of this fork is to keep Iroha 1 buildable, usable and
+maintainable with modern toolchains — and to give the project a healthy
+second life.
 
-- C++ standard raised to **C++23**
-- Dependencies updated to current versions via latest **vcpkg**
+### How this fork differs from upstream
+
+Compared to the last upstream commit (`118fced3f3`, May 2024), this fork
+adds:
+
+**Build modernization**
+
+- C++ standard raised to **C++23**; builds verified on **GCC 14 /
+  Ubuntu 24.04**
+- **vcpkg** baseline bumped from 2021 to November 2026 (protobuf, gRPC,
+  Boost, OpenSSL 3.x, soci 4.x)
 - Legacy dependencies replaced where the standard library suffices
   (`fmt` → `std::format`, `boost::format`, `boost::variant`,
   `boost::filesystem`, and several unused Boost libraries removed)
-- GitHub CI repaired and moved to a modern builder image (Ubuntu 24.04,
-  GCC 14)
+- Warning-free build (~70 warnings cleaned up)
 
-### Fork components
-
-In addition to the node itself, this repository contains:
+**New components**
 
 - **`iroha-lib/`** — a standalone C++ client library for Iroha 1
-  (transactions, queries, streaming, TLS transport) with examples
-  ported from `iroha-python`. See `iroha-lib/README.md` and
+  (transactions, queries, pagination, streaming, TLS transport,
+  key/genesis/peer-list utilities) with 9 examples ported from
+  `iroha-python`. See `iroha-lib/README.md` and
   `docs/source/develop/libraries/cpp.rst`.
 - **`iroha-cli/`** — the classic interactive/non-interactive CLI,
-  ported to use `iroha-lib` for transport and model building.
+  ported to use `iroha-lib` for transport and model building, with
+  `--tls_root_cert` support.
 - **`iroha-python`** — the Python client library lives in a separate
   repository: [baziorek/iroha1-python](https://github.com/baziorek/iroha1-python)
   (original sources, updated dependencies).
+
+**Server fixes**
+
+- gRPC **keepalive** on all servers — fixes dropped connections behind
+  NATs/LBs that made long-lived streams fail roughly every 24h
+  (upstream issue hyperledger/iroha#1351)
+- `FetchCommits` hang fix, `GetPendingTransactions` oneof fix,
+  `creator_account_id` fixes — all found by the new integration tests
+
+**Release & CI**
+
+- **CPack** DEB/RPM packages + AppImage artifacts; **GitHub Releases**
+  on version tags (`1.6.1-reanimation` continues the upstream version
+  line; package versions derive from `git describe`)
+- GitHub Actions modernized: Node 24 runners, actions pinned to commit
+  SHA, pip dependencies hash-locked, shared vcpkg deps cache job
+- **OpenSSF Scorecard** + **SECURITY.md** + Dependabot; branch
+  protection on `iroha1-main`
+- Load-test stack migrated from `locustio` to `locust` 2.x
+
+**Documentation**
+
+- Sphinx documentation rebuilt and published to **GitHub Pages**:
+  <https://baziorek.github.io/iroha1-cpp/>
+- Full translations into **Polish, Russian, Japanese and Turkish** —
+  including this README (see the language links at the top)
+
+**Removed dead weight**
+
+- `snap/` packaging (unbuildable against modern dependencies)
+- `housekeeping/` scripts (defunct Soramitsu CI), `utils/` scripts
+  (superseded; genesis parsing moved to the Python fork)
+- Stale vcpkg patch files and Iroha 2 CI workflows
 
 > **Disclaimer:** these community forks are maintained by a single
 > person with AI assistance. They contain maintenance, build-system and
@@ -40,11 +83,6 @@ In addition to the node itself, this repository contains:
 > provide **no production or commercial-use guarantee**. Iroha 1 itself
 > is a mature project with real-world deployments (e.g. the Bakong
 > payment system operated by the National Bank of Cambodia).
-
-The documentation in `docs/` is built with Sphinx on every change and
-published to **GitHub Pages**:
-<https://baziorek.github.io/iroha1-cpp/> (upstream's own ReadTheDocs
-build of this branch is unstyled/broken).
 
 The rest of this README describes the upstream project and remains valid.
 
@@ -57,7 +95,7 @@ The rest of this README describes the upstream project and remains valid.
 Iroha is a straightforward distributed ledger technology (DLT), inspired by Japanese Kaizen principle — eliminate excessiveness (muri).
 Iroha has essential functionality for your asset, information and identity management needs, at the same time being an efficient and trustworthy crash fault-tolerant tool for your enterprise needs.
 
-Check the [overview](http://iroha.readthedocs.io/) page of our documentation.
+Check the [overview](https://baziorek.github.io/iroha1-cpp/) page of our documentation.
 [Here](https://www.youtube.com/channel/UCYlK9OrZo9hvNYFuf0vrwww) is a YouTube channel where we upload meetings and explanatory videos - check them out!
 
 <img height="300px" src="docs/image_assets/Iroha_3_sm.png"
@@ -76,25 +114,43 @@ In Iroha 2, it is replaced with a new algorithm — [Sumeragi](https://iroha.tec
 
 ## Documentation
 
-Our documentation is hosted at ReadTheDocs service here: [http://iroha.readthedocs.io](http://iroha.readthedocs.io) and supports different Iroha versions.
+This fork's documentation is built with Sphinx and published to
+**GitHub Pages**: <https://baziorek.github.io/iroha1-cpp/> — in English
+and in Polish, Russian, Japanese and Turkish (language switcher in the
+docs sidebar and in this README).
 
 #### We have documentation translations!
 
-Here is our [localisations repository](https://github.com/hyperledger/iroha-docs-l10n).
-Check it out and help us translate Iroha docs into your local language.
+This fork ships full translations into **Polish, Russian, Japanese and
+Turkish**, maintained under `docs/i18n/` (upstream's own
+[localisations repository](https://github.com/hyperledger/iroha-docs-l10n)
+covers older snapshots — feel free to help translate into your local
+language via pull requests).
 
 ### How to explore Iroha really fast?
 
-Check [getting started](https://iroha.readthedocs.io/en/develop/getting_started/index.html) section in your version of localized docs to start exploring the system.
-There is also a great [sandbox](https://katacoda.com/hyperledger-iroha/scenarios/iroha-transfer-asset) to try sending assets using Python library.
+Check the [getting started](https://baziorek.github.io/iroha1-cpp/getting_started/index.html)
+section of the documentation to start exploring the system.
+The old Katacoda sandbox is gone, but the
+[integration tests](test/) and the
+[`iroha-lib` examples](iroha-lib/) show a live node in action.
 
 ### How to build Iroha?
 
-Use [build guide](https://iroha.readthedocs.io/en/main/build/index.html), which might be helpful if you want to modify the code and contribute.
+Use the [build guide](https://baziorek.github.io/iroha1-cpp/build/index.html),
+which might be helpful if you want to modify the code and contribute.
 
 ### Is there SDK available?
 
-Yes, in [Java](https://github.com/hyperledger/iroha-java), [Python](https://github.com/hyperledger/iroha-python), [Javascript](https://github.com/hyperledger/iroha-javascript) and [iOS](https://github.com/hyperledger/iroha-ios).
+Yes — for this fork: a modern **C++ client library** in [`iroha-lib/`](iroha-lib/)
+(this repository) and a maintained **Python** client at
+[baziorek/iroha1-python](https://github.com/baziorek/iroha1-python).
+Upstream also has SDKs in
+[Java](https://github.com/hyperledger/iroha-java),
+[Python](https://github.com/hyperledger/iroha-python),
+[Javascript](https://github.com/hyperledger/iroha-javascript) and
+[iOS](https://github.com/hyperledger/iroha-ios) (unmaintained, kept for
+reference).
 
 ### Are there any example applications?
 
@@ -112,13 +168,18 @@ It is based on JS Wallet but is up-to-date.
 ### Want to help us develop Iroha?
 
 That's great!
-Check out [this document](https://github.com/hyperledger/iroha/blob/main/CONTRIBUTING.rst)
+Check out [CONTRIBUTING.rst](CONTRIBUTING.rst) — issues and improvement
+suggestions are welcome via this repository's
+[GitHub Issues](https://github.com/baziorek/iroha1-cpp/issues).
 
 ## Need help?
 
 * Join [Telegram chat](https://t.me/hyperledgeriroha) or [Hyperledger RocketChat](https://chat.hyperledger.org/channel/iroha) where the maintainers, contributors and fellow users are ready to help you.
 You can also discuss your concerns and proposals and simply chat about Iroha there or in Gitter [![Join the chat at https://gitter.im/hyperledger-iroha/Lobby](https://badges.gitter.im/hyperledger-iroha/Lobby.svg)](https://gitter.im/hyperledger-iroha/Lobby)
-* Submit issues and improvement suggestions via [Hyperledger Jira](https://jira.hyperledger.org/secure/CreateIssue!default.jspa)
+* Submit issues and improvement suggestions via
+[GitHub Issues](https://github.com/baziorek/iroha1-cpp/issues) — for
+upstream Iroha 2 questions see the
+[Hyperledger Jira](https://jira.hyperledger.org/secure/CreateIssue!default.jspa)
 * Subscribe to our [mailing list](https://lists.hyperledger.org/g/iroha) to receive the latest and most important news and spread your word within Iroha community
 
 ## License
