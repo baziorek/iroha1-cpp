@@ -30,7 +30,7 @@ docker build -t iroha-locust .
     docker-compose up
     ```
 
-    4 slaves can be spawned by adding `--scale locust-slave=4` to the previous command.
+    4 workers can be spawned by adding `--scale locust-worker=4` to the previous command.
 
 4. Access locust web interface as specified in [documentation](https://docs.locust.io/en/stable/quickstart.html#open-up-locust-s-web-interface).
 
