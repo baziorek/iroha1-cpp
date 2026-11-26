@@ -824,23 +824,10 @@ jobs:
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: dist/**
-          body: |
-            **Community fork — unsupported release.**
-
-            This is a community-maintained fork of Hyperledger Iroha 1.x.
-            It contains **no functional changes** to Iroha itself — only
-            build-system updates, dependency refreshes and maintenance
-            cleanups. It is maintained by a single person (with
-            AI-assisted development), **not** by the original development
-            team. While the changes are intended to be safe, **no
-            production or commercial-use warranty is provided**.
-
-            For commercial deployments evaluate this fork carefully or
-            consider the officially supported
-            [Hyperledger Iroha v2](https://github.com/hyperledger/iroha).
-
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md)
-            for the full list of changes since the previous release.
+          ## NOTE: no `body` on purpose — release notes (incl. the
+          ## community-fork disclaimer) are written in a draft GitHub
+          ## Release before publishing; this job only uploads assets and
+          ## must not overwrite them.
 
   ## Build and publish docker image named 'hyperledger/iroha'  with irohad and iroha tools inside.
   ## The result docker image is pushed with tags :branch_name, :pr-NUMBER, :tag_name,
