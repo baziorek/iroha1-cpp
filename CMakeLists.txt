@@ -22,6 +22,10 @@ if (NOT MSVC)
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -g -Wextra -Wno-unused-parameter -Wno-deprecated-declarations -O0")
 else()
   add_compile_options(/bigobj)
+  ## Dependencies are provided by vcpkg static triplets (e.g.
+  ## x64-windows-static) built with /MT; CMake's MSVC default is /MD,
+  ## which fails at link time with LNK2038 RuntimeLibrary mismatch.
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 SET(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 SET(CMAKE_INSTALL_RPATH "../lib")

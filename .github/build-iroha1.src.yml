@@ -832,9 +832,8 @@ jobs:
           cmake -B build
           -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows-static
-          ## x64-windows-static deps are built with /MT; CMake's MSVC
-          ## default is /MD, which fails at link time (LNK2038).
-          -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          ## /MT runtime is set in the top-level CMakeLists.txt for MSVC
+          ## to match the static vcpkg triplet.
           -DCMAKE_BUILD_TYPE=Release
           -DTESTING=OFF
           -DBENCHMARKING=OFF
