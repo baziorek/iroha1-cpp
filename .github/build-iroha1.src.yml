@@ -875,14 +875,28 @@ jobs:
       }}
     steps:
       - *step_show_context
+      ## NOTE: one download step per pattern — the multi-line `pattern`
+      ## form silently matched nothing (release 1.6.1-rc1 shipped with
+      ## zero assets because of this).
       -
-        name: Download release artifacts
+        name: Download deb artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
-          pattern: |
-            iroha-deb-ubuntu-gcc14-rel*
-            iroha-appimage*
-            irohad-ubuntu-gcc14-rel*
+          pattern: iroha-deb-ubuntu-gcc14-rel*
+          merge-multiple: true
+          path: dist
+      -
+        name: Download AppImage artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: iroha-appimage*
+          merge-multiple: true
+          path: dist
+      -
+        name: Download irohad binary artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: irohad-ubuntu-gcc14-rel*
           merge-multiple: true
           path: dist
       -
