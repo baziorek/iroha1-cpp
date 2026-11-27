@@ -794,21 +794,14 @@ jobs:
   ## Build Windows binaries (irohad, iroha-cli) and package them together
   ## with iroha-lib (public headers + compiled static libraries) into a
   ## ZIP that is attached to GitHub Releases.
-  ## Runs on iroha1-main pushes, tags and manual dispatch — NOT on pull
-  ## requests, because the vcpkg dependency build takes ~1-2h on a hosted
-  ## windows runner. A failure here does not block the release (see the
-  ## `if:` condition of the release job below).
+  ## NOTE: currently runs on every event (incl. PRs) while the job is
+  ## being stabilized — the vcpkg dependency build takes ~1-2h on a
+  ## hosted windows runner, so restrict the trigger once it is proven.
+  ## A failure here does not block the release (see the `if:` condition
+  ## of the release job below).
   build-windows:
     name: Build Windows (Release)
-    needs:
-      - generate_matrixes
     runs-on: windows-2022
-    if: >-
-      ${{
-        github.ref == 'refs/heads/iroha1-main' ||
-        startsWith(github.ref, 'refs/tags/') ||
-        github.event_name == 'workflow_dispatch'
-      }}
     steps:
       - name: Show context
         run: echo "ref=${{ github.ref }} sha=${{ github.sha }}"
