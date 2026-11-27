@@ -818,6 +818,12 @@ jobs:
       -
         name: Build iroha vcpkg dependancies
         shell: bash
+        ## x64-windows-static: the default x64-windows triplet is dynamic
+        ## and the rocksdb port then ships only RocksDB::rocksdb-shared
+        ## (C API) — the C++ target RocksDB::rocksdb requires a static
+        ## triplet, same as x64-linux on the other legs.
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-windows-static
         run: ./vcpkg/build_iroha_deps.sh "$PWD/vcpkg-build"; test -f vcpkg-build/scripts/buildsystems/vcpkg.cmake
       -
         name: CMake configure
@@ -825,6 +831,7 @@ jobs:
         run: >-
           cmake -B build
           -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg-build/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static
           -DCMAKE_BUILD_TYPE=Release
           -DTESTING=OFF
           -DBENCHMARKING=OFF
