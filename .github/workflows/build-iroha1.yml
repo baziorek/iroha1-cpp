@@ -1271,12 +1271,9 @@ jobs:
           pattern: iroha-appimage*
           merge-multiple: true
           path: dist
-      - name: Download irohad binary artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
-        with:
-          pattern: irohad-ubuntu-gcc14-rel*
-          merge-multiple: true
-          path: dist
+      ## NOTE: no bare irohad/iroha-cli binaries — the debs and AppImages
+      ## built on the same runner carry the same glibc floor, and raw
+      ## binaries only confuse users about the supported install paths.
       - name: Download Windows ZIP artifact (optional)
         continue-on-error: true
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
