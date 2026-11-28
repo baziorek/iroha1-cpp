@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 
-#include "queries.pb.h"
 #include "common.hpp"
 
 

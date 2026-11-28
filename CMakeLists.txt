@@ -228,3 +228,157 @@ if(TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()
+
+# ---- merged single static library (iroha_lib_all) ----
+# Combines every project STATIC_LIBRARY target into one archive so that
+# consumers of iroha-lib link a single file instead of ~100 granular
+# archives in a fragile link order. Test/fuzz/benchmark subtrees are
+# excluded. On multi-config generators the merged file is shared between
+# configurations (last build wins) — it is intended for packaging.
+function(_iroha_collect_static_libs dir out_var)
+    get_filename_component(dir "${dir}" REALPATH)
+    if(dir MATCHES "/(test|fuzz|benchmark)(/|$)")
+        return()
+    endif()
+    get_property(_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_tgt IN LISTS _targets)
+        get_target_property(_type ${_tgt} TYPE)
+        if(_type STREQUAL "STATIC_LIBRARY")
+            list(APPEND _collected ${_tgt})
+        endif()
+    endforeach()
+    get_property(_subs DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(_sub IN LISTS _subs)
+        get_filename_component(_sub "${_sub}" REALPATH)
+        _iroha_collect_static_libs(${_sub} _collected)
+    endforeach()
+    set(${out_var} "${_collected}" PARENT_SCOPE)
+endfunction()
+
+set(_iroha_static_libs "")
+_iroha_collect_static_libs(${CMAKE_SOURCE_DIR} _iroha_static_libs)
+list(REMOVE_DUPLICATES _iroha_static_libs)
+
+if(MSVC)
+    set(_iroha_all_name "iroha_lib_all.lib")
+    set(_iroha_merge_mode "lib")
+else()
+    set(_iroha_all_name "libiroha_all.a")
+    set(_iroha_merge_mode "ar")
+endif()
+set(_iroha_all_output "${CMAKE_BINARY_DIR}/lib/${_iroha_all_name}")
+
+add_custom_command(
+    OUTPUT "${_iroha_all_output}"
+    COMMAND ${CMAKE_COMMAND}
+        -DBUILD_DIR=${CMAKE_BINARY_DIR}
+        -DOUTPUT_FILE=${_iroha_all_output}
+        -DMERGE_MODE=${_iroha_merge_mode}
+        -DMERGE_TOOL=${CMAKE_CXX_COMPILER_AR}
+        -DSTRIP_TOOL=${CMAKE_STRIP}
+        -DCONFIG=$<CONFIG>
+        -DDEFAULT_CONFIG=${CMAKE_BUILD_TYPE}
+        -P ${CMAKE_SOURCE_DIR}/cmake/merge-static-libs.cmake
+    DEPENDS ${_iroha_static_libs}
+    COMMENT "Merging Iroha static libraries into ${_iroha_all_name}"
+    VERBATIM
+)
+add_custom_target(iroha_lib_all ALL DEPENDS "${_iroha_all_output}")
+
+# ---- iroha-lib SDK install rules ----
+# `cmake --install <build> --prefix <dir>` produces:
+#   <dir>/include/iroha-lib/      public iroha-lib headers (+ umbrella)
+#   <dir>/include/shared_model/   shared_model headers used by the API
+#   <dir>/include/libs/           libs/ headers used by the API
+#   <dir>/include/irohad/         irohad headers used by the API
+#   <dir>/include/gen/schema/     generated protobuf/gRPC headers
+#   <dir>/lib/libiroha_all.a      merged archive (libiroha_all.lib on MSVC)
+# Package scripts (packaging/linux/package-linux.sh,
+# packaging/windows/package-windows.ps1) use these rules for the SDK part.
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/iroha-lib/
+        DESTINATION include/iroha-lib
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+        PATTERN "examples" EXCLUDE)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/shared_model/
+        DESTINATION include/shared_model
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+        PATTERN "schema" EXCLUDE)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/libs/
+        DESTINATION include/libs
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h")
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/irohad/
+        DESTINATION include/irohad
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/schema/
+        DESTINATION include/gen/schema
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.pb.h" PATTERN "*.grpc.pb.h"
+        PATTERN "CMakeFiles" EXCLUDE)
+install(FILES "${_iroha_all_output}"
+        DESTINATION lib
+        COMPONENT iroha_lib_sdk)
+
+# ---- distribution package target (iroha_dist) ----
+# `cmake --build <build> --target iroha_dist` stages bin/ + example/
+# (single-node RocksDB config, genesis, keys) + the iroha-lib SDK
+# (cmake --install --component iroha_lib_sdk) and archives everything
+# into <build>/dist/iroha-<version>-<platform>.{tar.gz,zip}.
+# Replaces packaging/linux/package-linux.sh and
+# packaging/windows/package-windows.ps1.
+execute_process(
+    COMMAND git describe --tags --always --dirty
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE _iroha_dist_version
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+if(NOT _iroha_dist_version)
+    set(_iroha_dist_version "dev")
+endif()
+string(REGEX REPLACE "[^A-Za-z0-9._-]" "-" _iroha_dist_version "${_iroha_dist_version}")
+string(REGEX REPLACE "-+$" "" _iroha_dist_version "${_iroha_dist_version}")
+
+set(IROHA_DIST_VERSION "${_iroha_dist_version}")
+if(WIN32)
+    set(IROHA_DIST_PLATFORM "windows-x64")
+    set(_iroha_dist_archive_ext ".zip")
+    set(IROHA_EXE ".exe")
+    set(IROHA_ALL_LIB "iroha_lib_all.lib")
+else()
+    set(IROHA_DIST_PLATFORM "linux-x64")
+    set(_iroha_dist_archive_ext ".tar.gz")
+    set(IROHA_EXE "")
+    set(IROHA_ALL_LIB "libiroha_all.a")
+endif()
+
+set(_iroha_dist_stage_name "iroha-${_iroha_dist_version}-${_iroha_dist_platform}")
+configure_file(
+    ${CMAKE_SOURCE_DIR}/packaging/dist/README.txt.in
+    ${CMAKE_BINARY_DIR}/dist/README.txt
+    @ONLY
+)
+
+add_custom_target(iroha_dist
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+        -DBUILD_DIR=${CMAKE_BINARY_DIR}
+        -DDIST_DIR=${CMAKE_BINARY_DIR}/dist
+        -DSTAGE_NAME=${_iroha_dist_stage_name}
+        -DARCHIVE_EXT=${_iroha_dist_archive_ext}
+        -DREADME_FILE=${CMAKE_BINARY_DIR}/dist/README.txt
+        -DCONFIG_FILE=${CMAKE_SOURCE_DIR}/packaging/dist/single-node-config.json
+        -P ${CMAKE_SOURCE_DIR}/cmake/stage-iroha-dist.cmake
+    COMMENT "Packaging Iroha distribution -> ${_iroha_dist_stage_name}${_iroha_dist_archive_ext}"
+    VERBATIM
+)
+add_dependencies(iroha_dist
+    irohad
+    iroha-cli
+    iroha_migrate
+    iroha_wsv_diff
+    iroha_lib_all
+)

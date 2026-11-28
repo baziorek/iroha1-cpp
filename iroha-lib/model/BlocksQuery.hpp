@@ -1,5 +1,4 @@
-#ifndef BLOCKS_QUERY_HPP
-#define BLOCKS_QUERY_HPP
+#pragma once
 
 #include <chrono>
 #include <cstdint>
@@ -29,4 +28,3 @@ private:
 
 }
 
-#endif

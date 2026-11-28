@@ -14,9 +14,9 @@
 #include <string>
 #include <cassert>
 #include <gflags/gflags.h>
-#include "../model/Tx.hpp"
-#include "../model/Query.hpp"
-#include "model/utils/Utils.h"
+#include "model/transactions.hpp"
+#include "model/queries.hpp"
+#include "model/utils.hpp"
 
 
 /// Command line options:

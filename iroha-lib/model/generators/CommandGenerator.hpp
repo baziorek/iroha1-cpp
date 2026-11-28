@@ -1,5 +1,4 @@
-#ifndef COMMAND_GENERATOR_HPP
-#define COMMAND_GENERATOR_HPP
+#pragma once
 
 #include "commands.pb.h"
 #include <optional>
@@ -86,4 +85,3 @@ public:
 
 }
 
-#endif
