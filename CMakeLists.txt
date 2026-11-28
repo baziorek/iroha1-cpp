@@ -3,6 +3,12 @@
 
 cmake_minimum_required(VERSION 3.14.0)
 
+## Dependencies are provided by vcpkg static triplets (e.g.
+## x64-windows-static) built with /MT; CMake's MSVC default is /MD,
+## which fails at link time with LNK2038 RuntimeLibrary mismatch.
+## Must be set before project()/enable_language() to take effect.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
@@ -22,10 +28,6 @@ if (NOT MSVC)
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -g -Wextra -Wno-unused-parameter -Wno-deprecated-declarations -O0")
 else()
   add_compile_options(/bigobj)
-  ## Dependencies are provided by vcpkg static triplets (e.g.
-  ## x64-windows-static) built with /MT; CMake's MSVC default is /MD,
-  ## which fails at link time with LNK2038 RuntimeLibrary mismatch.
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 SET(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 SET(CMAKE_INSTALL_RPATH "../lib")
