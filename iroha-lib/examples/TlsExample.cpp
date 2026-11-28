@@ -16,7 +16,7 @@
 #include <string>
 
 #include "common.hpp"
-#include "model/Query.hpp"
+#include "../model/Query.hpp"
 #include "model/utils/Utils.h"
 
 

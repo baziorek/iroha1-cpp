@@ -78,9 +78,6 @@ case ${VCPKG_BOOTSTRAP:-usual} in
       case $(uname | tr '[:upper:]' '[:lower:]') in
          windows*|msys*|mingw*)
             bootstrap(){ $vcpkg_path/bootstrap-vcpkg.bat -disableMetrics ; }
-            MANIFEST_ROOT=$(cygpath -wa $MANIFEST_ROOT)
-            BINARYCACHE_PATH=$(cygpath -wa $BINARYCACHE_PATH)
-            INSTALL_ROOT=$(cygpath -wa $INSTALL_ROOT)
             ;;
          *)
             bootstrap(){ $vcpkg_path/bootstrap-vcpkg.sh -disableMetrics -useSystemBinaries ; }
@@ -98,10 +95,18 @@ case usual-mode in
       ## contain glob characters and must not be pathname-expanded
       ## (nullglob above would silently drop them).
       mapfile -t deps_list < <(tr -d '\r' < "$script_dir/VCPKG_DEPS_LIST")
-      $vcpkg_path/vcpkg install \
-         --overlay-ports=$script_dir/ports \
-         --feature-flags=-manifests \
-         "${deps_list[@]}"
+      ## Retry: a transient download error (e.g. HTTP 504 for a port patch
+      ## from github.com) fails the whole install; already built ports are
+      ## kept, so a retry only redoes the failed and remaining ones.
+      for attempt in 1 2 3; do
+         $vcpkg_path/vcpkg install \
+            --overlay-ports=$script_dir/ports \
+            --feature-flags=-manifests \
+            "${deps_list[@]}" && break
+         [ $attempt -lt 3 ] || exit 1
+         echo "vcpkg install failed (attempt $attempt), retrying in 60s..." >&2
+         sleep 60
+      done
       # ( #cd /tmp
       # cat $script_dir/VCPKG_DEPS_LIST | while read pkgspec ;do
       #    $vcpkg_path/vcpkg install --feature-flags=-manifests $pkgspec

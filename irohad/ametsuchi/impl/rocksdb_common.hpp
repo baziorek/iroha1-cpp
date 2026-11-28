@@ -857,7 +857,8 @@ namespace iroha::ametsuchi {
         return it->status();
 
       static_assert(
-          std::is_convertible_v<std::result_of_t<F &(decltype(it), size_t)>,
+          std::is_convertible_v<
+              std::invoke_result_t<F &, decltype(it), size_t>,
                                 bool>,
           "Required F(unique_ptr<rocksdb::Iterator>,size_t) -> bool");
 
@@ -1198,7 +1199,8 @@ namespace iroha::ametsuchi {
                             S const &strformat,
                             Args &&... args) {
     static_assert(
-        std::is_convertible_v<std::result_of_t<F &(rocksdb::Slice)>, bool>,
+        std::is_convertible_v<std::invoke_result_t<F &, rocksdb::Slice>,
+                              bool>,
         "Must F(rocksdb::Slice) -> bool");
     return rdb.enumerate(
         [func{std::forward<F>(func)}](auto const &it,

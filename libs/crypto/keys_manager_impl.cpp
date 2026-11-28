@@ -83,25 +83,34 @@ namespace iroha {
           (path_to_keypair_ / (account_id_ + extension)).string());
     };
 
-    using ReturnType = iroha::expected::Result<Keypair, std::string>;
-    return load_from_file(kPublicKeyExtension) | [&](auto &&pubkey_hex) {
-      return load_from_file(kPrivateKeyExtension) | [&](auto &&privkey_hex) {
-        return iroha::hexstringToBytestringResult(privkey_hex) |
-                   [&](auto &&privkey_blob) -> ReturnType {
-          auto &&decrypted_privkey_blob = pass_phrase
-              ? xorCrypt(privkey_blob, pass_phrase.value())
-              : privkey_blob;
-          Keypair keypair(PublicKeyHexStringView{pubkey_hex},
-                          PrivateKey{decrypted_privkey_blob});
+    // Plain control flow instead of nested `|` binds: the latter crashes
+    // MSVC 19.4x (C1001 in msc1.cpp while deducing BindReturnTypeHelper).
+    auto pubkey_hex = load_from_file(kPublicKeyExtension);
+    if (iroha::expected::hasError(pubkey_hex)) {
+      return iroha::expected::makeError(std::move(pubkey_hex).assumeError());
+    }
+    auto privkey_hex = load_from_file(kPrivateKeyExtension);
+    if (iroha::expected::hasError(privkey_hex)) {
+      return iroha::expected::makeError(std::move(privkey_hex).assumeError());
+    }
+    auto privkey_blob =
+        iroha::hexstringToBytestringResult(privkey_hex.assumeValue());
+    if (iroha::expected::hasError(privkey_blob)) {
+      return iroha::expected::makeError(
+          std::string{privkey_blob.assumeError()});
+    }
+    std::string decrypted_privkey_blob = pass_phrase
+        ? xorCrypt(privkey_blob.assumeValue(), pass_phrase.value())
+        : privkey_blob.assumeValue();
+    Keypair keypair(PublicKeyHexStringView{pubkey_hex.assumeValue()},
+                    PrivateKey{decrypted_privkey_blob});
 
-          return validate(keypair).match(
-              [&keypair](const auto &) -> ReturnType {
-                return std::move(keypair);
-              },
-              [](const auto &error) -> ReturnType { return error.error; });
-        };
-      };
-    };
+    auto validation = validate(keypair);
+    if (iroha::expected::hasError(validation)) {
+      return iroha::expected::makeError(
+          std::string{validation.assumeError()});
+    }
+    return iroha::expected::makeValue(std::move(keypair));
   }
 
   bool KeysManagerImpl::createKeys(

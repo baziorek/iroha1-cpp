@@ -15,7 +15,7 @@
 #include "cryptography/blob.hpp"
 #include "cryptography/default_hash_provider.hpp"
 #include "datetime/time.hpp"
-#include "model/Tx.hpp"
+#include "../Tx.hpp"
 #include "model/converters/pb_common.hpp"
 
 namespace iroha_lib {

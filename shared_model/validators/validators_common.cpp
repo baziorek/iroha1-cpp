@@ -32,7 +32,7 @@ namespace shared_model {
           <= google::protobuf::util::TimeUtil::kTimestampMaxSeconds * seconds_to_miliseconds;
     }
     bool validateHeight(const uint64_t &height) {
-      const u_int64_t min_height = 1;
+      const uint64_t min_height = 1;
       return height >= min_height;
     }
     bool validateHeightOrder(const uint64_t &first_height,

@@ -68,7 +68,7 @@ namespace iroha::ametsuchi {
 
     void clear() {
       while (!data_.empty())
-        data_.template pop(
+        data_.pop(
             [](ValueHandle /*h*/, Entry const & /*stored_value*/) {});
       index_.clear();
     }

@@ -15,7 +15,7 @@
 #include "interactive/interactive_common_cli.hpp"
 #include "logger/logger_fwd.hpp"
 #include "logger/logger_manager_fwd.hpp"
-#include "model/Query.hpp"
+#include "iroha-lib/model/Query.hpp"
 
 namespace iroha_cli {
   namespace interactive {

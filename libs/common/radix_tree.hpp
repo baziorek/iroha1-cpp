@@ -110,7 +110,7 @@ namespace iroha {
 
     template <typename... Args>
     Node *reinit(Node *const what, Args &&... args) const {
-      what->data.template emplace(std::forward<Args>(args)...);
+      what->data.emplace(std::forward<Args>(args)...);
       return what;
     }
 

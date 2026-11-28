@@ -55,7 +55,7 @@ namespace shared_model::crypto {
       static constexpr auto value = sizeof...(T) > 0;
     };
 
-    uint8_t filter_[kBytesCount] __attribute__((aligned(16)));
+    alignas(16) uint8_t filter_[kBytesCount];
 
     template <typename Hasher>
     auto checkHash(DataType const &data) const {

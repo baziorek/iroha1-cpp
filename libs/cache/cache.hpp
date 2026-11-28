@@ -53,7 +53,7 @@ namespace iroha {
       }
 
       void addItemImpl(const KeyType &key, const ValueType &value) {
-        internal_storage_.template insert(toHash(key), value);
+        internal_storage_.insert(toHash(key), value);
       }
 
       boost::optional<ValueType> findItemImpl(const KeyType &key) const {
