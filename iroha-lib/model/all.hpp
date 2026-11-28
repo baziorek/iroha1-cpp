@@ -8,6 +8,7 @@
 #include "TxBatch.hpp"
 #include "generators/CommandGenerator.hpp"
 #include "generators/QueryGenerator.hpp"
+#include "permissions.hpp"
 #include "utils/Utils.h"
 #include "utils/error_codes.hpp"
 #include "utils/genesis.hpp"

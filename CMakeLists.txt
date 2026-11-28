@@ -228,3 +228,56 @@ if(TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()
+
+# ---- merged single static library (iroha_lib_all) ----
+# Combines every project STATIC_LIBRARY target into one archive so that
+# consumers of iroha-lib link a single file instead of ~100 granular
+# archives in a fragile link order. Test/fuzz/benchmark subtrees are
+# excluded. On multi-config generators the merged file is shared between
+# configurations (last build wins) — it is intended for packaging.
+function(_iroha_collect_static_libs dir out_var)
+    get_filename_component(dir "${dir}" REALPATH)
+    if(dir MATCHES "/(test|fuzz|benchmark)(/|$)")
+        return()
+    endif()
+    get_property(_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_tgt IN LISTS _targets)
+        get_target_property(_type ${_tgt} TYPE)
+        if(_type STREQUAL "STATIC_LIBRARY")
+            list(APPEND _collected ${_tgt})
+        endif()
+    endforeach()
+    get_property(_subs DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(_sub IN LISTS _subs)
+        get_filename_component(_sub "${_sub}" REALPATH)
+        _iroha_collect_static_libs(${_sub} _collected)
+    endforeach()
+    set(${out_var} "${_collected}" PARENT_SCOPE)
+endfunction()
+
+set(_iroha_static_libs "")
+_iroha_collect_static_libs(${CMAKE_SOURCE_DIR} _iroha_static_libs)
+list(REMOVE_DUPLICATES _iroha_static_libs)
+
+if(MSVC)
+    set(_iroha_all_name "iroha_lib_all.lib")
+    set(_iroha_merge_mode "lib")
+else()
+    set(_iroha_all_name "libiroha_all.a")
+    set(_iroha_merge_mode "ar")
+endif()
+set(_iroha_all_output "${CMAKE_BINARY_DIR}/lib/${_iroha_all_name}")
+
+add_custom_command(
+    OUTPUT "${_iroha_all_output}"
+    COMMAND ${CMAKE_COMMAND}
+        -DBUILD_DIR=${CMAKE_BINARY_DIR}
+        -DOUTPUT_FILE=${_iroha_all_output}
+        -DMERGE_MODE=${_iroha_merge_mode}
+        -DMERGE_TOOL=${CMAKE_CXX_COMPILER_AR}
+        -P ${CMAKE_SOURCE_DIR}/cmake/merge-static-libs.cmake
+    DEPENDS ${_iroha_static_libs}
+    COMMENT "Merging Iroha static libraries into ${_iroha_all_name}"
+    VERBATIM
+)
+add_custom_target(iroha_lib_all ALL DEPENDS "${_iroha_all_output}")

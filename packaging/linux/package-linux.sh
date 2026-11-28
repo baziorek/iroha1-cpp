@@ -84,9 +84,9 @@ while read -r f; do
     cp "$f" "$STAGE/iroha-lib/include/gen/$rel"
 done
 
-# --- merged static library ---
-"$(dirname "$0")/merge-static-libs.sh" "$BUILD_DIR" \
-    "$STAGE/iroha-lib/lib/libiroha_all.a"
+# --- merged static library (built by the iroha_lib_all CMake target) ---
+cmake --build "$BUILD_DIR" --target iroha_lib_all --parallel
+cp "$BUILD_DIR/lib/libiroha_all.a" "$STAGE/iroha-lib/lib/libiroha_all.a"
 
 if [ "$GRANULAR" -eq 1 ]; then
     mkdir -p "$STAGE/iroha-lib/lib/static"

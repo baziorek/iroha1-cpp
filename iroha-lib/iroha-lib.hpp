@@ -5,6 +5,7 @@
 ///   - model/transactions.hpp  - Tx, TxBatch, commands
 ///   - model/queries.hpp       - Query, BlocksQuery, query generators
 ///   - model/utils.hpp         - genesis, key files, error codes
+///   - model/permissions.hpp   - role/grantable permission enums
 ///   - grpc_client/GrpcClient.hpp - the gRPC client itself
 #pragma once
 
