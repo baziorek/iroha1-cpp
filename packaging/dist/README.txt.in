@@ -1,0 +1,37 @@
+Iroha 1 @IROHA_DIST_PLATFORM@ (@IROHA_DIST_VERSION@)
+====================================================
+
+bin/
+  irohad@IROHA_EXE@            - Iroha node
+  iroha-cli@IROHA_EXE@         - command-line client (interactive and JSON modes)
+  iroha_migrate@IROHA_EXE@     - WSV migration tool (PostgreSQL <-> RocksDB)
+  iroha_wsv_diff@IROHA_EXE@    - WSV comparison tool
+
+example/         - single-node network on RocksDB (no PostgreSQL needed):
+                     cd example
+                     ../bin/irohad@IROHA_EXE@ --config config.json \
+                       --genesis_block genesis.block --keypair_name node0
+                   then in another console:
+                     ../bin/iroha-cli@IROHA_EXE@ --account_name admin@test
+
+iroha-lib/
+  include/       - headers of the C++ client library; add ALL of these
+                   include directories, in this order:
+                     include/iroha-lib
+                     include/shared_model
+                     include/libs
+                     include/irohad
+                     include/gen/schema
+  lib/
+    @IROHA_ALL_LIB@ - ALL Iroha static libraries merged into one archive;
+                     link this single file (no link-order guessing)
+
+Notes
+-----
+* Built with the platform toolchain shipped in this archive; consumers
+  must use a compatible compiler.
+* iroha-lib additionally requires the third-party dependencies
+  (protobuf, gRPC, Boost, spdlog, rapidjson, gflags, fmt, OpenSSL) -
+  install them with vcpkg or provide your own builds.
+* TLS support: pass --tls_root_cert to iroha-cli / use TlsOptions in
+  iroha-lib for one-way TLS to torii.

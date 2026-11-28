@@ -844,14 +844,14 @@ jobs:
         run: cmake --build build --config Release --parallel
       -
         name: Package Windows ZIP (irohad, iroha-cli, iroha-lib)
-        shell: pwsh
-        run: ./packaging/windows/package-windows.ps1 -BuildDir build -OutDir dist
+        shell: bash
+        run: cmake --build build --config Release --target iroha_dist
       -
         name: Upload Windows ZIP artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: iroha-windows-rel
-          path: dist/*.zip
+          path: build/dist/*.zip
 
   ## On git tags, attach the Release-leg artifacts (deb package,
   ## AppImages, Windows ZIP, standalone binaries) to a GitHub Release.
