@@ -11,15 +11,7 @@
 #include <thread>
 #include <vector>
 
-#include "endpoint.pb.h"
-#include "../model/BlocksQuery.hpp"
-#include "../model/Query.hpp"
-#include "../model/Tx.hpp"
-#include "../model/TxBatch.hpp"
-#include "model/utils/Utils.h"
-#include "grpc_client/GrpcClient.hpp"
-
-#include "model/utils/error_codes.hpp"
+#include "iroha-lib.hpp"
 
 
 namespace iroha_example {

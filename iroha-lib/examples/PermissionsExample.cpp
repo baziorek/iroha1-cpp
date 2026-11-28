@@ -141,7 +141,9 @@ void checkPermissionDenied(const ToriiResponse& status)
                     "expected STATEFUL_VALIDATION_FAILED, got "
                     + std::string(TxStatus_Name(status.tx_status())));
     }
-    if (status.err_or_cmd_name() != kCreateAssetCommandName) {
+    // err_or_cmd_name may carry command details after the name
+    // ("CreateAsset: [asset_name=...]") — match on the prefix.
+    if (status.err_or_cmd_name().rfind(kCreateAssetCommandName, 0) != 0) {
         throw std::runtime_error(
                     "expected failing command '" + kCreateAssetCommandName
                     + "', got '" + status.err_or_cmd_name() + "'");

@@ -1,5 +1,4 @@
-#ifndef TX_BATCH_HPP
-#define TX_BATCH_HPP
+#pragma once
 
 #include "transaction.pb.h"
 #include <endpoint.pb.h>
@@ -45,4 +44,3 @@ public:
 
 }
 
-#endif

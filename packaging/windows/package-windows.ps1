@@ -94,6 +94,34 @@ $libs = Get-ChildItem -Path $BuildDir -Recurse -Filter *.lib -File |
 if (-not $libs) { throw "no *.lib found under $BuildDir" }
 foreach ($lib in $libs) { Copy-Item $lib.FullName "$stage/iroha-lib/lib/$($lib.Name)" }
 
+# --- merged single archive: all Iroha .lib files combined by lib.exe ---
+# Consumers can then link ONE file instead of guessing the ~100 granular
+# archives and their order. Requires MSVC lib.exe on PATH (vcvars env).
+$libExe = (Get-Command lib.exe -ErrorAction SilentlyContinue).Source
+if (-not $libExe) {
+    # lib.exe is not on the default PATH: locate the newest MSVC toolset
+    # via vswhere (present on windows-2022 GitHub runners and dev boxes).
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    if (Test-Path $vswhere) {
+        $libExe = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath |
+            ForEach-Object { Get-ChildItem "$_\VC\Tools\MSVC\*\bin\Hostx64\x64\lib.exe" -File |
+                             Select-Object -First 1 } |
+            Select-Object -First 1 -ExpandProperty FullName
+    }
+}
+if ($libExe) {
+    $merged = Join-Path $stage "iroha-lib/lib/iroha_lib_all.lib"
+    & $libExe /NOLOGO /OUT:"$merged" @($libs | ForEach-Object { $_.FullName })
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "lib.exe merge failed (exit $LASTEXITCODE); granular .lib files are still shipped"
+        Remove-Item -Force $merged -ErrorAction SilentlyContinue
+    }
+} else {
+    Write-Warning "lib.exe not found on PATH; skipping merged iroha_lib_all.lib"
+}
+
 # --- README ---
 @"
 Iroha 1 for Windows ($version)
@@ -121,7 +149,8 @@ iroha-lib/
                      include/irohad
                      include/gen/schema
   lib/           - compiled static libraries (*.lib) for linking
-                   against iroha-lib
+                   against iroha-lib; prefer the single merged archive
+                   iroha_lib_all.lib when present
 
 Notes
 -----

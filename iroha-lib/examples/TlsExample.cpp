@@ -16,8 +16,8 @@
 #include <string>
 
 #include "common.hpp"
-#include "../model/Query.hpp"
-#include "model/utils/Utils.h"
+#include "model/queries.hpp"
+#include "model/utils.hpp"
 
 
 using namespace iroha_example;

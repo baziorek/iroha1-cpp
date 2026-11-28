@@ -1,5 +1,4 @@
-#ifndef TX_HPP
-#define TX_HPP
+#pragma once
 
 #include "transaction.pb.h"
 #include <boost/bimap.hpp>
@@ -109,4 +108,3 @@ public:
 
 }
 
-#endif
