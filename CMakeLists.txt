@@ -275,6 +275,9 @@ add_custom_command(
         -DOUTPUT_FILE=${_iroha_all_output}
         -DMERGE_MODE=${_iroha_merge_mode}
         -DMERGE_TOOL=${CMAKE_CXX_COMPILER_AR}
+        -DSTRIP_TOOL=${CMAKE_STRIP}
+        -DCONFIG=$<CONFIG>
+        -DDEFAULT_CONFIG=${CMAKE_BUILD_TYPE}
         -P ${CMAKE_SOURCE_DIR}/cmake/merge-static-libs.cmake
     DEPENDS ${_iroha_static_libs}
     COMMENT "Merging Iroha static libraries into ${_iroha_all_name}"

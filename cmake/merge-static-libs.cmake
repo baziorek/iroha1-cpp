@@ -2,7 +2,9 @@
 # Runs in script mode (-P); invoked by the iroha_lib_all custom target.
 #
 #   cmake -DBUILD_DIR=<build> -DOUTPUT_FILE=<out> -DMERGE_MODE=<ar|lib>
-#         [-DMERGE_TOOL=<path-to-ar-or-lib.exe>] -P merge-static-libs.cmake
+#         [-DMERGE_TOOL=<path-to-ar-or-lib.exe>] [-DSTRIP_TOOL=<strip>]
+#         [-DCONFIG=<build-config>] [-DDEFAULT_CONFIG=<single-config>]
+#         -P merge-static-libs.cmake
 #
 # MERGE_MODE=ar  : GNU ar — objects are extracted and re-archived with
 #                  unique member names (ar stores only basenames).
@@ -97,6 +99,24 @@ else()
     endif()
     # refresh the archive index (ranlib is a no-op if unavailable)
     execute_process(COMMAND ranlib "${OUTPUT_FILE}" RESULT_VARIABLE rc)
+
+    # Strip debug info from release configurations — a Debug archive is
+    # ~10x larger mostly due to symbols. RelWithDebInfo keeps its -g
+    # lineinfo intentionally, so only pure release configs are stripped.
+    if(NOT CONFIG)
+        set(CONFIG "${DEFAULT_CONFIG}")
+    endif()
+    if(CONFIG MATCHES "^(Release|MinSizeRel)$" AND STRIP_TOOL)
+        execute_process(
+            COMMAND "${STRIP_TOOL}" "${OUTPUT_FILE}"
+            RESULT_VARIABLE strip_rc
+        )
+        if(NOT strip_rc EQUAL 0)
+            message(WARNING "strip failed (rc=${strip_rc}); archive left unstripped")
+        else()
+            message(STATUS "Stripped ${OUTPUT_FILE} (${CONFIG})")
+        endif()
+    endif()
 endif()
 
 message(STATUS "Merged archive written to ${OUTPUT_FILE}")
