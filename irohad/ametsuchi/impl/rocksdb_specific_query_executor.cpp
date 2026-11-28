@@ -452,11 +452,11 @@ RocksDbSpecificQueryExecutor::readTxs(
                  == shared_model::interface::Ordering::Field::kPosition);
 
       auto const &[tx_status, tx_height, tx_index, tx_ts] =
-          staticSplitId<4ull>(*result.template assumeValue(), "#");
+          staticSplitId<4ull>(*result.assumeValue(), "#");
 
       if (ordering_ptr->field
           == shared_model::interface::Ordering::Field::kCreatedTime) {
-        auto it = common.template seek(RocksDBPort::ColumnFamilyType::kWsv,
+        auto it = common.seek(RocksDBPort::ColumnFamilyType::kWsv,
                                        fmtstrings::kTransactionByTs,
                                        query.accountId(),
                                        tx_ts,
@@ -468,7 +468,7 @@ RocksDbSpecificQueryExecutor::readTxs(
                                         fmtstrings::kPathTransactionByTs,
                                         query.accountId());
       } else {
-        auto it = common.template seek(RocksDBPort::ColumnFamilyType::kWsv,
+        auto it = common.seek(RocksDBPort::ColumnFamilyType::kWsv,
                                        fmtstrings::kTransactionByPosition,
                                        query.accountId(),
                                        tx_height,
@@ -484,7 +484,7 @@ RocksDbSpecificQueryExecutor::readTxs(
   } else {
     if (ordering_ptr->field
         == shared_model::interface::Ordering::Field::kCreatedTime) {
-      auto it = common.template seek(RocksDBPort::ColumnFamilyType::kWsv,
+      auto it = common.seek(RocksDBPort::ColumnFamilyType::kWsv,
                                      fmtstrings::kTransactionByTsLowerBound,
                                      query.accountId(),
                                      bounds.tsFrom);
@@ -494,7 +494,7 @@ RocksDbSpecificQueryExecutor::readTxs(
                                       fmtstrings::kPathTransactionByTs,
                                       query.accountId());
     } else {
-      auto it = common.template seek(RocksDBPort::ColumnFamilyType::kWsv,
+      auto it = common.seek(RocksDBPort::ColumnFamilyType::kWsv,
                                      fmtstrings::kTransactionByHeight,
                                      query.accountId(),
                                      bounds.heightFrom);
@@ -1027,8 +1027,8 @@ operator()(
                                           kDbEntry::kCanExist>(common, call_id);
             expected::hasError(result)) {
           error = std::format("CallEngineResponse code: {}, failed: {}",
-                              result.template assumeError().code,
-                              result.template assumeError().description);
+                              result.assumeError().code,
+                              result.assumeError().description);
           return false;
         } else if (result.assumeValue()) {
           auto const &[callee_, response_] =
@@ -1042,8 +1042,8 @@ operator()(
                     common, call_id);
             expected::hasError(result)) {
           error = std::format("CallEngineDeploy code: {}, failed: {}",
-                              result.template assumeError().code,
-                              result.template assumeError().description);
+                              result.assumeError().code,
+                              result.assumeError().description);
           return false;
         } else if (result.assumeValue()) {
           cantract_address = *result.assumeValue();

@@ -84,7 +84,7 @@ bool FlatFile::add(Identifier id, const Bytes &block) {
   // New file will be created
   boost::iostreams::stream<boost::iostreams::file_descriptor_sink> file;
   try {
-    file.open(tmp_file_name, std::ofstream::binary);
+    file.open(tmp_file_name.string(), std::ofstream::binary);
   } catch (std::ios_base::failure const &e) {
     log_->warn("Cannot open file by index {} for writing: {}", id, e.what());
     return false;

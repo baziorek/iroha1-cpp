@@ -69,7 +69,7 @@ namespace iroha::ametsuchi {
                    std::unique_ptr<iroha::RadixTree<std::optional<Type>>> &to) {
       from->filterEnumerate(
           nullptr, 0ul, [&](std::string_view key, std::optional<Type> *value) {
-            to->template insert(key.data(), key.size(), std::move(*value));
+            to->insert(key.data(), key.size(), std::move(*value));
           });
     }
 
@@ -135,7 +135,7 @@ namespace iroha::ametsuchi {
       assert(isCacheable(key));
 
       /// insert to the last layer.
-      intermediate_cache_.back()->template insert(
+      intermediate_cache_.back()->insert(
           key.data(), key.size(), value);
     }
 
@@ -149,7 +149,7 @@ namespace iroha::ametsuchi {
 
       /// Since this data is present in database, we store it directly in
       /// database representation.
-      db_representation_cache_->template insert(key.data(), key.size(), value);
+      db_representation_cache_->insert(key.data(), key.size(), value);
     }
 
     auto erase(std::string_view key) {
@@ -158,7 +158,7 @@ namespace iroha::ametsuchi {
       assert(isCacheable(key));
 
       /// Insert erase state in last layer.
-      return intermediate_cache_.back()->template insert(
+      return intermediate_cache_.back()->insert(
           key.data(), key.size(), std::nullopt);
     }
 
@@ -169,7 +169,7 @@ namespace iroha::ametsuchi {
       /// Mark values that are present in all caches deleted.
       db_representation_cache_->filterEnumerate(
           filter.data(), filter.size(), [&](std::string_view key, Type *) {
-            intermediate_cache_.back()->template insert(
+            intermediate_cache_.back()->insert(
                 key.data(), key.size(), std::nullopt);
           });
 
@@ -179,7 +179,7 @@ namespace iroha::ametsuchi {
               filter.data(),
               filter.size(),
               [&](std::string_view key, std::optional<Type> *) {
-                intermediate_cache_.back()->template insert(
+                intermediate_cache_.back()->insert(
                     key.data(), key.size(), std::nullopt);
               });
 
@@ -230,7 +230,7 @@ namespace iroha::ametsuchi {
             0ul,
             [&](std::string_view key, std::optional<Type> *value) {
               if (*value)
-                db_representation_cache_->template insert(
+                db_representation_cache_->insert(
                     key.data(), key.size(), std::move(**value));
               else
                 db_representation_cache_->erase(key.data(), key.size());

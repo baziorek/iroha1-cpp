@@ -408,9 +408,9 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
                       common, *burrow_storage.getCallId());
                   expected::hasError(result))
                 return makeError<void>(
-                    result.template assumeError().code,
+                    result.assumeError().code,
                     "CallEngineResponse: {}",
-                    result.template assumeError().description);
+                    result.assumeError().description);
             } else {
               if (value.value)
                 common.valueBuffer() = *value.value;
@@ -418,9 +418,9 @@ RocksDbCommandExecutor::ExecutionResult RocksDbCommandExecutor::operator()(
                       common, *burrow_storage.getCallId());
                   expected::hasError(result))
                 return makeError<void>(
-                    result.template assumeError().code,
+                    result.assumeError().code,
                     "CallEngineDeploy: {}",
-                    result.template assumeError().description);
+                    result.assumeError().description);
             }
 
             return {};

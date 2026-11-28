@@ -1236,7 +1236,9 @@ namespace iroha {
                     }
                     std::optional<shared_model::plain::AccountDetailRecordId>
                         next_record_id{[this, &next_writer, &next_key]()
-                                           -> decltype(next_record_id) {
+                                           -> std::optional<
+                                               shared_model::plain::
+                                                   AccountDetailRecordId> {
                           if (next_key or next_writer) {
                             if (not next_writer) {
                               log_->error(
