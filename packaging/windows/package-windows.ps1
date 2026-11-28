@@ -60,28 +60,12 @@ Copy-Item example/genesis.block, example/node0.pub, example/node0.priv, `
 }
 '@ | Set-Content -Encoding ascii "$stage/example/config.json"
 
-# --- iroha-lib headers + the in-tree headers they include (source tree) ---
-# Each tree keeps its own include root: on a case-insensitive filesystem
-# irohad/model/query.hpp and iroha-lib/model/Query.hpp would collide.
-foreach ($hdrRoot in 'iroha-lib', 'shared_model', 'libs', 'irohad') {
-    $rootPath = (Resolve-Path $hdrRoot).Path
-    Get-ChildItem -Path $hdrRoot -Recurse -File -Include *.hpp, *.h |
-        ForEach-Object {
-            $rel = $_.FullName.Substring($rootPath.Length + 1)
-            $dst = Join-Path "$stage/iroha-lib/include/$hdrRoot" $rel
-            New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
-            Copy-Item $_.FullName $dst
-        }
-}
-
-# --- generated protobuf/gRPC headers (build tree) ---
-Get-ChildItem -Path $BuildDir -Recurse -File -Include *.pb.h, *.grpc.pb.h |
-    ForEach-Object {
-        $rel = $_.FullName.Substring((Resolve-Path $BuildDir).Path.Length + 1)
-        $dst = Join-Path "$stage/iroha-lib/include/gen" $rel
-        New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
-        Copy-Item $_.FullName $dst
-    }
+# --- SDK: headers + merged lib via CMake install rules ---
+# Produces $stage/iroha-lib/{include,lib}; see the install() block at the
+# end of the top-level CMakeLists.txt. The merged archive comes from the
+# iroha_lib_all target (built as part of ALL; rebuilt here to be sure).
+cmake --build $BuildDir --target iroha_lib_all --config Release
+cmake --install $BuildDir --prefix "$stage/iroha-lib" --component iroha_lib_sdk
 
 # --- compiled static libraries ---
 # Skip import libraries of executables (bin/irohad.lib etc.) and CMake
@@ -93,15 +77,6 @@ $libs = Get-ChildItem -Path $BuildDir -Recurse -Filter *.lib -File |
         }
 if (-not $libs) { throw "no *.lib found under $BuildDir" }
 foreach ($lib in $libs) { Copy-Item $lib.FullName "$stage/iroha-lib/lib/$($lib.Name)" }
-
-# --- merged single archive: produced by the iroha_lib_all CMake target ---
-# (lib.exe /OUT on MSVC, ar+ranlib elsewhere — see cmake/merge-static-libs.cmake)
-$mergedSrc = Join-Path $BuildDir "lib/iroha_lib_all.lib"
-if (Test-Path $mergedSrc) {
-    Copy-Item $mergedSrc "$stage/iroha-lib/lib/iroha_lib_all.lib"
-} else {
-    Write-Warning "iroha_lib_all.lib not found in $BuildDir; granular .lib files are still shipped"
-}
 
 # --- README ---
 @"

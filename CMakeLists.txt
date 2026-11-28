@@ -281,3 +281,40 @@ add_custom_command(
     VERBATIM
 )
 add_custom_target(iroha_lib_all ALL DEPENDS "${_iroha_all_output}")
+
+# ---- iroha-lib SDK install rules ----
+# `cmake --install <build> --prefix <dir>` produces:
+#   <dir>/include/iroha-lib/      public iroha-lib headers (+ umbrella)
+#   <dir>/include/shared_model/   shared_model headers used by the API
+#   <dir>/include/libs/           libs/ headers used by the API
+#   <dir>/include/irohad/         irohad headers used by the API
+#   <dir>/include/gen/schema/     generated protobuf/gRPC headers
+#   <dir>/lib/libiroha_all.a      merged archive (libiroha_all.lib on MSVC)
+# Package scripts (packaging/linux/package-linux.sh,
+# packaging/windows/package-windows.ps1) use these rules for the SDK part.
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/iroha-lib/
+        DESTINATION include/iroha-lib
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+        PATTERN "examples" EXCLUDE)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/shared_model/
+        DESTINATION include/shared_model
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+        PATTERN "schema" EXCLUDE)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/libs/
+        DESTINATION include/libs
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h")
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/irohad/
+        DESTINATION include/irohad
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h")
+install(DIRECTORY ${CMAKE_BINARY_DIR}/schema/
+        DESTINATION include/gen/schema
+        COMPONENT iroha_lib_sdk
+        FILES_MATCHING PATTERN "*.pb.h" PATTERN "*.grpc.pb.h"
+        PATTERN "CMakeFiles" EXCLUDE)
+install(FILES "${_iroha_all_output}"
+        DESTINATION lib
+        COMPONENT iroha_lib_sdk)

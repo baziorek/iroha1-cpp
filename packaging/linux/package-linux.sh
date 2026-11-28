@@ -64,32 +64,15 @@ cat > "$STAGE/example/config.json" <<'EOF'
 }
 EOF
 
-# --- headers: iroha-lib + the in-tree headers its public headers include ---
-# Each tree keeps its own include root (case-insensitive FS safety).
-for hdr_root in iroha-lib shared_model libs irohad; do
-    [ -d "$hdr_root" ] || continue
-    (cd "$hdr_root" && find . -type f \( -name '*.hpp' -o -name '*.h' \)) |
-    while read -r rel; do
-        mkdir -p "$STAGE/iroha-lib/include/$hdr_root/$(dirname "$rel")"
-        cp "$hdr_root/$rel" "$STAGE/iroha-lib/include/$hdr_root/$rel"
-    done
-done
-
-# --- generated protobuf/gRPC headers (build tree) ---
-BUILD_ABS=$(cd "$BUILD_DIR" && pwd)
-find "$BUILD_ABS" -type f \( -name '*.pb.h' -o -name '*.grpc.pb.h' \) |
-while read -r f; do
-    rel="${f#$BUILD_ABS/}"
-    mkdir -p "$STAGE/iroha-lib/include/gen/$(dirname "$rel")"
-    cp "$f" "$STAGE/iroha-lib/include/gen/$rel"
-done
-
-# --- merged static library (built by the iroha_lib_all CMake target) ---
+# --- SDK: headers + merged lib via CMake install rules ---
+# Produces $STAGE/iroha-lib/{include,lib}; see the install() block at the
+# end of the top-level CMakeLists.txt.
 cmake --build "$BUILD_DIR" --target iroha_lib_all --parallel
-cp "$BUILD_DIR/lib/libiroha_all.a" "$STAGE/iroha-lib/lib/libiroha_all.a"
+cmake --install "$BUILD_DIR" --prefix "$STAGE/iroha-lib" --component iroha_lib_sdk
 
 if [ "$GRANULAR" -eq 1 ]; then
     mkdir -p "$STAGE/iroha-lib/lib/static"
+    BUILD_ABS=$(cd "$BUILD_DIR" && pwd)
     find "$BUILD_ABS" -name '*.a' -type f \
         | grep -v '/CMakeFiles/' | grep -v '/test/' |
         while read -r lib; do cp "$lib" "$STAGE/iroha-lib/lib/static/"; done
